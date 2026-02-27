@@ -45,14 +45,19 @@ const SLX={
   async fetchSchedule(){await new Promise(r=>setTimeout(r,800));return genSched();},
   async cancelShift(){await new Promise(r=>setTimeout(r,600));return{ok:true};},
   async notify(ids){await new Promise(r=>setTimeout(r,800));return{ok:true,n:ids.length};},
+  async requestShift(req){await new Promise(r=>setTimeout(r,600));return{ok:true,id:`REQ-${Date.now()}`};},
+  async resolveRequest(id,action){await new Promise(r=>setTimeout(r,400));return{ok:true,action};},
+  async requestTimeOff(req){await new Promise(r=>setTimeout(r,600));return{ok:true,id:`TO-${Date.now()}`};},
+  async resolveTimeOff(id,action){await new Promise(r=>setTimeout(r,400));return{ok:true,action};},
+  async backupToCloud(empId,data){await new Promise(r=>setTimeout(r,1500));return{ok:true,ts:new Date().toISOString()};},
 };
-function genSched(){
+function genSched(numDays=14){
   const shifts=[];const types=[
     {n:"Day",s:"7:00a",e:"3:00p",c:"#2563EB"},{n:"Eve",s:"3:00p",e:"11:00p",c:"#7C3AED"},
     {n:"Night",s:"11:00p",e:"7:00a",c:"#475569"},{n:"Day12",s:"7:00a",e:"7:00p",c:"#0891B2"},
     {n:"Nite12",s:"7:00p",e:"7:00a",c:"#1E293B"}];
   const today=new Date();
-  for(let i=0;i<14;i++){const d=new Date(today);d.setDate(d.getDate()+i);
+  for(let i=0;i<numDays;i++){const d=new Date(today);d.setDate(d.getDate()+i);
     if(Math.random()>.3){const t=types[Math.floor(Math.random()*types.length)];
     shifts.push({id:`SH${i}`,date:d.toISOString().split("T")[0],type:t.n,s:t.s,e:t.e,c:t.c,
       loc:["2A","Main","3B","MC"][Math.floor(Math.random()*4)]});}}
@@ -76,7 +81,14 @@ body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);-webki
 .fi{animation:fi .3s ease-out both}.su{animation:su .35s ease-out both}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--brd);border-radius:3px}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue)!important;box-shadow:0 0 0 3px var(--blueL)}
-textarea{resize:vertical;font-family:inherit}`;
+textarea{resize:vertical;font-family:inherit}
+.open-slot{border:2px dashed var(--green)!important;cursor:pointer;transition:all .15s}
+.open-slot:hover{background:var(--greenL)!important;border-color:#059669!important;transform:translateY(-1px);box-shadow:0 2px 8px rgba(5,150,105,.15)}
+.month-nav{display:inline-flex;align-items:center;gap:2px;padding:3px 4px;background:var(--hover);border-radius:var(--rs);border:1px solid var(--brd)}
+.month-nav button{padding:6px 14px;border-radius:var(--rs);border:none;background:transparent;font-family:inherit;font-size:12px;font-weight:600;color:var(--t2);cursor:pointer;transition:all .15s}
+.month-nav button.active{background:var(--blue);color:#fff;box-shadow:var(--sh)}
+.off-req{cursor:pointer;transition:all .15s;position:relative}
+.off-req:hover{opacity:.85;box-shadow:0 1px 4px rgba(220,38,38,.2)}`;
 
 // ═══ SHARED COMPONENTS ═══
 function Badge({children,v="default",style:st}){
@@ -161,31 +173,74 @@ function HipaaBar(){
 }
 
 // ═══ DATA ═══
+const FACILITIES=[
+  {id:"F001",name:"Tulia Health and Rehabilitation",state:"TX",address:"2510 W 24th Street, Tulia, TX 79088",phone:"806-296-5584"},
+  {id:"F002",name:"Oklahoma Care Center",state:"OK",address:"1200 N Main St, Oklahoma City, OK 73102",phone:"405-555-0100"},
+];
+const getFacility=(id)=>FACILITIES.find(f=>f.id===id)||FACILITIES[0];
+
+const STEPS_TX=[
+  {id:"app",label:"Employment Application",desc:"Personal info, education, employment history, references",icon:"📋",type:"form"},
+  {id:"newhire",label:"New Hire Info",desc:"Demographics, job details, pay rate, schedule",icon:"📄",type:"form"},
+  {id:"emergency",label:"Emergency Contacts",desc:"Primary & secondary emergency contacts, physician",icon:"🚨",type:"form"},
+  {id:"w4",label:"Federal W-4",desc:"IRS employee withholding certificate (2026)",icon:"💰",type:"form"},
+  {id:"i9",label:"Form I-9",desc:"USCIS employment eligibility verification",icon:"📋",type:"form"},
+  {id:"dpscch",label:"TX DPS Background Check",desc:"Texas DPS criminal conviction history verification",icon:"🔍",type:"form"},
+  {id:"deposit",label:"Direct Deposit",desc:"Bank routing & account for payroll",icon:"🏦",type:"form"},
+  {id:"videos",label:"Training Videos",desc:"Orientation, safety, HIPAA compliance",icon:"🎬",type:"video"},
+  {id:"policy",label:"Policy Acknowledgment",desc:"Employee handbook, HIPAA confidentiality",icon:"✅",type:"form"},
+];
+const STEPS_OK=[
+  {id:"app",label:"Employment Application",desc:"Personal info, education, employment history, references",icon:"📋",type:"form"},
+  {id:"newhire",label:"New Hire Info",desc:"Demographics, job details, pay rate, schedule",icon:"📄",type:"form"},
+  {id:"emergency",label:"Emergency Contacts",desc:"Primary & secondary emergency contacts, physician",icon:"🚨",type:"form"},
+  {id:"w4",label:"Federal W-4",desc:"IRS employee withholding certificate (2026)",icon:"💰",type:"form"},
+  {id:"okw4",label:"OK State W-4",desc:"Oklahoma employee withholding allowance certificate",icon:"💰",type:"form"},
+  {id:"i9",label:"Form I-9",desc:"USCIS employment eligibility verification",icon:"📋",type:"form"},
+  {id:"bgc",label:"OK Background Check",desc:"OK Long Term Care Security Act — consent & fingerprint",icon:"🔍",type:"form"},
+  {id:"deposit",label:"Direct Deposit",desc:"Bank routing & account for payroll",icon:"🏦",type:"form"},
+  {id:"videos",label:"Training Videos",desc:"Orientation, safety, HIPAA compliance",icon:"🎬",type:"video"},
+  {id:"policy",label:"Policy Acknowledgment",desc:"Employee handbook, HIPAA confidentiality",icon:"✅",type:"form"},
+];
+const getStepsForState=(st)=>st==="OK"?STEPS_OK:STEPS_TX;
+const CLOUD_BACKUP={url:null,status:"not_configured"}; // destination TBD
+
 const INIT_EMP=[
-  {id:"E001",name:"Maria Santos",role:"CNA",email:"maria.s@email.com",status:"active",onboardingComplete:true,smartlinxId:"SLX-440122",avatar:"MS",schedType:"scheduled",rotation:"8hr",pattern:"Day",daysOn:5,daysOff:2,formData:null,submittedDocs:null},
-  {id:"E002",name:"James Wilson",role:"RN",email:"james.w@email.com",status:"active",onboardingComplete:true,smartlinxId:"SLX-440233",avatar:"JW",schedType:"scheduled",rotation:"12hr",pattern:"Day12",daysOn:3,daysOff:4,formData:null,submittedDocs:null},
-  {id:"E003",name:"Aisha Johnson",role:"LPN",email:"aisha.j@email.com",status:"onboarding",onboardingComplete:false,smartlinxId:null,avatar:"AJ",schedType:null,rotation:null,pattern:null,daysOn:null,daysOff:null,formData:{firstName:"Aisha",lastName:"Johnson"},submittedDocs:null},
-  {id:"E004",name:"David Chen",role:"CNA",email:"david.c@email.com",status:"active",onboardingComplete:true,smartlinxId:"SLX-440344",avatar:"DC",schedType:"prn",rotation:null,pattern:null,daysOn:null,daysOff:null,formData:null,submittedDocs:null},
-  {id:"E005",name:"Sarah Kim",role:"RN",email:"sarah.k@email.com",status:"invited",onboardingComplete:false,smartlinxId:null,avatar:"SK",schedType:null,formData:null,submittedDocs:null},
-  {id:"E006",name:"Tom Rivera",role:"CMA",email:"tom.r@email.com",status:"active",onboardingComplete:true,smartlinxId:"SLX-440455",avatar:"TR",schedType:"scheduled",rotation:"8hr",pattern:"Eve",daysOn:5,daysOff:2,formData:null,submittedDocs:null},
-  {id:"E007",name:"Priya Patel",role:"CMA",email:"priya.p@email.com",status:"review",onboardingComplete:false,smartlinxId:null,avatar:"PP",schedType:null,
-    formData:{firstName:"Priya",lastName:"Patel",ssn:"***-**-1234",dob:"1995-03-15",address:"123 Oak St",city:"Austin",state:"TX",zip:"78701",emergName:"Raj Patel",emergPhone:"(555)111-2222",emergRelation:"Spouse",w4Status:"married",w4Allowances:"2",i9DocType:"passport",i9DocNumber:"X12345678",bankName:"Chase",routingNumber:"021000021",accountNumber:"****4567",accountType:"checking",_videosDone:{v1:1,v2:1,v3:1},_policySigned:true},
+  {id:"E001",name:"Maria Santos",role:"CNA",email:"maria.s@email.com",status:"active",onboardingComplete:true,smartlinxId:"SLX-440122",avatar:"MS",facilityId:"F001",schedType:"scheduled",rotation:"8hr",pattern:"Day",daysOn:5,daysOff:2,formData:null,submittedDocs:null,cloudBackupAt:null},
+  {id:"E002",name:"James Wilson",role:"RN",email:"james.w@email.com",status:"active",onboardingComplete:true,smartlinxId:"SLX-440233",avatar:"JW",facilityId:"F001",schedType:"scheduled",rotation:"12hr",pattern:"Day12",daysOn:3,daysOff:4,formData:null,submittedDocs:null,cloudBackupAt:null},
+  {id:"E003",name:"Aisha Johnson",role:"LPN",email:"aisha.j@email.com",status:"onboarding",onboardingComplete:false,smartlinxId:null,avatar:"AJ",facilityId:"F002",schedType:null,rotation:null,pattern:null,daysOn:null,daysOff:null,formData:{firstName:"Aisha",lastName:"Johnson"},submittedDocs:null,cloudBackupAt:null},
+  {id:"E004",name:"David Chen",role:"CNA",email:"david.c@email.com",status:"active",onboardingComplete:true,smartlinxId:"SLX-440344",avatar:"DC",facilityId:"F001",schedType:"prn",rotation:null,pattern:null,daysOn:null,daysOff:null,formData:null,submittedDocs:null,cloudBackupAt:null},
+  {id:"E005",name:"Sarah Kim",role:"RN",email:"sarah.k@email.com",status:"invited",onboardingComplete:false,smartlinxId:null,avatar:"SK",facilityId:"F002",schedType:null,formData:null,submittedDocs:null,cloudBackupAt:null},
+  {id:"E006",name:"Tom Rivera",role:"CMA",email:"tom.r@email.com",status:"active",onboardingComplete:true,smartlinxId:"SLX-440455",avatar:"TR",facilityId:"F001",schedType:"scheduled",rotation:"8hr",pattern:"Eve",daysOn:5,daysOff:2,formData:null,submittedDocs:null,cloudBackupAt:null},
+  {id:"E007",name:"Priya Patel",role:"CMA",email:"priya.p@email.com",status:"review",onboardingComplete:false,smartlinxId:null,avatar:"PP",facilityId:"F001",schedType:null,
+    formData:{firstName:"Priya",lastName:"Patel",ssn:"***-**-1234",dob:"1995-03-15",address:"123 Oak St",city:"Austin",state:"TX",zip:"78701",
+      app_position:"CMA",app_usCitizen:"yes",app_workAuth:"yes",app_salary:"$15/hr",app_dateAvail:"2026-03-01",
+      ec1_name:"Raj Patel",ec1_phone:"(555)111-2222",ec1_relation:"Spouse",
+      w4_filingStatus:"married",i9_citizenship:"citizen",
+      dps_consent:true,
+      dd_bank1Name:"Chase",dd_bank1Routing:"021000021",dd_bank1Account:"****4567",dd_bank1Type:"checking",
+      _videosDone:{v1:1,v2:1,v3:1},_policySigned:true},
     submittedDocs:{at:"2026-02-22T14:30:00"}},
 ];
 const INIT_ADMINS=[
   {id:"A001",name:"Rebecca Torres",email:"rebecca.t@facility.com",status:"active"},
   {id:"A002",name:"Michael Park",email:"michael.p@facility.com",status:"active"},
 ];
-const INIT_STEPS=[
-  {id:"personal",label:"Personal Information",desc:"Legal name, DOB, SSN, address, emergency contacts",icon:"📋",type:"form"},
-  {id:"tax",label:"Tax Forms (W-4 / I-9)",desc:"Federal withholding, employment eligibility",icon:"📄",type:"form"},
-  {id:"banking",label:"Direct Deposit",desc:"Bank routing & account number",icon:"🏦",type:"form"},
-  {id:"videos",label:"Training Videos",desc:"Orientation, safety, HIPAA compliance",icon:"🎬",type:"video"},
-  {id:"policy",label:"Policy Acknowledgment",desc:"Employee handbook, HIPAA confidentiality",icon:"✅",type:"form"},
+const INIT_SHIFTS=[
+  {id:"OS1",date:(()=>{const d=new Date();d.setDate(d.getDate()+1);return d.toISOString().split("T")[0]})(),type:"Day",s:"7a",e:"3p",loc:"2A",role:"CNA",need:2,status:"open",notif:[]},
+  {id:"OS2",date:(()=>{const d=new Date();d.setDate(d.getDate()+3);return d.toISOString().split("T")[0]})(),type:"Eve",s:"3p",e:"11p",loc:"Main",role:"RN",need:1,status:"open",notif:[]},
+  {id:"OS3",date:(()=>{const d=new Date();d.setDate(d.getDate()+5);return d.toISOString().split("T")[0]})(),type:"Night",s:"11p",e:"7a",loc:"3B",role:"CNA",need:1,status:"open",notif:[]},
+  {id:"OS4",date:(()=>{const d=new Date();d.setDate(d.getDate()+10);return d.toISOString().split("T")[0]})(),type:"Day12",s:"7a",e:"7p",loc:"MC",role:"CMA",need:2,status:"open",notif:[]},
+  {id:"OS5",date:(()=>{const d=new Date();d.setDate(d.getDate()+14);return d.toISOString().split("T")[0]})(),type:"Eve",s:"3p",e:"11p",loc:"2A",role:"CNA",need:1,status:"open",notif:[]},
+  {id:"OS6",date:(()=>{const d=new Date();d.setDate(d.getDate()+20);return d.toISOString().split("T")[0]})(),type:"Day",s:"7a",e:"3p",loc:"Main",role:"LPN",need:1,status:"open",notif:[]},
 ];
+const INIT_STEPS={TX:STEPS_TX,OK:STEPS_OK};
 
 // ═══ EMPLOYEE ONBOARDING PORTAL ═══
-// This IS the homescreen for new hires. Fillable forms, persists across sessions, submit to admin.
+// State-specific document packages: TX and OK have different forms.
+// Shared: Employment App, New Hire Info, Emergency Contacts, Federal W-4, I-9, Direct Deposit, Videos, Policy
+// OK only: OK State W-4, BGC (Long Term Care Security Act fingerprint consent)
+// TX only: DPS CCH Verification (criminal history)
 function OnboardPortal({emp,onSave,onSubmit,steps}){
   const[step,setStep]=useState(0);
   const[fd,setFd]=useState(emp.formData||{});
@@ -194,23 +249,30 @@ function OnboardPortal({emp,onSave,onSubmit,steps}){
   const[saving,setSaving]=useState(false);
   const[done,setDone]=useState(false);
   const lastSave=useRef(null);
+  const fac=getFacility(emp.facilityId);
 
   const upd=(k,v)=>setFd(p=>({...p,[k]:v}));
+  const Sec=({t})=><p style={{fontSize:13,fontWeight:700,margin:"8px 0 10px",color:"var(--t2)",borderBottom:"1px solid var(--brd2)",paddingBottom:4}}>{t}</p>;
+  const PII=()=><div style={{fontSize:10,color:"var(--amber)",display:"flex",alignItems:"center",gap:4,padding:"5px 8px",background:"#FFFBEB",borderRadius:4,border:"1px solid #FDE68A",marginBottom:14}}><I.Lock s={10} c="#D97706"/>PHI/PII — encrypted per HIPAA §164.312</div>;
 
   const doSave=useCallback(()=>{
     const full={...fd,_videosDone:vids,_policySigned:signed};
     onSave(full);lastSave.current=new Date();
   },[fd,vids,signed,onSave]);
 
-  // Auto-save every 30s
   useEffect(()=>{const t=setInterval(doSave,30000);return()=>clearInterval(t);},[doSave]);
-
   const manSave=async()=>{setSaving(true);doSave();await new Promise(r=>setTimeout(r,500));setSaving(false);};
 
   const stepOk=(s)=>{
-    if(s.id==="personal")return!!(fd.firstName&&fd.lastName&&fd.dob&&fd.ssn&&fd.address&&fd.city&&fd.state&&fd.zip&&fd.emergName&&fd.emergPhone);
-    if(s.id==="tax")return!!(fd.w4Status&&fd.w4Allowances&&fd.i9DocType&&fd.i9DocNumber);
-    if(s.id==="banking")return!!(fd.bankName&&fd.routingNumber&&fd.accountNumber&&fd.accountType);
+    if(s.id==="app")return!!(fd.firstName&&fd.lastName&&fd.address&&fd.city&&fd.state&&fd.zip&&fd.phone&&fd.ssn&&fd.app_position&&fd.app_usCitizen&&fd.app_workAuth);
+    if(s.id==="newhire")return!!(fd.firstName&&fd.lastName&&fd.dob&&fd.nh_hireDate&&fd.nh_title&&fd.nh_status);
+    if(s.id==="emergency")return!!(fd.ec1_name&&fd.ec1_phone);
+    if(s.id==="w4")return!!fd.w4_filingStatus;
+    if(s.id==="okw4")return!!(fd.okw4_filingStatus&&fd.okw4_totalAllowances);
+    if(s.id==="i9")return!!fd.i9_citizenship;
+    if(s.id==="bgc")return!!fd.bgc_consent;
+    if(s.id==="dpscch")return!!fd.dps_consent;
+    if(s.id==="deposit")return!!(fd.dd_bank1Name&&fd.dd_bank1Routing&&fd.dd_bank1Account&&fd.dd_bank1Type);
     if(s.id==="videos")return Object.keys(vids).length>=3;
     if(s.id==="policy")return signed;
     return false;
@@ -221,70 +283,358 @@ function OnboardPortal({emp,onSave,onSubmit,steps}){
 
   const doSubmit=async()=>{if(!allOk)return;doSave();setDone(true);await new Promise(r=>setTimeout(r,800));
     onSubmit({...fd,_videosDone:vids,_policySigned:signed});};
-
   const cur=steps[step];
 
-  // ─── Form renderers ───
-  const FormPersonal=()=><div className="fi">
-    <div style={{fontSize:10,color:"var(--amber)",display:"flex",alignItems:"center",gap:4,padding:"5px 8px",background:"#FFFBEB",borderRadius:4,border:"1px solid #FDE68A",marginBottom:14}}><I.Lock s={10} c="#D97706"/>PHI/PII — encrypted per HIPAA §164.312</div>
-    <p style={{fontSize:14,fontWeight:700,marginBottom:14}}>Personal Information</p>
-    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0 14px"}}>
-      <Inp label="Legal First Name" value={fd.firstName||""} onChange={e=>upd("firstName",e.target.value)} placeholder="Jane" req/>
-      <Inp label="Legal Last Name" value={fd.lastName||""} onChange={e=>upd("lastName",e.target.value)} placeholder="Smith" req/>
-      <Inp label="Date of Birth" type="date" value={fd.dob||""} onChange={e=>upd("dob",e.target.value)} req note="PII"/>
-      <Inp label="Social Security Number" value={fd.ssn||""} onChange={e=>upd("ssn",e.target.value)} placeholder="XXX-XX-XXXX" req note="Encrypted AES-256"/>
-      <Inp label="Phone" value={fd.phone||""} onChange={e=>upd("phone",e.target.value)} placeholder="(555) 123-4567"/>
-      <Inp label="Email" value={fd.email||emp.email||""} disabled/>
+  // ─── Employment Application ───
+  const FormApp=()=><div className="fi">
+    <PII/>
+    <p style={{fontSize:14,fontWeight:700,marginBottom:14}}>Employment Application</p>
+    <Sec t="Applicant Information"/>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"0 14px"}}>
+      <Inp label="Last Name" value={fd.lastName||""} onChange={e=>upd("lastName",e.target.value)} req/>
+      <Inp label="First Name" value={fd.firstName||""} onChange={e=>upd("firstName",e.target.value)} req/>
+      <Inp label="M.I." value={fd.mi||""} onChange={e=>upd("mi",e.target.value)}/>
     </div>
-    <p style={{fontSize:13,fontWeight:700,margin:"4px 0 10px",color:"var(--t2)"}}>Mailing Address</p>
-    <Inp label="Street" value={fd.address||""} onChange={e=>upd("address",e.target.value)} placeholder="123 Main St" req/>
-    <div style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr",gap:"0 10px"}}>
+    <Inp label="Street Address" value={fd.address||""} onChange={e=>upd("address",e.target.value)} req/>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 2fr 1fr 1fr",gap:"0 10px"}}>
+      <Inp label="Apt/Unit" value={fd.apt||""} onChange={e=>upd("apt",e.target.value)}/>
       <Inp label="City" value={fd.city||""} onChange={e=>upd("city",e.target.value)} req/>
-      <Inp label="State" value={fd.state||""} onChange={e=>upd("state",e.target.value)} placeholder="TX" req/>
+      <Inp label="State" value={fd.state||""} onChange={e=>upd("state",e.target.value)} req/>
       <Inp label="ZIP" value={fd.zip||""} onChange={e=>upd("zip",e.target.value)} req/>
     </div>
-    <p style={{fontSize:13,fontWeight:700,margin:"4px 0 10px",color:"var(--t2)"}}>Emergency Contact</p>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0 14px"}}>
+      <Inp label="Phone" value={fd.phone||""} onChange={e=>upd("phone",e.target.value)} placeholder="(555) 123-4567" req/>
+      <Inp label="Email" value={fd.email||emp.email||""} disabled/>
+      <Inp label="Date Available" type="date" value={fd.app_dateAvail||""} onChange={e=>upd("app_dateAvail",e.target.value)}/>
+      <Inp label="Social Security Number" value={fd.ssn||""} onChange={e=>upd("ssn",e.target.value)} placeholder="XXX-XX-XXXX" req note="Encrypted AES-256"/>
+      <Inp label="Desired Salary" value={fd.app_salary||""} onChange={e=>upd("app_salary",e.target.value)}/>
+      <Inp label="Position Applied For" value={fd.app_position||""} onChange={e=>upd("app_position",e.target.value)} req/>
+    </div>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0 14px"}}>
+      <Sel label="US Citizen?" value={fd.app_usCitizen||""} onChange={e=>upd("app_usCitizen",e.target.value)} req><option value="">Select…</option><option value="yes">Yes</option><option value="no">No</option></Sel>
+      <Sel label="Authorized to work in US?" value={fd.app_workAuth||""} onChange={e=>upd("app_workAuth",e.target.value)} req><option value="">Select…</option><option value="yes">Yes</option><option value="no">No</option></Sel>
+      <Sel label="Worked for this company before?" value={fd.app_workedBefore||""} onChange={e=>upd("app_workedBefore",e.target.value)}><option value="">Select…</option><option value="yes">Yes</option><option value="no">No</option></Sel>
+      <Sel label="Convicted of a felony?" value={fd.app_felony||""} onChange={e=>upd("app_felony",e.target.value)}><option value="">Select…</option><option value="yes">Yes</option><option value="no">No</option></Sel>
+    </div>
+    {fd.app_felony==="yes"&&<Inp label="If yes, explain" value={fd.app_felonyExplain||""} onChange={e=>upd("app_felonyExplain",e.target.value)} multiline rows={2}/>}
+    <Sec t="Education"/>
+    {["High School","College","Other"].map((lv,idx)=><div key={lv}><div style={{fontSize:11,fontWeight:600,color:"var(--t3)",marginBottom:4}}>{lv}</div>
+      <div style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr",gap:"0 8px"}}>
+        <Inp label="School/Address" value={fd[`edu${idx}_addr`]||""} onChange={e=>upd(`edu${idx}_addr`,e.target.value)}/>
+        <Inp label="From" value={fd[`edu${idx}_from`]||""} onChange={e=>upd(`edu${idx}_from`,e.target.value)}/>
+        <Inp label="To" value={fd[`edu${idx}_to`]||""} onChange={e=>upd(`edu${idx}_to`,e.target.value)}/>
+        <Sel label="Graduate?" value={fd[`edu${idx}_grad`]||""} onChange={e=>upd(`edu${idx}_grad`,e.target.value)}><option value="">—</option><option>Yes</option><option>No</option></Sel>
+        <Inp label="Degree" value={fd[`edu${idx}_deg`]||""} onChange={e=>upd(`edu${idx}_deg`,e.target.value)}/>
+      </div></div>)}
+    <Sec t="Licenses / Certifications"/>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr 1fr",gap:"0 8px"}}>
+      <Inp label="Type" value={fd.lic_type||""} onChange={e=>upd("lic_type",e.target.value)} placeholder="CNA, LPN…"/>
+      <Inp label="State Issued" value={fd.lic_state||""} onChange={e=>upd("lic_state",e.target.value)}/>
+      <Inp label="Issue Date" type="date" value={fd.lic_issue||""} onChange={e=>upd("lic_issue",e.target.value)}/>
+      <Inp label="Expiration" type="date" value={fd.lic_exp||""} onChange={e=>upd("lic_exp",e.target.value)}/>
+      <Inp label="License #" value={fd.lic_num||""} onChange={e=>upd("lic_num",e.target.value)}/>
+    </div>
+    <Sec t="References (2 Professional, 1 Personal)"/>
+    {[0,1,2].map(i=><div key={i} style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:"0 8px",marginBottom:2}}>
+      <Inp label={`Ref ${i+1} Name`} value={fd[`ref${i}_name`]||""} onChange={e=>upd(`ref${i}_name`,e.target.value)} placeholder={i<2?"Professional":"Personal"}/>
+      <Inp label="Relationship" value={fd[`ref${i}_rel`]||""} onChange={e=>upd(`ref${i}_rel`,e.target.value)}/>
+      <Inp label="Company" value={fd[`ref${i}_co`]||""} onChange={e=>upd(`ref${i}_co`,e.target.value)}/>
+      <Inp label="Phone" value={fd[`ref${i}_phone`]||""} onChange={e=>upd(`ref${i}_phone`,e.target.value)}/>
+    </div>)}
+    <Sec t="Previous Employment"/>
+    {[0,1,2].map(i=><Card key={i} style={{padding:12,marginBottom:8,background:"var(--bg)"}}>
+      <div style={{fontSize:11,fontWeight:600,color:"var(--t3)",marginBottom:6}}>Employer {i+1}</div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0 10px"}}>
+        <Inp label="Company" value={fd[`emp${i}_co`]||""} onChange={e=>upd(`emp${i}_co`,e.target.value)}/>
+        <Inp label="Phone" value={fd[`emp${i}_phone`]||""} onChange={e=>upd(`emp${i}_phone`,e.target.value)}/>
+        <Inp label="Job Title" value={fd[`emp${i}_title`]||""} onChange={e=>upd(`emp${i}_title`,e.target.value)}/>
+        <Inp label="Supervisor" value={fd[`emp${i}_super`]||""} onChange={e=>upd(`emp${i}_super`,e.target.value)}/>
+        <Inp label="Starting Salary" value={fd[`emp${i}_startPay`]||""} onChange={e=>upd(`emp${i}_startPay`,e.target.value)}/>
+        <Inp label="Ending Salary" value={fd[`emp${i}_endPay`]||""} onChange={e=>upd(`emp${i}_endPay`,e.target.value)}/>
+        <Inp label="From" type="date" value={fd[`emp${i}_from`]||""} onChange={e=>upd(`emp${i}_from`,e.target.value)}/>
+        <Inp label="To" type="date" value={fd[`emp${i}_to`]||""} onChange={e=>upd(`emp${i}_to`,e.target.value)}/>
+      </div>
+      <Inp label="Responsibilities" value={fd[`emp${i}_resp`]||""} onChange={e=>upd(`emp${i}_resp`,e.target.value)} multiline rows={2}/>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0 10px"}}>
+        <Inp label="Reason for Leaving" value={fd[`emp${i}_reason`]||""} onChange={e=>upd(`emp${i}_reason`,e.target.value)}/>
+        <Sel label="May we contact?" value={fd[`emp${i}_contact`]||""} onChange={e=>upd(`emp${i}_contact`,e.target.value)}><option value="">—</option><option>Yes</option><option>No</option></Sel>
+      </div></Card>)}
+    <Sec t="Military Service"/>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr 1fr",gap:"0 8px"}}>
+      <Inp label="Branch" value={fd.mil_branch||""} onChange={e=>upd("mil_branch",e.target.value)}/>
+      <Inp label="From" type="date" value={fd.mil_from||""} onChange={e=>upd("mil_from",e.target.value)}/>
+      <Inp label="To" type="date" value={fd.mil_to||""} onChange={e=>upd("mil_to",e.target.value)}/>
+      <Inp label="Rank at Discharge" value={fd.mil_rank||""} onChange={e=>upd("mil_rank",e.target.value)}/>
+      <Sel label="Discharge Type" value={fd.mil_discharge||""} onChange={e=>upd("mil_discharge",e.target.value)}><option value="">—</option><option>Honorable</option><option>General</option><option>Other</option></Sel>
+    </div>
+    <Sec t="Authorization"/>
+    <Card style={{padding:14,fontSize:12,color:"var(--t2)",lineHeight:1.6,marginBottom:10}}>I certify the information in this application is true and complete. I authorize investigation of all statements. Falsification may result in termination. I understand employment is at-will and consent to background checks as required.</Card>
+  </div>;
+
+  // ─── New Hire Info (demographics, job details, pay) ───
+  const FormNewHire=()=><div className="fi">
+    <p style={{fontSize:14,fontWeight:700,marginBottom:4}}>New Hire Form</p>
+    <p style={{fontSize:11,color:"var(--t3)",marginBottom:14}}>{fac.name} — {fac.address}</p>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0 14px"}}>
+      <Inp label="Last Name" value={fd.lastName||""} onChange={e=>upd("lastName",e.target.value)} req/>
+      <Inp label="First Name" value={fd.firstName||""} onChange={e=>upd("firstName",e.target.value)} req/>
+    </div>
+    <Inp label="Address" value={fd.address||""} onChange={e=>upd("address",e.target.value)}/>
+    <div style={{display:"grid",gridTemplateColumns:"2fr 1fr 1fr",gap:"0 10px"}}>
+      <Inp label="City" value={fd.city||""} onChange={e=>upd("city",e.target.value)}/>
+      <Inp label="State/ZIP" value={`${fd.state||""} ${fd.zip||""}`} disabled/>
+      <Inp label="Phone" value={fd.phone||""} onChange={e=>upd("phone",e.target.value)}/>
+    </div>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:"0 10px"}}>
+      <Sel label="Gender" value={fd.nh_gender||""} onChange={e=>upd("nh_gender",e.target.value)}><option value="">Select…</option><option>Male</option><option>Female</option></Sel>
+      <Inp label="Date of Birth" type="date" value={fd.dob||""} onChange={e=>upd("dob",e.target.value)} req note="PII"/>
+      <Inp label="Date of Hire" type="date" value={fd.nh_hireDate||""} onChange={e=>upd("nh_hireDate",e.target.value)} req/>
+      <Inp label="SSN" value={fd.ssn||""} onChange={e=>upd("ssn",e.target.value)} note="Encrypted"/>
+    </div>
+    <Sec t="Position Details"/>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"0 10px"}}>
-      <Inp label="Name" value={fd.emergName||""} onChange={e=>upd("emergName",e.target.value)} req/>
-      <Inp label="Phone" value={fd.emergPhone||""} onChange={e=>upd("emergPhone",e.target.value)} req/>
-      <Inp label="Relationship" value={fd.emergRelation||""} onChange={e=>upd("emergRelation",e.target.value)}/>
+      <Inp label="Job Title" value={fd.nh_title||""} onChange={e=>upd("nh_title",e.target.value)} req/>
+      <Inp label="Department" value={fd.nh_dept||""} onChange={e=>upd("nh_dept",e.target.value)}/>
+      <Sel label="Status" value={fd.nh_status||""} onChange={e=>upd("nh_status",e.target.value)} req><option value="">Select…</option><option>Full-Time</option><option>Part-Time</option><option>PRN</option><option>Rehire</option></Sel>
+    </div>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"0 10px"}}>
+      <Inp label="Hourly Rate" value={fd.nh_hourlyRate||""} onChange={e=>upd("nh_hourlyRate",e.target.value)} placeholder="$15.00"/>
+      <Inp label="Weekly Scheduled Hours" value={fd.nh_weeklyHrs||""} onChange={e=>upd("nh_weeklyHrs",e.target.value)}/>
+      <Inp label="Shift (Daily Hours)" value={fd.nh_shift||""} onChange={e=>upd("nh_shift",e.target.value)} placeholder="7a-3p"/>
+    </div>
+    <Sec t="Tax Withholding Summary"/>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"0 10px"}}>
+      <Sel label="Marital Status" value={fd.nh_marital||""} onChange={e=>upd("nh_marital",e.target.value)}><option value="">Select…</option><option>Married</option><option>Single</option></Sel>
+      <Inp label="# of Exemptions" value={fd.nh_exemptions||""} onChange={e=>upd("nh_exemptions",e.target.value)}/>
+      <Sel label="Direct Deposit?" value={fd.nh_ddYes||""} onChange={e=>upd("nh_ddYes",e.target.value)}><option value="">Select…</option><option>Yes</option><option>No</option></Sel>
     </div>
   </div>;
 
-  const FormTax=()=><div className="fi">
-    <p style={{fontSize:14,fontWeight:700,marginBottom:14}}>W-4 — Withholding Certificate</p>
+  // ─── Emergency Contacts ───
+  const FormEmergency=()=><div className="fi">
+    <p style={{fontSize:14,fontWeight:700,marginBottom:14}}>Employee Emergency Contact Form</p>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0 14px"}}>
-      <Sel label="Filing Status" value={fd.w4Status||""} onChange={e=>upd("w4Status",e.target.value)} req>
-        <option value="">Select…</option><option>single</option><option>married</option><option>head_of_household</option></Sel>
-      <Inp label="Allowances" value={fd.w4Allowances||""} onChange={e=>upd("w4Allowances",e.target.value)} placeholder="0" req/>
+      <Inp label="Employee Name" value={`${fd.firstName||""} ${fd.lastName||""}`} disabled/>
+      <Inp label="Home Phone" value={fd.phone||""} onChange={e=>upd("phone",e.target.value)}/>
+      <Inp label="Cell Phone" value={fd.ec_cell||""} onChange={e=>upd("ec_cell",e.target.value)}/>
+      <Inp label="Email" value={fd.email||emp.email||""} disabled/>
     </div>
-    <Inp label="Additional Withholding ($/pay)" value={fd.w4Extra||""} onChange={e=>upd("w4Extra",e.target.value)} placeholder="0.00"/>
-    <p style={{fontSize:14,fontWeight:700,margin:"8px 0 14px"}}>I-9 — Employment Eligibility</p>
+    <Sec t="Emergency Contact #1"/>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0 14px"}}>
-      <Sel label="Document Type" value={fd.i9DocType||""} onChange={e=>upd("i9DocType",e.target.value)} req>
-        <option value="">Select…</option><option value="passport">US Passport</option><option value="perm_res">Perm Resident Card</option><option value="dl_ssn">Driver License + SSN Card</option><option value="state_id">State ID + Birth Cert</option></Sel>
-      <Inp label="Document Number" value={fd.i9DocNumber||""} onChange={e=>upd("i9DocNumber",e.target.value)} placeholder="ID #" req note="Verified by employer"/>
+      <Inp label="Name" value={fd.ec1_name||""} onChange={e=>upd("ec1_name",e.target.value)} req/>
+      <Inp label="Relationship" value={fd.ec1_relation||""} onChange={e=>upd("ec1_relation",e.target.value)}/>
+      <Inp label="Work Phone" value={fd.ec1_workPhone||""} onChange={e=>upd("ec1_workPhone",e.target.value)}/>
+      <Inp label="Cell Phone" value={fd.ec1_phone||""} onChange={e=>upd("ec1_phone",e.target.value)} req/>
+    </div>
+    <Inp label="Home Address" value={fd.ec1_addr||""} onChange={e=>upd("ec1_addr",e.target.value)}/>
+    <Sec t="Emergency Contact #2"/>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0 14px"}}>
+      <Inp label="Name" value={fd.ec2_name||""} onChange={e=>upd("ec2_name",e.target.value)}/>
+      <Inp label="Relationship" value={fd.ec2_relation||""} onChange={e=>upd("ec2_relation",e.target.value)}/>
+      <Inp label="Work Phone" value={fd.ec2_workPhone||""} onChange={e=>upd("ec2_workPhone",e.target.value)}/>
+      <Inp label="Cell Phone" value={fd.ec2_phone||""} onChange={e=>upd("ec2_phone",e.target.value)}/>
+    </div>
+    <Sec t="Physician"/>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0 14px"}}>
+      <Inp label="Physician Name" value={fd.ec_physName||""} onChange={e=>upd("ec_physName",e.target.value)}/>
+      <Inp label="Phone" value={fd.ec_physPhone||""} onChange={e=>upd("ec_physPhone",e.target.value)}/>
+    </div>
+    <Sel label="Permission to transport to medical facility?" value={fd.ec_transport||""} onChange={e=>upd("ec_transport",e.target.value)}><option value="">Select…</option><option>Yes</option><option>No</option></Sel>
+  </div>;
+
+  // ─── Federal W-4 (2026) ───
+  const FormW4=()=><div className="fi">
+    <p style={{fontSize:14,fontWeight:700,marginBottom:4}}>Form W-4 — Employee's Withholding Certificate (2026)</p>
+    <p style={{fontSize:11,color:"var(--t3)",marginBottom:14}}>Department of the Treasury — Internal Revenue Service</p>
+    <Sec t="Step 1: Personal Info"/>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"0 10px"}}>
+      <Inp label="First Name / M.I." value={`${fd.firstName||""} ${fd.mi||""}`} disabled/>
+      <Inp label="Last Name" value={fd.lastName||""} disabled/>
+      <Inp label="SSN" value={fd.ssn||""} disabled note="From application"/>
+    </div>
+    <Sel label="Filing Status" value={fd.w4_filingStatus||""} onChange={e=>upd("w4_filingStatus",e.target.value)} req>
+      <option value="">Select…</option><option value="single">Single or Married filing separately</option><option value="married">Married filing jointly</option><option value="hoh">Head of household</option></Sel>
+    <Sec t="Step 2: Multiple Jobs or Spouse Works"/>
+    <Sel label="Multiple Jobs?" value={fd.w4_multipleJobs||""} onChange={e=>upd("w4_multipleJobs",e.target.value)}>
+      <option value="">N/A — Only one job</option><option value="yes">Yes — Use worksheet or check box</option></Sel>
+    <Sec t="Step 3: Claim Dependents"/>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0 14px"}}>
+      <Inp label="Qualifying children under 17 (x $2,200)" type="number" value={fd.w4_dependentsU17||""} onChange={e=>upd("w4_dependentsU17",e.target.value)} placeholder="0"/>
+      <Inp label="Other dependents (x $500)" type="number" value={fd.w4_otherDependents||""} onChange={e=>upd("w4_otherDependents",e.target.value)} placeholder="0"/>
+    </div>
+    <Sec t="Step 4: Other Adjustments (optional)"/>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"0 10px"}}>
+      <Inp label="4(a) Other income ($)" value={fd.w4_otherIncome||""} onChange={e=>upd("w4_otherIncome",e.target.value)} placeholder="0"/>
+      <Inp label="4(b) Deductions ($)" value={fd.w4_deductions||""} onChange={e=>upd("w4_deductions",e.target.value)} placeholder="0"/>
+      <Inp label="4(c) Extra withholding ($/pay)" value={fd.w4_extraWithholding||""} onChange={e=>upd("w4_extraWithholding",e.target.value)} placeholder="0"/>
     </div>
   </div>;
 
-  const FormBank=()=><div className="fi">
-    <p style={{fontSize:14,fontWeight:700,marginBottom:14}}>Direct Deposit</p>
-    <Inp label="Bank Name" value={fd.bankName||""} onChange={e=>upd("bankName",e.target.value)} placeholder="Chase, Wells Fargo…" req/>
+  // ─── OK State W-4 (Oklahoma only) ───
+  const FormOKW4=()=><div className="fi">
+    <p style={{fontSize:14,fontWeight:700,marginBottom:4}}>Form OK-W-4 — Oklahoma Employee's Withholding Allowance Certificate</p>
+    <p style={{fontSize:11,color:"var(--t3)",marginBottom:14}}>Oklahoma Tax Commission (Revised 3-2021)</p>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0 14px"}}>
-      <Inp label="Routing Number" value={fd.routingNumber||""} onChange={e=>upd("routingNumber",e.target.value)} placeholder="9 digits" req note="Encrypted"/>
-      <Inp label="Account Number" value={fd.accountNumber||""} onChange={e=>upd("accountNumber",e.target.value)} req note="Encrypted"/>
+      <Inp label="First Name / M.I." value={`${fd.firstName||""} ${fd.mi||""}`} disabled/>
+      <Inp label="Last Name" value={fd.lastName||""} disabled/>
+      <Inp label="SSN" value={fd.ssn||""} disabled/>
+      <Inp label="Home Address" value={fd.address||""} disabled/>
     </div>
-    <Sel label="Account Type" value={fd.accountType||""} onChange={e=>upd("accountType",e.target.value)} req>
-      <option value="">Select…</option><option value="checking">Checking</option><option value="savings">Savings</option></Sel>
+    <Sel label="Filing Status" value={fd.okw4_filingStatus||""} onChange={e=>upd("okw4_filingStatus",e.target.value)} req>
+      <option value="">Select…</option><option value="single">Single</option><option value="married">Married</option><option value="married_higher">Married but withhold at higher Single rate</option></Sel>
+    <Sec t="Allowances"/>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0 14px"}}>
+      <Inp label="Line 1: Yourself (enter 1)" type="number" value={fd.okw4_self||""} onChange={e=>upd("okw4_self",e.target.value)} placeholder="1"/>
+      <Inp label="Line 2: Spouse (0 if spouse works)" type="number" value={fd.okw4_spouse||""} onChange={e=>upd("okw4_spouse",e.target.value)} placeholder="0"/>
+      <Inp label="Line 3: Dependents" type="number" value={fd.okw4_dependents||""} onChange={e=>upd("okw4_dependents",e.target.value)} placeholder="0"/>
+      <Inp label="Line 4: Additional allowances" type="number" value={fd.okw4_additional||""} onChange={e=>upd("okw4_additional",e.target.value)} placeholder="0"/>
+    </div>
+    <Inp label="Line 5: Total Allowances (sum Lines 1-4)" value={fd.okw4_totalAllowances||""} onChange={e=>upd("okw4_totalAllowances",e.target.value)} req placeholder="1"/>
+    <Inp label="Line 6: Additional withholding per pay period ($)" value={fd.okw4_addlWithholding||""} onChange={e=>upd("okw4_addlWithholding",e.target.value)} placeholder="0.00"/>
+    <Sel label="Line 7: Exempt from withholding?" value={fd.okw4_exempt||""} onChange={e=>upd("okw4_exempt",e.target.value)}>
+      <option value="">No</option><option value="yes">Yes — I claim exemption</option></Sel>
   </div>;
 
+  // ─── Form I-9 ───
+  const FormI9=()=><div className="fi">
+    <p style={{fontSize:14,fontWeight:700,marginBottom:4}}>Form I-9 — Employment Eligibility Verification</p>
+    <p style={{fontSize:11,color:"var(--t3)",marginBottom:14}}>USCIS · Edition 01/20/25 · Expires 05/31/2027</p>
+    <PII/>
+    <Sec t="Section 1: Employee Information & Attestation"/>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"0 10px"}}>
+      <Inp label="Last Name" value={fd.lastName||""} disabled/>
+      <Inp label="First Name" value={fd.firstName||""} disabled/>
+      <Inp label="Middle Initial" value={fd.mi||""} disabled/>
+    </div>
+    <Inp label="Other Last Names Used (if any)" value={fd.i9_otherNames||""} onChange={e=>upd("i9_otherNames",e.target.value)}/>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"0 10px"}}>
+      <Inp label="Date of Birth" value={fd.dob||""} disabled/>
+      <Inp label="SSN" value={fd.ssn||""} disabled/>
+      <Inp label="Email" value={fd.email||emp.email||""} disabled/>
+    </div>
+    <Sel label="I attest, under penalty of perjury, that I am:" value={fd.i9_citizenship||""} onChange={e=>upd("i9_citizenship",e.target.value)} req>
+      <option value="">Select…</option>
+      <option value="citizen">A citizen of the United States</option>
+      <option value="noncitizen_national">A noncitizen national of the United States</option>
+      <option value="permanent_resident">A lawful permanent resident (Alien Reg. #)</option>
+      <option value="alien_authorized">An alien authorized to work until (expiration)</option>
+    </Sel>
+    {(fd.i9_citizenship==="permanent_resident"||fd.i9_citizenship==="alien_authorized")&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0 14px"}}>
+      <Inp label="USCIS A-Number" value={fd.i9_alienNumber||""} onChange={e=>upd("i9_alienNumber",e.target.value)}/>
+      <Inp label="I-94 Admission Number" value={fd.i9_i94Number||""} onChange={e=>upd("i9_i94Number",e.target.value)}/>
+    </div>}
+    <Sec t="Identity & Work Authorization Documents"/>
+    <p style={{fontSize:11,color:"var(--t2)",marginBottom:8}}>Provide one List A document OR one List B + one List C document.</p>
+    <Sel label="Document Type" value={fd.i9_docType||""} onChange={e=>upd("i9_docType",e.target.value)}>
+      <option value="">Select…</option>
+      <optgroup label="List A (Identity + Work Auth)"><option value="passport">US Passport</option><option value="passport_card">US Passport Card</option><option value="perm_res_card">Permanent Resident Card</option><option value="foreign_passport">Foreign Passport with I-551</option><option value="ead">Employment Authorization Document</option></optgroup>
+      <optgroup label="List B + C"><option value="dl_ssn">Driver License + SSN Card</option><option value="state_id_bc">State ID + Birth Certificate</option><option value="dl_bc">Driver License + Birth Certificate</option></optgroup>
+    </Sel>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"0 10px"}}>
+      <Inp label="Document Number" value={fd.i9_docNumber||""} onChange={e=>upd("i9_docNumber",e.target.value)}/>
+      <Inp label="Issuing Authority" value={fd.i9_docIssuer||""} onChange={e=>upd("i9_docIssuer",e.target.value)}/>
+      <Inp label="Expiration Date" type="date" value={fd.i9_docExpiry||""} onChange={e=>upd("i9_docExpiry",e.target.value)}/>
+    </div>
+  </div>;
+
+  // ─── OK BGC (Oklahoma Background Check Consent) ───
+  const FormBGC=()=><div className="fi">
+    <p style={{fontSize:14,fontWeight:700,marginBottom:4}}>Oklahoma Long Term Care Security Act</p>
+    <p style={{fontSize:11,color:"var(--t3)",marginBottom:14}}>Consent & Release for National Background Check (OK-SCREEN / ONBC)</p>
+    <PII/>
+    <Card style={{padding:14,fontSize:12,color:"var(--t2)",lineHeight:1.6,marginBottom:14,maxHeight:160,overflowY:"auto"}}>
+      <p><b>Permanent disqualifiers:</b> Abuse/neglect, rape/incest/sodomy, child abuse, murder, manslaughter, kidnapping, aggravated assault, assault with dangerous weapon, arson 1st degree.</p>
+      <p style={{marginTop:8}}><b>7-year disqualifiers:</b> Assault, battery, indecent exposure, burglary 1st/2nd, robbery, arson 2nd, drug offenses, grand/petit larceny, shoplifting.</p>
+    </Card>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"0 10px"}}>
+      <Inp label="First Name" value={fd.firstName||""} disabled/>
+      <Inp label="Middle Name" value={fd.mi||""} onChange={e=>upd("mi",e.target.value)}/>
+      <Inp label="Last Name" value={fd.lastName||""} disabled/>
+    </div>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0 14px"}}>
+      <Inp label="Maiden Name" value={fd.bgc_maiden||""} onChange={e=>upd("bgc_maiden",e.target.value)}/>
+      <Inp label="Aliases / Other Names" value={fd.bgc_aliases||""} onChange={e=>upd("bgc_aliases",e.target.value)}/>
+      <Inp label="Date of Birth" value={fd.dob||""} disabled/>
+      <Inp label="SSN" value={fd.ssn||""} disabled note="Encrypted"/>
+    </div>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:"0 8px"}}>
+      <Inp label="State of Birth" value={fd.bgc_stateOfBirth||""} onChange={e=>upd("bgc_stateOfBirth",e.target.value)}/>
+      <Inp label="Country of Birth" value={fd.bgc_countryOfBirth||""} onChange={e=>upd("bgc_countryOfBirth",e.target.value)} placeholder="USA"/>
+      <Sel label="Race" value={fd.bgc_race||""} onChange={e=>upd("bgc_race",e.target.value)}><option value="">Select…</option><option>White</option><option>Black</option><option>Hispanic</option><option>Asian</option><option>Native American</option><option>Other</option></Sel>
+      <Sel label="Gender" value={fd.bgc_gender||""} onChange={e=>upd("bgc_gender",e.target.value)}><option value="">Select…</option><option>Male</option><option>Female</option></Sel>
+    </div>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:"0 8px"}}>
+      <Inp label="Height" value={fd.bgc_height||""} onChange={e=>upd("bgc_height",e.target.value)} placeholder="5'8&quot;"/>
+      <Inp label="Weight" value={fd.bgc_weight||""} onChange={e=>upd("bgc_weight",e.target.value)} placeholder="160"/>
+      <Inp label="Hair Color" value={fd.bgc_hair||""} onChange={e=>upd("bgc_hair",e.target.value)}/>
+      <Inp label="Eye Color" value={fd.bgc_eyes||""} onChange={e=>upd("bgc_eyes",e.target.value)}/>
+    </div>
+    <Inp label="Other states lived in after age 17" value={fd.bgc_otherStates||""} onChange={e=>upd("bgc_otherStates",e.target.value)}/>
+    <div style={{padding:10,background:"var(--amberL)",borderRadius:"var(--rs)",border:"1px solid #FDE68A",marginBottom:10,fontSize:11,color:"var(--amber)"}}><b>Note:</b> A $10 processing fee for fingerprinting applies. You have 10 calendar days from hire to submit fingerprints at a designated OK-SCREEN site.</div>
+    <label style={{display:"flex",alignItems:"flex-start",gap:10,cursor:"pointer",padding:"12px 14px",background:fd.bgc_consent?"var(--greenL)":"var(--hover)",border:`1px solid ${fd.bgc_consent?"#A7F3D0":"var(--brd)"}`,borderRadius:"var(--rs)"}}>
+      <input type="checkbox" checked={!!fd.bgc_consent} onChange={e=>upd("bgc_consent",e.target.checked)} style={{marginTop:2,width:18,height:18,accentColor:"var(--green)"}}/>
+      <div><div style={{fontSize:13,fontWeight:600}}>I consent to a national criminal background check</div>
+        <div style={{fontSize:11,color:"var(--t3)"}}>Per the Oklahoma Long Term Care Security Act — {emp.name} — {new Date().toLocaleDateString()}</div></div>
+    </label>
+  </div>;
+
+  // ─── TX DPS CCH Verification (Texas only) ───
+  const FormDPS=()=><div className="fi">
+    <p style={{fontSize:14,fontWeight:700,marginBottom:4}}>Texas DPS Criminal Conviction History Verification</p>
+    <p style={{fontSize:11,color:"var(--t3)",marginBottom:14}}>Texas Department of Public Safety</p>
+    <PII/>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0 14px"}}>
+      <Inp label="Full Legal Name" value={`${fd.firstName||""} ${fd.mi||""} ${fd.lastName||""}`} disabled/>
+      <Inp label="Date of Birth" value={fd.dob||""} disabled/>
+      <Inp label="SSN" value={fd.ssn||""} disabled note="Encrypted"/>
+      <Inp label="Driver License / ID #" value={fd.dps_dlNumber||""} onChange={e=>upd("dps_dlNumber",e.target.value)} placeholder="TX DL Number"/>
+    </div>
+    <Inp label="Current Address" value={`${fd.address||""}, ${fd.city||""}, ${fd.state||""} ${fd.zip||""}`} disabled/>
+    <Inp label="Aliases / Other Names" value={fd.dps_aliases||""} onChange={e=>upd("dps_aliases",e.target.value)}/>
+    <Card style={{padding:14,fontSize:12,color:"var(--t2)",lineHeight:1.6,marginBottom:14}}>
+      <p>I hereby authorize {fac.name} to obtain a criminal conviction history record check from the Texas Department of Public Safety. I understand that the information obtained may be used to determine my suitability for employment in a long-term care facility.</p>
+    </Card>
+    <label style={{display:"flex",alignItems:"flex-start",gap:10,cursor:"pointer",padding:"12px 14px",background:fd.dps_consent?"var(--greenL)":"var(--hover)",border:`1px solid ${fd.dps_consent?"#A7F3D0":"var(--brd)"}`,borderRadius:"var(--rs)",marginBottom:8}}>
+      <input type="checkbox" checked={!!fd.dps_consent} onChange={e=>upd("dps_consent",e.target.checked)} style={{marginTop:2,width:18,height:18,accentColor:"var(--green)"}}/>
+      <div><div style={{fontSize:13,fontWeight:600}}>I consent to a Texas DPS criminal history check</div>
+        <div style={{fontSize:11,color:"var(--t3)"}}>Electronic authorization — {emp.name} — {new Date().toLocaleDateString()}</div></div>
+    </label>
+    <label style={{display:"flex",alignItems:"flex-start",gap:10,cursor:"pointer",padding:"12px 14px",background:fd.dps_ackRights?"var(--greenL)":"var(--hover)",border:`1px solid ${fd.dps_ackRights?"#A7F3D0":"var(--brd)"}`,borderRadius:"var(--rs)"}}>
+      <input type="checkbox" checked={!!fd.dps_ackRights} onChange={e=>upd("dps_ackRights",e.target.checked)} style={{marginTop:2,width:18,height:18,accentColor:"var(--green)"}}/>
+      <div><div style={{fontSize:13,fontWeight:600}}>I acknowledge my right to review and challenge the results</div>
+        <div style={{fontSize:11,color:"var(--t3)"}}>Per Texas Government Code §411.085</div></div>
+    </label>
+  </div>;
+
+  // ─── Direct Deposit ───
+  const FormDeposit=()=><div className="fi">
+    <p style={{fontSize:14,fontWeight:700,marginBottom:4}}>Direct Deposit Agreement</p>
+    <p style={{fontSize:11,color:"var(--t3)",marginBottom:14}}>Authorizes {fac.name} for automatic payroll deposits.</p>
+    <Sec t="Financial Institution #1 (Primary)"/>
+    <Inp label="Bank/Credit Union Name" value={fd.dd_bank1Name||""} onChange={e=>upd("dd_bank1Name",e.target.value)} placeholder="Chase, Wells Fargo…" req/>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"0 10px"}}>
+      <Inp label="Routing Number" value={fd.dd_bank1Routing||""} onChange={e=>upd("dd_bank1Routing",e.target.value)} placeholder="9 digits" req note="Encrypted"/>
+      <Inp label="Account Number" value={fd.dd_bank1Account||""} onChange={e=>upd("dd_bank1Account",e.target.value)} req note="Encrypted"/>
+      <Sel label="Account Type" value={fd.dd_bank1Type||""} onChange={e=>upd("dd_bank1Type",e.target.value)} req><option value="">Select…</option><option value="checking">Checking</option><option value="savings">Savings</option></Sel>
+    </div>
+    <Inp label="Deposit Amount (or 'Net')" value={fd.dd_bank1Amount||""} onChange={e=>upd("dd_bank1Amount",e.target.value)} placeholder="Net pay or $ amount"/>
+    <Sec t="Financial Institution #2 (Optional)"/>
+    <Inp label="Bank/Credit Union Name" value={fd.dd_bank2Name||""} onChange={e=>upd("dd_bank2Name",e.target.value)}/>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"0 10px"}}>
+      <Inp label="Routing Number" value={fd.dd_bank2Routing||""} onChange={e=>upd("dd_bank2Routing",e.target.value)} note="Encrypted"/>
+      <Inp label="Account Number" value={fd.dd_bank2Account||""} onChange={e=>upd("dd_bank2Account",e.target.value)} note="Encrypted"/>
+      <Sel label="Account Type" value={fd.dd_bank2Type||""} onChange={e=>upd("dd_bank2Type",e.target.value)}><option value="">—</option><option value="checking">Checking</option><option value="savings">Savings</option></Sel>
+    </div>
+    <div style={{padding:10,background:"var(--blueL)",borderRadius:"var(--rs)",marginTop:8,fontSize:11,color:"var(--blue)"}}><b>Tip:</b> Attach a voided check or deposit slip for verification. Changes take 1-2 pay cycles to take effect.</div>
+  </div>;
+
+  // ─── Training Videos ───
   const VIDS=[{id:"v1",t:"Welcome & Orientation",d:"4:32"},{id:"v2",t:"Workplace Safety",d:"8:15"},
     {id:"v3",t:"HIPAA Compliance",d:"12:45"},{id:"v4",t:"Emergency Procedures",d:"6:20"},
     {id:"v5",t:"Resident Care Standards",d:"10:08"}];
-
   const FormVids=()=><div className="fi">
     <p style={{fontSize:14,fontWeight:700,marginBottom:4}}>Required Training Videos</p>
-    <p style={{fontSize:12,color:"var(--t3)",marginBottom:14}}>Click play to watch. Progress saves automatically.</p>
+    <p style={{fontSize:12,color:"var(--t3)",marginBottom:14}}>Complete at least 3 required videos. Click play to watch. Progress saves automatically.</p>
     {VIDS.map(v=>{const ok=vids[v.id];return <div key={v.id} style={{display:"flex",alignItems:"center",gap:12,padding:"12px 14px",background:ok?"var(--greenL)":"#fff",border:`1px solid ${ok?"#A7F3D0":"var(--brd)"}`,borderRadius:"var(--rs)",marginBottom:6}}>
       <div onClick={()=>{if(!ok)setVids(p=>({...p,[v.id]:1}));}} style={{width:36,height:36,borderRadius:"var(--rs)",background:ok?"var(--green)":"var(--purpleL)",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>
         {ok?<I.Check s={16} c="#fff"/>:<I.Play s={16} c="#7C3AED"/>}</div>
@@ -293,6 +643,7 @@ function OnboardPortal({emp,onSave,onSubmit,steps}){
     </div>;})}
   </div>;
 
+  // ─── Policy Acknowledgment ───
   const FormPolicy=()=><div className="fi">
     <p style={{fontSize:14,fontWeight:700,marginBottom:14}}>Policy Acknowledgment</p>
     <Card style={{padding:18,maxHeight:260,overflowY:"auto",marginBottom:14,fontSize:13,color:"var(--t2)",lineHeight:1.7}}>
@@ -314,14 +665,14 @@ function OnboardPortal({emp,onSave,onSubmit,steps}){
       <p style={{fontSize:13,color:"var(--t2)",lineHeight:1.6}}>Your paperwork has been sent to admin for review. You'll be notified once approved and your schedule will appear here.</p>
     </div></div>;
 
-  return <div style={{maxWidth:860,margin:"0 auto"}}>
+  return <div style={{maxWidth:900,margin:"0 auto"}}>
     <HipaaBar/>
     <div style={{padding:"20px 20px 0"}}>
       {/* Header */}
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
         <div>
           <h1 style={{fontSize:20,fontWeight:700}}>Welcome, {emp.name.split(" ")[0]}</h1>
-          <p style={{fontSize:12,color:"var(--t3)",marginTop:2}}>Complete your onboarding below · saves automatically</p>
+          <p style={{fontSize:12,color:"var(--t3)",marginTop:2}}>{fac.name} ({fac.state}) · Complete your onboarding below · saves automatically</p>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           <Btn v="secondary" size="sm" icon={saving?<Spinner size={12}/>:<I.Save s={13}/>} onClick={manSave} disabled={saving}>{saving?"Saving…":"Save"}</Btn>
@@ -348,10 +699,16 @@ function OnboardPortal({emp,onSave,onSubmit,steps}){
       </div>
 
       {/* Form */}
-      <Card style={{padding:22,marginBottom:18}}>
-        {cur.id==="personal"&&<FormPersonal/>}
-        {cur.id==="tax"&&<FormTax/>}
-        {cur.id==="banking"&&<FormBank/>}
+      <Card style={{padding:22,marginBottom:18,maxHeight:"60vh",overflowY:"auto"}}>
+        {cur.id==="app"&&<FormApp/>}
+        {cur.id==="newhire"&&<FormNewHire/>}
+        {cur.id==="emergency"&&<FormEmergency/>}
+        {cur.id==="w4"&&<FormW4/>}
+        {cur.id==="okw4"&&<FormOKW4/>}
+        {cur.id==="i9"&&<FormI9/>}
+        {cur.id==="bgc"&&<FormBGC/>}
+        {cur.id==="dpscch"&&<FormDPS/>}
+        {cur.id==="deposit"&&<FormDeposit/>}
         {cur.id==="videos"&&<FormVids/>}
         {cur.id==="policy"&&<FormPolicy/>}
       </Card>
@@ -439,10 +796,11 @@ function EmployeesView({emps,setEmps}){
   const[filter,setFilter]=useState("all");
   const[showInv,setShowInv]=useState(false);
   const[invN,setInvN]=useState("");const[invE,setInvE]=useState("");const[invR,setInvR]=useState("CNA");
+  const[invF,setInvF]=useState("F001");
   const[sending,setSending]=useState(false);
 
   const sendInv=async()=>{if(!invE||!invN)return;setSending(true);await new Promise(r=>setTimeout(r,1000));
-    setEmps(p=>[...p,{id:`E${String(p.length+1).padStart(3,"0")}`,name:invN,email:invE,role:invR,status:"invited",onboardingComplete:false,smartlinxId:null,avatar:invN.split(" ").map(n=>n[0]).join("").slice(0,2).toUpperCase(),formData:null,submittedDocs:null,schedType:null,rotation:null,pattern:null,daysOn:null,daysOff:null}]);
+    setEmps(p=>[...p,{id:`E${String(p.length+1).padStart(3,"0")}`,name:invN,email:invE,role:invR,status:"invited",onboardingComplete:false,smartlinxId:null,avatar:invN.split(" ").map(n=>n[0]).join("").slice(0,2).toUpperCase(),facilityId:invF,formData:null,submittedDocs:null,cloudBackupAt:null,schedType:null,rotation:null,pattern:null,daysOn:null,daysOff:null}]);
     setInvN("");setInvE("");setSending(false);setShowInv(false);};
 
   const fl=filter==="all"?emps:emps.filter(e=>e.status===filter);
@@ -458,10 +816,11 @@ function EmployeesView({emps,setEmps}){
         <button key={k} onClick={()=>setFilter(k)} style={{padding:"6px 12px",borderRadius:"var(--rs)",border:filter===k?"2px solid var(--blue)":"1px solid var(--brd)",background:filter===k?"var(--blueL)":"#fff",fontFamily:"inherit",fontSize:11,fontWeight:600,color:filter===k?"var(--blue)":"var(--t2)",cursor:"pointer"}}>{l} ({ct(k)})</button>)}
     </div>
     <Card style={{overflow:"hidden"}}><table style={{width:"100%",borderCollapse:"collapse"}}><thead><tr style={{borderBottom:"1px solid var(--brd)"}}>
-      {["Employee","Role","Status","Progress","SmartLinx"].map(h=><th key={h} style={{padding:"10px 16px",textAlign:"left",fontSize:10,fontWeight:600,color:"var(--t3)",textTransform:"uppercase",background:"var(--bg)"}}>{h}</th>)}</tr></thead>
+      {["Employee","Role","Facility","Status","Progress","SmartLinx"].map(h=><th key={h} style={{padding:"10px 16px",textAlign:"left",fontSize:10,fontWeight:600,color:"var(--t3)",textTransform:"uppercase",background:"var(--bg)"}}>{h}</th>)}</tr></thead>
       <tbody>{fl.map((e,i)=><tr key={e.id} className="fi" style={{borderBottom:"1px solid var(--brd2)",animationDelay:`${i*.03}s`}}>
         <td style={{padding:"10px 16px"}}><div style={{display:"flex",alignItems:"center",gap:8}}><Avatar initials={e.avatar} size={30}/><div><div style={{fontSize:13,fontWeight:600}}>{e.name}</div><div style={{fontSize:10,color:"var(--t3)"}}>{e.email}</div></div></div></td>
         <td style={{padding:"10px 16px",fontSize:12,color:"var(--t2)"}}>{e.role}</td>
+        <td style={{padding:"10px 16px",fontSize:11,color:"var(--t2)"}}>{getFacility(e.facilityId).name.split(" ").slice(0,2).join(" ")}</td>
         <td style={{padding:"10px 16px"}}><Badge v={e.status==="active"?"success":e.status==="review"?"danger":e.status==="onboarding"?"warning":"info"}>{e.status}</Badge></td>
         <td style={{padding:"10px 16px",fontSize:11,color:"var(--t3)"}}>{e.status==="active"?"Complete":e.status==="review"?"Awaiting review":e.status==="onboarding"?"Filling forms":"Invite sent"}</td>
         <td style={{padding:"10px 16px"}}>{e.smartlinxId?<span style={{fontSize:11,color:"var(--green)",fontFamily:"monospace"}}>{e.smartlinxId}</span>:<span style={{color:"var(--t3)",fontSize:11}}>—</span>}</td>
@@ -471,6 +830,8 @@ function EmployeesView({emps,setEmps}){
       <Inp label="Full Name" value={invN} onChange={e=>setInvN(e.target.value)} placeholder="Jane Smith" req/>
       <Inp label="Email" type="email" value={invE} onChange={e=>setInvE(e.target.value)} placeholder="jane@email.com" req/>
       <Sel label="Role" value={invR} onChange={e=>setInvR(e.target.value)} req>{["CNA","CMA","LPN","RN","Dietary","Housekeeping","Maintenance"].map(r=><option key={r}>{r}</option>)}</Sel>
+      <Sel label="Facility" value={invF} onChange={e=>setInvF(e.target.value)} req>{FACILITIES.map(f=><option key={f.id} value={f.id}>{f.name} ({f.state})</option>)}</Sel>
+      <div style={{padding:10,background:"var(--blueL)",borderRadius:"var(--rs)",marginBottom:14,fontSize:11,color:"var(--blue)"}}><b>Document Package:</b> {getFacility(invF).state==="OK"?"Oklahoma (OK-W-4, Background Check)":"Texas (DPS CCH Verification)"}</div>
       <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}><Btn v="secondary" onClick={()=>setShowInv(false)}>Cancel</Btn>
         <Btn onClick={sendInv} disabled={!invN||!invE||sending} icon={sending?<Spinner size={12}/>:<I.Send s={13} c="#fff"/>}>{sending?"Sending…":"Send Invite"}</Btn></div>
     </Modal></div>;
@@ -497,18 +858,27 @@ function ReviewView({emps,setEmps}){
         <Btn size="sm" v="secondary" icon={<I.Eye s={13}/>} onClick={()=>setViewDoc(e.id)}>Review</Btn>
         <Btn size="sm" icon={syncing===e.id?<Spinner size={12}/>:<I.Upload s={13} c="#fff"/>} onClick={()=>upload(e.id)} disabled={syncing===e.id}>{syncing===e.id?"Uploading…":"Upload to SmartLinx"}</Btn>
       </div></Card>)}
-    <Modal open={!!viewDoc} onClose={()=>setViewDoc(null)} title="Review Documents" width={600}>
-      {viewDoc&&(()=>{const e=emps.find(x=>x.id===viewDoc);if(!e?.formData)return null;const d=e.formData;
+    <Modal open={!!viewDoc} onClose={()=>setViewDoc(null)} title="Review Documents" width={640}>
+      {viewDoc&&(()=>{const e=emps.find(x=>x.id===viewDoc);if(!e?.formData)return null;const d=e.formData;const fac=getFacility(e.facilityId);const st=fac.state;
         return <div>
           <div style={{fontSize:10,color:"var(--amber)",display:"flex",alignItems:"center",gap:4,padding:"5px 8px",background:"#FFFBEB",borderRadius:4,border:"1px solid #FDE68A",marginBottom:14}}><I.Lock s={10} c="#D97706"/>PHI/PII — Authorized access logged per HIPAA §164.312(b)</div>
-          <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",marginBottom:8,borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Personal</p>
-          <Row l="Name" v={`${d.firstName||""} ${d.lastName||""}`}/><Row l="DOB" v={d.dob}/><Row l="SSN" v={d.ssn}/><Row l="Address" v={`${d.address||""}, ${d.city||""} ${d.state||""} ${d.zip||""}`}/><Row l="Emergency" v={`${d.emergName||""} ${d.emergPhone||""}`}/>
-          <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",margin:"12px 0 8px",borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Tax</p>
-          <Row l="Filing" v={d.w4Status}/><Row l="Allowances" v={d.w4Allowances}/><Row l="I-9 Doc" v={d.i9DocType}/><Row l="I-9 #" v={d.i9DocNumber}/>
-          <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",margin:"12px 0 8px",borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Banking</p>
-          <Row l="Bank" v={d.bankName}/><Row l="Routing" v={d.routingNumber}/><Row l="Account" v={d.accountNumber}/><Row l="Type" v={d.accountType}/>
+          <div style={{padding:10,background:"var(--blueL)",borderRadius:"var(--rs)",marginBottom:14,fontSize:11,color:"var(--blue)",display:"flex",alignItems:"center",gap:6}}><I.Building s={13} c="#2563EB"/><b>{fac.name}</b> — {st} document package</div>
+          <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",marginBottom:8,borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Personal Information</p>
+          <Row l="Name" v={`${d.firstName||""} ${d.mi?d.mi+". ":""}${d.lastName||""}`}/><Row l="DOB" v={d.dob}/><Row l="SSN" v={d.ssn}/><Row l="Address" v={`${d.address||""}, ${d.city||""} ${d.state||""} ${d.zip||""}`}/><Row l="Phone" v={d.phone}/><Row l="Position" v={d.app_position}/>
+          <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",margin:"12px 0 8px",borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Emergency Contacts</p>
+          <Row l="Contact 1" v={d.ec1_name?`${d.ec1_name} (${d.ec1_relation||""}) ${d.ec1_phone||""}`:""}/><Row l="Contact 2" v={d.ec2_name?`${d.ec2_name} (${d.ec2_relation||""}) ${d.ec2_phone||""}`:"—"}/>
+          <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",margin:"12px 0 8px",borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Tax & Eligibility</p>
+          <Row l="W-4 Filing" v={d.w4_filingStatus}/>{st==="OK"&&<Row l="OK W-4 Filing" v={d.okw4_filingStatus}/>}{st==="OK"&&<Row l="OK Allowances" v={d.okw4_totalAllowances}/>}
+          <Row l="I-9 Citizenship" v={d.i9_citizenship}/>
+          <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",margin:"12px 0 8px",borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Background Check</p>
+          {st==="TX"?<Row l="TX DPS CCH" v={d.dps_consent?"Consent Given":"Not Consented"}/>:<Row l="OK BGC" v={d.bgc_consent?"Consent Given":"Not Consented"}/>}
+          <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",margin:"12px 0 8px",borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Direct Deposit</p>
+          <Row l="Bank 1" v={d.dd_bank1Name}/><Row l="Routing" v={d.dd_bank1Routing}/><Row l="Account" v={d.dd_bank1Account}/><Row l="Type" v={d.dd_bank1Type}/>
+          {d.dd_bank2Name&&<><Row l="Bank 2" v={d.dd_bank2Name}/><Row l="Routing 2" v={d.dd_bank2Routing}/><Row l="Account 2" v={d.dd_bank2Account}/></>}
+          <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",margin:"12px 0 8px",borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Training & Policy</p>
+          <Row l="Videos" v={d._videosDone?`${Object.keys(d._videosDone).length}/3 complete`:"Not started"}/><Row l="Policy Signed" v={d._policySigned?"Yes":"No"}/>
           <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:16}}><Btn v="secondary" onClick={()=>setViewDoc(null)}>Close</Btn>
-            <Btn icon={<I.Upload s={13} c="#fff"/>} onClick={()=>{upload(viewDoc);setViewDoc(null);}}>Approve & Upload</Btn></div>
+            <Btn icon={<I.Upload s={13} c="#fff"/>} onClick={()=>{upload(viewDoc);setViewDoc(null);}}>Approve & Upload to SmartLinx</Btn></div>
         </div>;})()}
     </Modal></div>;
 }
@@ -593,12 +963,234 @@ function ScheduleView({emps,setEmps}){
 
 // STAGE3_COMPLETE
 
+// ═══ EMPLOYEE SCHEDULE VIEW (Month View + Open Shift Requests + Time-Off Requests) ═══
+function EmployeeScheduleView({emps,shifts,shiftReqs,setShiftReqs,timeOffReqs,setTimeOffReqs,myEmpId}){
+  const[sched,setSched]=useState([]);const[loading,setLoading]=useState(true);
+  const[monthOff,setMonthOff]=useState(0);
+  const[confirmShift,setConfirmShift]=useState(null); // for open shift pickup
+  const[confirmOff,setConfirmOff]=useState(null);      // for time-off request
+  const[offReason,setOffReason]=useState("");
+  const[requesting,setRequesting]=useState(false);
+
+  const me=emps.find(e=>e.id===myEmpId);
+  const myRole=me?.role||"CNA";
+
+  useEffect(()=>{(async()=>{setLoading(true);await SLX.fetchSchedule();setSched(genSched(62));setLoading(false);})();},[]);
+
+  const today=new Date();
+  const viewMonth=new Date(today.getFullYear(),today.getMonth()+monthOff,1);
+  const yr=viewMonth.getFullYear();const mo=viewMonth.getMonth();
+  const daysInMonth=new Date(yr,mo+1,0).getDate();
+  const firstDow=new Date(yr,mo,1).getDay();
+  const monthLabel=viewMonth.toLocaleDateString("en-US",{month:"long",year:"numeric"});
+
+  const calDays=[];
+  for(let i=0;i<firstDow;i++)calDays.push(null);
+  for(let d=1;d<=daysInMonth;d++)calDays.push(d);
+
+  const fmtDate=(d)=>{const mm=String(mo+1).padStart(2,"0");const dd=String(d).padStart(2,"0");return`${yr}-${mm}-${dd}`;};
+
+  // Parse shift start time to compute 72-hour cutoff
+  const parseShiftStart=(dateStr,timeStr)=>{
+    const m=timeStr.match(/(\d+):?(\d*)([ap])/i);
+    if(!m)return new Date(dateStr+"T08:00:00");
+    let h=parseInt(m[1]);const min=parseInt(m[2]||"0");
+    if(m[3].toLowerCase()==="p"&&h!==12)h+=12;
+    if(m[3].toLowerCase()==="a"&&h===12)h=0;
+    return new Date(dateStr+`T${String(h).padStart(2,"0")}:${String(min).padStart(2,"0")}:00`);
+  };
+
+  const shC={Day:"#2563EB",Eve:"#7C3AED",Night:"#475569",Day12:"#0891B2",Nite12:"#1E293B"};
+  const todayStr=today.toISOString().split("T")[0];
+
+  // ── Open shift slot status ──
+  const getSlotStatus=(sh)=>{
+    const myReq=shiftReqs.find(r=>r.shiftId===sh.id&&r.empId===myEmpId&&r.status==="pending");
+    if(myReq)return"pending_mine";
+    const myApproved=shiftReqs.find(r=>r.shiftId===sh.id&&r.empId===myEmpId&&r.status==="approved");
+    if(myApproved)return"approved";
+    const pendingCount=shiftReqs.filter(r=>r.shiftId===sh.id&&r.status==="pending").length;
+    if(pendingCount>=sh.need)return"pending_full";
+    if(pendingCount>0)return"pending_others";
+    return"open";
+  };
+
+  // ── Time-off status for an assigned shift ──
+  const getOffStatus=(sh)=>{
+    const req=timeOffReqs.find(r=>r.shiftId===sh.id&&r.empId===myEmpId);
+    if(!req)return null;
+    return req.status; // "pending"|"approved"|"rejected"
+  };
+
+  const canRequestOff=(sh)=>{
+    const start=parseShiftStart(sh.date,sh.s);
+    const hoursAway=(start-today)/(1000*60*60);
+    return hoursAway>=72;
+  };
+
+  const doRequest=async(sh)=>{
+    setRequesting(true);
+    const res=await SLX.requestShift({shiftId:sh.id,empId:myEmpId});
+    setShiftReqs(p=>[...p,{id:res.id,shiftId:sh.id,empId:myEmpId,status:"pending",requestedAt:new Date().toISOString(),resolvedAt:null}]);
+    setRequesting(false);setConfirmShift(null);
+  };
+
+  const doRequestOff=async(sh)=>{
+    setRequesting(true);
+    const res=await SLX.requestTimeOff({shiftId:sh.id,empId:myEmpId,reason:offReason});
+    setTimeOffReqs(p=>[...p,{id:res.id,shiftId:sh.id,empId:myEmpId,status:"pending",reason:offReason,requestedAt:new Date().toISOString(),resolvedAt:null}]);
+    setRequesting(false);setConfirmOff(null);setOffReason("");
+  };
+
+  return <div className="fi">
+    {/* Header — read-only info, no admin controls */}
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+      <div style={{display:"flex",alignItems:"center",gap:10}}>
+        {me&&<Avatar initials={me.avatar} size={38}/>}
+        <div>
+          <h1 style={{fontSize:20,fontWeight:700}}>{me?.name||"Employee"} <Badge v="cyan">{myRole}</Badge></h1>
+          <p style={{color:"var(--t3)",fontSize:12,marginTop:2}}>My Schedule · {monthLabel}</p>
+          {me?.schedType&&<p style={{fontSize:11,color:"var(--t3)",marginTop:1}}>
+            {me.schedType==="prn"?"PRN (As Needed)":`${me.rotation} · ${me.pattern} · ${me.daysOn}on/${me.daysOff}off`}
+          </p>}
+        </div>
+      </div>
+      <div className="month-nav">
+        <button className={monthOff===0?"active":""} onClick={()=>setMonthOff(0)}>{new Date(today.getFullYear(),today.getMonth(),1).toLocaleDateString("en-US",{month:"short"})}</button>
+        <button className={monthOff===1?"active":""} onClick={()=>setMonthOff(1)}>{new Date(today.getFullYear(),today.getMonth()+1,1).toLocaleDateString("en-US",{month:"short"})}</button>
+      </div>
+    </div>
+
+    {/* Legend */}
+    <div style={{display:"flex",gap:12,marginBottom:12,padding:"8px 14px",background:"#fff",borderRadius:"var(--rs)",border:"1px solid var(--brd)",flexWrap:"wrap"}}>
+      {[{n:"Day",c:"#2563EB"},{n:"Eve",c:"#7C3AED"},{n:"Night",c:"#475569"},{n:"Day12",c:"#0891B2"},{n:"Nite12",c:"#1E293B"}].map(s=><div key={s.n} style={{display:"flex",alignItems:"center",gap:4,fontSize:10,color:"var(--t2)"}}><div style={{width:7,height:7,borderRadius:2,background:s.c}}/>{s.n}</div>)}
+      <div style={{display:"flex",alignItems:"center",gap:4,fontSize:10,color:"var(--green)"}}><div style={{width:7,height:7,borderRadius:2,border:"2px dashed var(--green)"}}/>Open Slot</div>
+      <div style={{display:"flex",alignItems:"center",gap:4,fontSize:10,color:"var(--amber)"}}><div style={{width:7,height:7,borderRadius:2,background:"var(--amberL)",border:"1px solid var(--amber)"}}/>Pending</div>
+      <div style={{display:"flex",alignItems:"center",gap:4,fontSize:10,color:"var(--green)"}}><div style={{width:7,height:7,borderRadius:2,background:"var(--greenL)",border:"1px solid var(--green)"}}/>Approved</div>
+      <div style={{display:"flex",alignItems:"center",gap:4,fontSize:10,color:"var(--red)"}}><div style={{width:7,height:7,borderRadius:2,background:"var(--redL)",border:"1px solid var(--red)"}}/>Time Off</div>
+    </div>
+
+    {/* Interaction hint */}
+    <div style={{padding:"6px 14px",background:"var(--blueL)",borderRadius:"var(--rs)",border:"1px solid #BFDBFE",marginBottom:12,fontSize:11,color:"var(--blue)",display:"flex",alignItems:"center",gap:6}}>
+      <I.Alert s={13} c="#2563EB"/>
+      Click a <b style={{color:"var(--green)",margin:"0 2px"}}>green dashed</b> slot to pick up an open shift · Click an assigned shift (72h+ advance) to request time off
+    </div>
+
+    {loading?<div style={{display:"flex",justifyContent:"center",padding:50}}><Spinner size={24}/></div>:
+    <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:4}}>
+      {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d=><div key={d} style={{textAlign:"center",fontSize:10,fontWeight:600,color:"var(--t3)",textTransform:"uppercase",padding:"5px 0"}}>{d}</div>)}
+      {calDays.map((day,i)=>{
+        if(day===null)return <div key={`p${i}`}/>;
+        const dateStr=fmtDate(day);
+        const isToday=dateStr===todayStr;
+        const isWeekend=new Date(yr,mo,day).getDay()===0||new Date(yr,mo,day).getDay()===6;
+        const myShifts=sched.filter(s=>s.date===dateStr);
+        const openSlots=shifts.filter(s=>s.date===dateStr&&s.role===myRole&&s.status==="open"&&s.need>0);
+        const approvedSlots=shifts.filter(s=>s.date===dateStr&&s.role===myRole&&shiftReqs.some(r=>r.shiftId===s.id&&r.empId===myEmpId&&r.status==="approved"));
+
+        return <Card key={dateStr} className="fi" style={{padding:5,minHeight:85,animationDelay:`${(i%7)*.02}s`,
+          background:isToday?"var(--blueL)":isWeekend?"var(--bg)":"#fff",
+          border:isToday?"1.5px solid #93C5FD":"1px solid var(--brd)"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}}>
+            <span style={{fontSize:13,fontWeight:700,color:isToday?"var(--blue)":"var(--t1)"}}>{day}</span>
+            {isToday&&<Badge v="info" style={{fontSize:7,padding:"1px 3px"}}>Today</Badge>}
+          </div>
+
+          {/* Assigned shifts — clickable for time-off if 72h+ away */}
+          {myShifts.map(sh=>{
+            const offSt=getOffStatus(sh);
+            const canOff=canRequestOff(sh)&&!offSt;
+            // Time-off approved
+            if(offSt==="approved")return <div key={sh.id} style={{padding:"2px 4px",borderRadius:3,background:"var(--redL)",border:"1px solid #FECACA",marginBottom:2,opacity:.7}}>
+              <div style={{fontSize:9,fontWeight:700,color:"var(--red)",textDecoration:"line-through"}}>{sh.type}</div>
+              <div style={{fontSize:7,color:"var(--red)",fontWeight:600}}>Time Off Approved</div>
+            </div>;
+            // Time-off pending
+            if(offSt==="pending")return <div key={sh.id} style={{padding:"2px 4px",borderRadius:3,background:"var(--amberL)",border:"1px solid #FDE68A",marginBottom:2}}>
+              <div style={{fontSize:9,fontWeight:700,color:"var(--amber)"}}>{sh.type}</div>
+              <div style={{fontSize:7,color:"var(--amber)",fontWeight:600}}>Off Req Pending</div>
+            </div>;
+            // Time-off rejected — show shift as normal (request was denied)
+            // Normal assigned shift — clickable if eligible for time-off
+            return <div key={sh.id} className={canOff?"off-req":""} onClick={canOff?()=>setConfirmOff(sh):undefined}
+              style={{padding:"2px 4px",borderRadius:3,background:`${sh.c}12`,borderLeft:`3px solid ${sh.c}`,marginBottom:2}}
+              title={canOff?"Click to request time off":!offSt&&!canRequestOff(sh)?"Must be 72h+ in advance to request off":""}>
+              <div style={{fontSize:9,fontWeight:700,color:sh.c}}>{sh.type}</div>
+              <div style={{fontSize:8,color:"var(--t2)"}}>{sh.s}–{sh.e}</div>
+            </div>;
+          })}
+
+          {/* Approved pickup shifts */}
+          {approvedSlots.map(sh=><div key={`a-${sh.id}`} style={{padding:"2px 4px",borderRadius:3,background:"var(--greenL)",border:"1px solid #A7F3D0",marginBottom:2}}>
+            <div style={{fontSize:9,fontWeight:700,color:"var(--green)"}}>{sh.type} <span style={{fontSize:7,fontWeight:600}}>APPROVED</span></div>
+            <div style={{fontSize:8,color:"var(--t2)"}}>{sh.s}–{sh.e}</div>
+          </div>)}
+
+          {/* Open slots */}
+          {openSlots.filter(sh=>!approvedSlots.find(a=>a.id===sh.id)).map(sh=>{
+            const status=getSlotStatus(sh);
+            if(status==="approved")return null;
+            if(status==="pending_mine")return <div key={`o-${sh.id}`} style={{padding:"2px 4px",borderRadius:3,background:"var(--amberL)",border:"1px solid #FDE68A",marginBottom:2}}>
+              <div style={{fontSize:9,fontWeight:700,color:"var(--amber)"}}>{sh.type}</div>
+              <div style={{fontSize:7,color:"var(--amber)",fontWeight:600}}>Pickup Pending</div>
+            </div>;
+            if(status==="pending_full")return <div key={`o-${sh.id}`} style={{padding:"2px 4px",borderRadius:3,background:"var(--hover)",border:"1px solid var(--brd)",marginBottom:2}}>
+              <div style={{fontSize:9,fontWeight:600,color:"var(--t3)"}}>{sh.type}</div>
+              <div style={{fontSize:7,color:"var(--t3)"}}>Pending</div>
+            </div>;
+            return <div key={`o-${sh.id}`} className="open-slot" onClick={()=>setConfirmShift(sh)} style={{padding:"2px 4px",borderRadius:3,background:"#fff",marginBottom:2}}>
+              <div style={{fontSize:9,fontWeight:700,color:"var(--green)"}}>{sh.type}</div>
+              <div style={{fontSize:7,color:"var(--green)"}}>Open · {sh.s}–{sh.e}</div>
+            </div>;
+          })}
+        </Card>;
+      })}
+    </div>}
+
+    {/* Request Open Shift Modal */}
+    <Modal open={!!confirmShift} onClose={()=>setConfirmShift(null)} title="Request Open Shift" width={420}>
+      {confirmShift&&<div>
+        <Card style={{padding:16,marginBottom:16,borderLeft:`4px solid ${shC[confirmShift.type]||"var(--blue)"}`}}>
+          <div style={{fontSize:15,fontWeight:700,marginBottom:4}}>{confirmShift.type} Shift</div>
+          <div style={{fontSize:12,color:"var(--t2)",lineHeight:1.6}}>
+            {new Date(confirmShift.date+"T12:00:00").toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"})}<br/>
+            {confirmShift.s} – {confirmShift.e} · Floor {confirmShift.loc}<br/>
+            Role: {confirmShift.role} · {confirmShift.need} slot{confirmShift.need>1?"s":""} available
+          </div>
+        </Card>
+        <p style={{fontSize:12,color:"var(--t2)",marginBottom:16,lineHeight:1.6}}>Submit a request to pick up this shift. Your admin will review and approve or reject.</p>
+        <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+          <Btn v="secondary" onClick={()=>setConfirmShift(null)}>Cancel</Btn>
+          <Btn onClick={()=>doRequest(confirmShift)} disabled={requesting} icon={requesting?<Spinner size={12}/>:<I.Send s={13} c="#fff"/>}>{requesting?"Submitting…":"Request This Shift"}</Btn>
+        </div>
+      </div>}
+    </Modal>
+
+    {/* Request Time Off Modal */}
+    <Modal open={!!confirmOff} onClose={()=>{setConfirmOff(null);setOffReason("");}} title="Request Time Off" width={420}>
+      {confirmOff&&<div>
+        <Card style={{padding:16,marginBottom:16,borderLeft:"4px solid var(--red)"}}>
+          <div style={{fontSize:15,fontWeight:700,marginBottom:4}}>{confirmOff.type} Shift</div>
+          <div style={{fontSize:12,color:"var(--t2)",lineHeight:1.6}}>
+            {new Date(confirmOff.date+"T12:00:00").toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"})}<br/>
+            {confirmOff.s} – {confirmOff.e}
+          </div>
+        </Card>
+        <div style={{padding:10,background:"var(--amberL)",borderRadius:"var(--rs)",border:"1px solid #FDE68A",marginBottom:14,fontSize:11,color:"var(--amber)",display:"flex",alignItems:"center",gap:6}}>
+          <I.Alert s={13} c="#D97706"/>Time-off requests require admin approval. Your shift remains assigned until approved.
+        </div>
+        <Inp label="Reason (optional)" value={offReason} onChange={e=>setOffReason(e.target.value)} placeholder="e.g. Medical appointment, family obligation…" multiline rows={2}/>
+        <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+          <Btn v="secondary" onClick={()=>{setConfirmOff(null);setOffReason("");}}>Cancel</Btn>
+          <Btn v="danger" onClick={()=>doRequestOff(confirmOff)} disabled={requesting} icon={requesting?<Spinner size={12}/>:<I.Send s={13} c="#fff"/>}>{requesting?"Submitting…":"Request Time Off"}</Btn>
+        </div>
+      </div>}
+    </Modal>
+  </div>;
+}
+
 // ═══ SHIFT BOARD ═══
-function ShiftBoardView({emps}){
-  const[shifts,setShifts]=useState([
-    {id:"OS1",date:(()=>{const d=new Date();d.setDate(d.getDate()+1);return d.toISOString().split("T")[0]})(),type:"Day",s:"7a",e:"3p",loc:"2A",role:"CNA",need:2,status:"open",notif:[]},
-    {id:"OS2",date:(()=>{const d=new Date();d.setDate(d.getDate()+3);return d.toISOString().split("T")[0]})(),type:"Eve",s:"3p",e:"11p",loc:"Main",role:"RN",need:1,status:"open",notif:[]},
-  ]);
+function ShiftBoardView({emps,shifts,setShifts,shiftReqs,setShiftReqs,timeOffReqs,setTimeOffReqs}){
   const[showCreate,setShowCreate]=useState(false);
   const[showNotify,setShowNotify]=useState(null);
   const[sel,setSel]=useState([]);
@@ -638,6 +1230,67 @@ function ShiftBoardView({emps}){
             {sh.status==="open"&&<Btn size="sm" icon={<I.Bell s={12} c="#fff"/>} onClick={()=>{setShowNotify(sh.id);setSel([]);}}>Notify</Btn>}
             <Btn size="sm" v="danger" onClick={()=>setShifts(p=>p.map(s=>s.id===sh.id?{...s,status:"cancelled"}:s))}>Cancel</Btn></div>
         </div></Card>);})}
+    {/* ── Shift Requests Section ── */}
+    {shiftReqs&&shiftReqs.filter(r=>r.status==="pending").length>0&&<>
+      <h3 style={{fontSize:11,fontWeight:700,textTransform:"uppercase",color:"var(--t3)",margin:"16px 0 8px"}}>Shift Requests</h3>
+      {shiftReqs.filter(r=>r.status==="pending").map((req,i)=>{
+        const sh=shifts.find(s=>s.id===req.shiftId);const emp=emps.find(e=>e.id===req.empId);
+        if(!sh||!emp)return null;const dt=new Date(sh.date+"T12:00:00");const shC2={Day:"#2563EB",Eve:"#7C3AED",Night:"#475569",Day12:"#0891B2",Nite12:"#1E293B"};const c2=shC2[sh.type]||"var(--blue)";
+        return <Card key={req.id} className="fi" style={{padding:14,marginBottom:6,borderLeft:"4px solid var(--amber)",animationDelay:`${i*.05}s`}}>
+          <div style={{display:"flex",alignItems:"center",gap:12}}>
+            <Avatar initials={emp.avatar} size={34}/>
+            <div style={{flex:1}}>
+              <div style={{fontSize:13,fontWeight:700}}>{emp.name} <Badge v="warning">Pending</Badge></div>
+              <div style={{fontSize:11,color:"var(--t2)"}}>Requesting: {sh.type} {sh.s}–{sh.e} · {dt.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"})} · Fl {sh.loc}</div>
+              <div style={{fontSize:10,color:"var(--t3)",marginTop:2}}>Requested {new Date(req.requestedAt).toLocaleString()}</div>
+            </div>
+            <div style={{display:"flex",gap:5}}>
+              <Btn size="sm" v="success" icon={<I.Check s={12} c="#059669"/>} onClick={async()=>{
+                await SLX.resolveRequest(req.id,"approved");
+                const newNeed=sh.need-1;
+                setShifts(p=>p.map(s=>s.id===sh.id?{...s,need:newNeed,status:newNeed<=0?"filled":s.status}:s));
+                setShiftReqs(p=>p.map(r=>{
+                  if(r.id===req.id)return{...r,status:"approved",resolvedAt:new Date().toISOString()};
+                  if(r.shiftId===req.shiftId&&r.status==="pending"&&newNeed<=0)return{...r,status:"rejected",resolvedAt:new Date().toISOString()};
+                  return r;
+                }));
+              }}>Approve</Btn>
+              <Btn size="sm" v="danger" icon={<I.X s={12} c="#DC2626"/>} onClick={async()=>{
+                await SLX.resolveRequest(req.id,"rejected");
+                setShiftReqs(p=>p.map(r=>r.id===req.id?{...r,status:"rejected",resolvedAt:new Date().toISOString()}:r));
+              }}>Reject</Btn>
+            </div>
+          </div></Card>;
+      })}</>}
+    {/* ── Time-Off Requests Section ── */}
+    {timeOffReqs&&timeOffReqs.filter(r=>r.status==="pending").length>0&&<>
+      <h3 style={{fontSize:11,fontWeight:700,textTransform:"uppercase",color:"var(--t3)",margin:"16px 0 8px"}}>Time-Off Requests</h3>
+      {timeOffReqs.filter(r=>r.status==="pending").map((req,i)=>{
+        const emp=emps.find(e=>e.id===req.empId);
+        if(!emp)return null;
+        // Find the matching assigned shift from sched data (genSched shifts have date/type/time)
+        const shiftDate=new Date(req.shiftId.replace("SH",""));
+        return <Card key={req.id} className="fi" style={{padding:14,marginBottom:6,borderLeft:"4px solid var(--red)",animationDelay:`${i*.05}s`}}>
+          <div style={{display:"flex",alignItems:"center",gap:12}}>
+            <Avatar initials={emp.avatar} size={34}/>
+            <div style={{flex:1}}>
+              <div style={{fontSize:13,fontWeight:700}}>{emp.name} <Badge v="danger">Time Off</Badge></div>
+              <div style={{fontSize:11,color:"var(--t2)"}}>Shift ID: {req.shiftId}</div>
+              {req.reason&&<div style={{fontSize:10,color:"var(--t3)",marginTop:2,fontStyle:"italic"}}>"{req.reason}"</div>}
+              <div style={{fontSize:10,color:"var(--t3)",marginTop:2}}>Requested {new Date(req.requestedAt).toLocaleString()}</div>
+            </div>
+            <div style={{display:"flex",gap:5}}>
+              <Btn size="sm" v="success" icon={<I.Check s={12} c="#059669"/>} onClick={async()=>{
+                await SLX.resolveTimeOff(req.id,"approved");
+                setTimeOffReqs(p=>p.map(r=>r.id===req.id?{...r,status:"approved",resolvedAt:new Date().toISOString()}:r));
+              }}>Approve</Btn>
+              <Btn size="sm" v="danger" icon={<I.X s={12} c="#DC2626"/>} onClick={async()=>{
+                await SLX.resolveTimeOff(req.id,"rejected");
+                setTimeOffReqs(p=>p.map(r=>r.id===req.id?{...r,status:"rejected",resolvedAt:new Date().toISOString()}:r));
+              }}>Deny</Btn>
+            </div>
+          </div></Card>;
+      })}</>}
     <Modal open={!!showNotify} onClose={()=>setShowNotify(null)} title="Notify Staff">
       <p style={{fontSize:12,color:"var(--t2)",marginBottom:12}}>Push notification to selected employees.</p>
       {emps.filter(e=>e.status==="active").map(e=>{const m=!shifts.find(s=>s.id===showNotify)||e.role===shifts.find(s=>s.id===showNotify)?.role;const s2=sel.includes(e.id);return(
@@ -663,27 +1316,34 @@ function ShiftBoardView({emps}){
 
 // ═══ ONBOARDING FLOW BUILDER ═══
 function OnboardFlowView({steps,setSteps}){
+  const[activeState,setActiveState]=useState("TX");
   const dr=useRef(null);const dv=useRef(null);
   const[showAdd,setShowAdd]=useState(false);
   const[nI,setNI]=useState({label:"",desc:"",type:"form",url:""});
-  const onEnd=()=>{if(dr.current==null||dv.current==null)return;const c=[...steps];const it=c.splice(dr.current,1)[0];c.splice(dv.current,0,it);setSteps(c);dr.current=null;dv.current=null;};
+  const stateSteps=steps[activeState]||[];
+  const onEnd=()=>{if(dr.current==null||dv.current==null)return;const c=[...stateSteps];const it=c.splice(dr.current,1)[0];c.splice(dv.current,0,it);setSteps({...steps,[activeState]:c});dr.current=null;dv.current=null;};
   const tI={form:I.File,video:I.Video,link:I.Link};
+  const stateInfo={TX:{name:"Texas",fac:"Tulia Health and Rehabilitation"},OK:{name:"Oklahoma",fac:"Oklahoma Care Center"}};
   return <div className="fi">
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-      <div><h1 style={{fontSize:22,fontWeight:700}}>Onboarding Flow</h1><p style={{color:"var(--t3)",fontSize:12,marginTop:2}}>Drag to reorder · add docs, videos, links</p></div>
+      <div><h1 style={{fontSize:22,fontWeight:700}}>Onboarding Flow</h1><p style={{color:"var(--t3)",fontSize:12,marginTop:2}}>State-specific document packages · drag to reorder</p></div>
       <Btn onClick={()=>setShowAdd(true)} icon={<I.Plus s={14} c="#fff"/>}>Add Step</Btn></div>
-    <Card style={{padding:"12px 16px",marginBottom:10,background:"var(--blueL)",border:"1px dashed #93C5FD"}}>
-      <div style={{display:"flex",alignItems:"center",gap:8}}><I.Upload s={16} c="#2563EB"/><div style={{fontSize:12,fontWeight:600,color:"var(--blue)"}}>Drag & drop to reorder — new hires see this order</div></div></Card>
-    {steps.map((s,i)=>{const TI=tI[s.type]||I.File;return(
+    {/* State tabs */}
+    <div style={{display:"flex",gap:4,marginBottom:14}}>
+      {Object.keys(stateInfo).map(st=><button key={st} onClick={()=>setActiveState(st)} style={{padding:"8px 18px",borderRadius:"var(--rs)",border:activeState===st?"2px solid var(--blue)":"1px solid var(--brd)",background:activeState===st?"var(--blueL)":"#fff",fontFamily:"inherit",fontSize:12,fontWeight:600,color:activeState===st?"var(--blue)":"var(--t2)",cursor:"pointer"}}>{stateInfo[st].name} ({st}) — {(steps[st]||[]).length} steps</button>)}
+    </div>
+    <Card style={{padding:"10px 16px",marginBottom:10,background:"var(--blueL)",border:"1px dashed #93C5FD"}}>
+      <div style={{display:"flex",alignItems:"center",gap:8}}><I.Building s={16} c="#2563EB"/><div style={{fontSize:12,fontWeight:600,color:"var(--blue)"}}>{stateInfo[activeState].fac} — {stateInfo[activeState].name} document package</div></div></Card>
+    {stateSteps.map((s,i)=>{const TI=tI[s.type]||I.File;return(
       <div key={s.id} draggable onDragStart={()=>{dr.current=i}} onDragEnter={()=>{dv.current=i}} onDragEnd={onEnd} onDragOver={e=>e.preventDefault()}
         style={{display:"flex",alignItems:"center",gap:8,padding:"10px 14px",background:"#fff",border:"1px solid var(--brd)",borderRadius:"var(--rs)",cursor:"grab",boxShadow:"var(--sh)",marginBottom:3}}>
         <I.Grip s={12} c="#CBD5E1"/>
         <div style={{width:28,height:28,borderRadius:"var(--rs)",background:s.type==="video"?"var(--purpleL)":s.type==="link"?"var(--amberL)":"var(--blueL)",display:"flex",alignItems:"center",justifyContent:"center"}}><TI s={14} c={s.type==="video"?"#7C3AED":s.type==="link"?"#D97706":"#2563EB"}/></div>
         <div style={{flex:1,minWidth:0}}><div style={{fontSize:12,fontWeight:600,display:"flex",alignItems:"center",gap:5}}>{s.label}<Badge v={s.type==="video"?"purple":s.type==="link"?"warning":"info"} style={{fontSize:8}}>{s.type}</Badge></div><div style={{fontSize:10,color:"var(--t3)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.desc}</div></div>
         <span style={{fontSize:10,color:"var(--t3)",fontWeight:600,background:"var(--bg)",padding:"2px 6px",borderRadius:4}}>#{i+1}</span>
-        <button onClick={()=>setSteps(steps.filter(x=>x.id!==s.id))} style={{background:"none",border:"none",cursor:"pointer",padding:3,display:"flex"}}><I.Trash s={13} c="#DC2626"/></button>
+        <button onClick={()=>setSteps({...steps,[activeState]:stateSteps.filter(x=>x.id!==s.id)})} style={{background:"none",border:"none",cursor:"pointer",padding:3,display:"flex"}}><I.Trash s={13} c="#DC2626"/></button>
       </div>);})}
-    <Modal open={showAdd} onClose={()=>setShowAdd(false)} title="Add Step">
+    <Modal open={showAdd} onClose={()=>setShowAdd(false)} title={`Add Step — ${stateInfo[activeState].name}`}>
       <Inp label="Name" value={nI.label} onChange={e=>setNI({...nI,label:e.target.value})} placeholder="Safety Training" req/>
       <Inp label="Description" value={nI.desc} onChange={e=>setNI({...nI,desc:e.target.value})}/>
       <div style={{marginBottom:14}}><label style={{display:"block",fontSize:12,fontWeight:600,color:"var(--t2)",marginBottom:6}}>Type</label>
@@ -692,7 +1352,7 @@ function OnboardFlowView({steps,setSteps}){
       {(nI.type==="video"||nI.type==="link")&&<Inp label="URL" value={nI.url} onChange={e=>setNI({...nI,url:e.target.value})} placeholder="https://..."/>}
       {nI.type==="form"&&<div style={{padding:20,border:"2px dashed var(--brd)",borderRadius:"var(--r)",textAlign:"center",marginBottom:14,background:"var(--bg)"}}><I.Upload s={20} c="#94A3B8"/><p style={{fontSize:11,color:"var(--t3)",marginTop:6}}>Drag & drop or click (PDF, DOC)</p></div>}
       <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}><Btn v="secondary" onClick={()=>setShowAdd(false)}>Cancel</Btn>
-        <Btn onClick={()=>{if(!nI.label)return;setSteps(p=>[...p,{id:`c${Date.now()}`,label:nI.label,desc:nI.desc||nI.url||"Custom",icon:nI.type==="video"?"🎬":nI.type==="link"?"🔗":"📄",type:nI.type}]);setNI({label:"",desc:"",type:"form",url:""});setShowAdd(false);}} disabled={!nI.label} icon={<I.Plus s={13} c="#fff"/>}>Add</Btn></div>
+        <Btn onClick={()=>{if(!nI.label)return;setSteps({...steps,[activeState]:[...stateSteps,{id:`c${Date.now()}`,label:nI.label,desc:nI.desc||nI.url||"Custom",icon:nI.type==="video"?"🎬":nI.type==="link"?"🔗":"📄",type:nI.type}]});setNI({label:"",desc:"",type:"form",url:""});setShowAdd(false);}} disabled={!nI.label} icon={<I.Plus s={13} c="#fff"/>}>Add</Btn></div>
     </Modal></div>;
 }
 // ═══ ACCOUNTS (Super Admin) ═══
@@ -788,6 +1448,10 @@ export default function StaffHubApp(){
   const[emps,setEmps]=useState(INIT_EMP);
   const[admins,setAdmins]=useState(INIT_ADMINS);
   const[obSteps,setObSteps]=useState(INIT_STEPS);
+  const[shifts,setShifts]=useState(INIT_SHIFTS);
+  const[shiftReqs,setShiftReqs]=useState([]);
+  const[timeOffReqs,setTimeOffReqs]=useState([]);
+  const[myEmpId]=useState("E001");
 
   if(!loggedIn) return <><style>{css}</style><LoginScreen onLogin={r=>{setRole(r);setLoggedIn(true);}}/></>;
 
@@ -796,21 +1460,22 @@ export default function StaffHubApp(){
     const me=emps.find(e=>e.id==="E003")||emps.find(e=>e.status==="onboarding");
     // Still filling out / not yet submitted
     if(me && !me.onboardingComplete && me.status!=="review"){
+      const empState=getFacility(me.facilityId).state;
       return <><style>{css}</style>
-        <OnboardPortal emp={me} steps={obSteps}
+        <OnboardPortal emp={me} steps={getStepsForState(empState)}
           onSave={(fd)=>setEmps(p=>p.map(e=>e.id===me.id?{...e,formData:fd,status:"onboarding"}:e))}
           onSubmit={(fd)=>setEmps(p=>p.map(e=>e.id===me.id?{...e,formData:fd,status:"review",submittedDocs:{at:new Date().toISOString()}}:e))}
         /></>;
     }
     // Submitted or approved → show schedule
     return <><style>{css}</style>
-      <div style={{maxWidth:860,margin:"0 auto"}}><HipaaBar/>
+      <div style={{maxWidth:960,margin:"0 auto"}}><HipaaBar/>
         <div style={{padding:20}}>
           {me?.status==="review"&&<Card style={{padding:16,marginBottom:16,background:"var(--amberL)",border:"1px solid #FDE68A"}}>
             <div style={{display:"flex",alignItems:"center",gap:8}}><I.Clock s={16} c="#D97706"/>
               <div><div style={{fontSize:13,fontWeight:600,color:"var(--amber)"}}>Paperwork Under Review</div>
                 <div style={{fontSize:12,color:"var(--t2)"}}>Your admin is reviewing your documents. Schedule will appear once approved.</div></div></div></Card>}
-          <ScheduleView emps={emps} setEmps={setEmps}/>
+          <EmployeeScheduleView emps={emps} shifts={shifts} shiftReqs={shiftReqs} setShiftReqs={setShiftReqs} timeOffReqs={timeOffReqs} setTimeOffReqs={setTimeOffReqs} myEmpId={myEmpId}/>
           <div style={{textAlign:"center",padding:"20px 0"}}><button onClick={()=>setLoggedIn(false)} style={{background:"none",border:"none",color:"var(--t3)",fontFamily:"inherit",fontSize:12,cursor:"pointer"}}>Sign Out</button></div>
         </div></div></>;
   }
@@ -818,9 +1483,9 @@ export default function StaffHubApp(){
   // ── EMPLOYEE: schedule is homescreen ──
   if(role==="employee"){
     return <><style>{css}</style>
-      <div style={{maxWidth:860,margin:"0 auto"}}><HipaaBar/>
+      <div style={{maxWidth:960,margin:"0 auto"}}><HipaaBar/>
         <div style={{padding:20}}>
-          <ScheduleView emps={emps} setEmps={setEmps}/>
+          <EmployeeScheduleView emps={emps} shifts={shifts} shiftReqs={shiftReqs} setShiftReqs={setShiftReqs} timeOffReqs={timeOffReqs} setTimeOffReqs={setTimeOffReqs} myEmpId={myEmpId}/>
           <div style={{textAlign:"center",padding:"20px 0"}}><button onClick={()=>setLoggedIn(false)} style={{background:"none",border:"none",color:"var(--t3)",fontFamily:"inherit",fontSize:12,cursor:"pointer"}}>Sign Out</button></div>
         </div></div></>;
   }
@@ -836,7 +1501,7 @@ export default function StaffHubApp(){
           {view==="employees"&&<EmployeesView emps={emps} setEmps={setEmps}/>}
           {view==="review"&&<ReviewView emps={emps} setEmps={setEmps}/>}
           {view==="schedule"&&<ScheduleView emps={emps} setEmps={setEmps}/>}
-          {view==="shifts"&&<ShiftBoardView emps={emps}/>}
+          {view==="shifts"&&<ShiftBoardView emps={emps} shifts={shifts} setShifts={setShifts} shiftReqs={shiftReqs} setShiftReqs={setShiftReqs} timeOffReqs={timeOffReqs} setTimeOffReqs={setTimeOffReqs}/>}
           {view==="onboarding"&&<OnboardFlowView steps={obSteps} setSteps={setObSteps}/>}
           {view==="accounts"&&<AccountsView admins={admins} setAdmins={setAdmins}/>}
           {view==="billing"&&<BillingView/>}
