@@ -761,7 +761,7 @@ function Sidebar({view,setView,role,onLogout}){
       </div></div>
     <nav style={{flex:1,padding:"6px 5px",display:"flex",flexDirection:"column",gap:1,overflowY:"auto"}}>
       {items.filter(i=>i.r.includes(role)).map(it=>{const a=view===it.id;return <button key={it.id} onClick={()=>setView(it.id)} style={{display:"flex",alignItems:"center",gap:9,width:"100%",padding:"8px 11px",borderRadius:"var(--rs)",border:"none",background:a?"var(--blueL)":"transparent",color:a?"var(--blue)":"var(--t2)",fontFamily:"inherit",fontSize:12,fontWeight:a?600:500,cursor:"pointer",textAlign:"left"}}>
-        <it.icon s={16} c={a?"#2563EB":"#94A3B8"}/>{it.label}
+        <it.icon s={16} c={a?"#1D4ED8":"#2563EB"}/>{it.label}
       </button>;})}
     </nav>
     <div style={{padding:10,borderTop:"1px solid var(--brd)"}}>
