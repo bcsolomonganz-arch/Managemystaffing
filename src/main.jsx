@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import StaffHubApp from './App.jsx';
+import ManageMyStaffingApp from './App.jsx';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <StaffHubApp />
+    <ManageMyStaffingApp />
   </React.StrictMode>
 );

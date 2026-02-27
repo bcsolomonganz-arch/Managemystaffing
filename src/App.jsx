@@ -45,6 +45,17 @@ Zap:p=>{const{w,h,c}=_s(p,16);return<svg width={w} height={h} viewBox="0 0 24 24
 Refresh:p=>{const{w,h,c}=_s(p,16);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0115-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 01-15 6.7L3 16"/></svg>;},
 Database:p=>{const{w,h,c}=_s(p);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4.03 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/></svg>;},
 Camera:p=>{const{w,h,c}=_s(p);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="6" width="20" height="14" rx="2.5"/><circle cx="12" cy="13" r="4"/><path d="M7 6V4.5A1.5 1.5 0 018.5 3h7A1.5 1.5 0 0117 4.5V6"/></svg>;},
+TimeClock:p=>{const{w,h,c}=_s(p);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9.5"/><polyline points="12 7 12 12 15.5 14"/><path d="M21 5l-2-2"/><path d="M3 5l2-2"/></svg>;},
+BarChart2:p=>{const{w,h,c}=_s(p);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="12" width="4" height="8" rx="1"/><rect x="10" y="8" width="4" height="12" rx="1"/><rect x="17" y="4" width="4" height="16" rx="1"/></svg>;},
+Gauge:p=>{const{w,h,c}=_s(p);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 6v2"/><path d="M18 12h-2"/><path d="M6 12h2"/><path d="M15.5 8.5l-4 4"/></svg>;},
+Target:p=>{const{w,h,c}=_s(p);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>;},
+History:p=>{const{w,h,c}=_s(p);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>;},
+TrendUp:p=>{const{w,h,c}=_s(p);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>;},
+TrendDown:p=>{const{w,h,c}=_s(p);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>;},
+Filter:p=>{const{w,h,c}=_s(p);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>;},
+Export:p=>{const{w,h,c}=_s(p);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>;},
+Clipboard:p=>{const{w,h,c}=_s(p);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1.5"/></svg>;},
+Punch:p=>{const{w,h,c}=_s(p);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M12 8v4l3 1.5"/><path d="M8 2h8"/><line x1="12" y1="2" x2="12" y2="4"/></svg>;},
 };
 
 // ═══ API LAYER ═══
@@ -58,6 +69,27 @@ const SLX={
   async requestTimeOff(req){await new Promise(r=>setTimeout(r,600));return{ok:true,id:`TO-${Date.now()}`};},
   async resolveTimeOff(id,action){await new Promise(r=>setTimeout(r,400));return{ok:true,action};},
   async backupToCloud(empId,data){await new Promise(r=>setTimeout(r,1500));return{ok:true,ts:new Date().toISOString()};},
+  // ── Time Clock API ──
+  async importPunchCSV(csvText){
+    await new Promise(r=>setTimeout(r,800));
+    const lines=csvText.trim().split("\n");if(lines.length<2)return[];
+    const header=lines[0].toLowerCase().split(",").map(h=>h.trim());
+    const hasInOut=header.includes("in")&&header.includes("out");
+    const records=[];
+    for(let i=1;i<lines.length;i++){
+      const cols=lines[i].split(",").map(c=>c.trim());
+      const obj={};header.forEach((h,j)=>{obj[h]=cols[j]||"";});
+      if(hasInOut){
+        records.push({id:`P${Date.now()}-${i}`,empId:obj.emp_id||obj.employee_id||obj.id||"",date:obj.date||"",clockIn:obj.in||"",clockOut:obj.out||"",status:(!obj.in||!obj.out)?"missed":"normal",source:"csv"});
+      }else{
+        records.push({id:`P${Date.now()}-${i}`,empId:obj.emp_id||obj.employee_id||obj.id||"",date:obj.date||"",time:obj.time||"",type:obj.type||"in",source:"csv"});
+      }
+    }
+    return records;
+  },
+  async addPunch(punch){await new Promise(r=>setTimeout(r,300));return{ok:true,id:punch.id||`P${Date.now()}`};},
+  async updatePunch(id,data){await new Promise(r=>setTimeout(r,300));return{ok:true,id};},
+  async punchInOut(empId,type){await new Promise(r=>setTimeout(r,500));return{ok:true,id:`P${Date.now()}`,empId,type,time:new Date().toISOString()};},
 };
 
 // ═══ PCC (PointClickCare) FHIR / OAuth 2.0 LAYER ═══
@@ -112,7 +144,7 @@ const PCC={
   // — Employee export to FHIR Practitioner —
   formatEmployeeForPCC(emp,formData){
     const d=formData||{};
-    return{resourceType:"Practitioner",identifier:[{system:"urn:staffhub",value:emp.id}],active:emp.status==="active",name:[{family:d.lastName||emp.name.split(" ").pop(),given:[d.firstName||emp.name.split(" ")[0]]}],telecom:[{system:"email",value:emp.email}],qualification:[{code:{text:emp.role}}]};
+    return{resourceType:"Practitioner",identifier:[{system:"urn:manage-my-staffing",value:emp.id}],active:emp.status==="active",name:[{family:d.lastName||emp.name.split(" ").pop(),given:[d.firstName||emp.name.split(" ")[0]]}],telecom:[{system:"email",value:emp.email}],qualification:[{code:{text:emp.role}}]};
   },
 };
 
@@ -320,10 +352,10 @@ const ADP={
   calcStaffingVariance(scheduleData,timeCardData){
     if(!scheduleData?.schedules||!timeCardData?.timeCards)return[];
     const scheduled={};const actual={};
-    scheduleData.schedules.forEach(s=>{const k=`${s.date}-${s.role}`;scheduled[k]=(scheduled[k]||0)+1;});
-    timeCardData.timeCards.forEach(t=>{const k=`${t.date}-${t.role}`;actual[k]=(actual[k]||0)+1;});
+    scheduleData.schedules.forEach(s=>{const k=`${s.date}|${s.role}`;scheduled[k]=(scheduled[k]||0)+1;});
+    timeCardData.timeCards.forEach(t=>{const k=`${t.date}|${t.role}`;actual[k]=(actual[k]||0)+1;});
     const allKeys=[...new Set([...Object.keys(scheduled),...Object.keys(actual)])].sort();
-    return allKeys.map(k=>{const[date,role]=k.split("-");const s=scheduled[k]||0;const a=actual[k]||0;
+    return allKeys.map(k=>{const[date,role]=k.split("|");const s=scheduled[k]||0;const a=actual[k]||0;
       return{date,role,scheduled:s,actual:a,variance:a-s,pct:s>0?Math.round((a/s)*100):a>0?999:100};});
   },
   validateData(timeCards){
@@ -379,6 +411,88 @@ function genSched(numDays=14){
   return shifts;
 }
 
+// ═══ ATTENDANCE POINTS CONFIG ═══
+const ATTENDANCE_POINTS={late_1_15:0.5,late_16_60:1,late_60_plus:2,ncns:3,missed_punch:0.5,unexcused_absence:2};
+
+// ═══ MOCK DATA GENERATORS ═══
+function genPunches(emps,days=14){
+  const punches=[];const now=new Date();
+  const activeEmps=emps.filter(e=>e.status==="active");
+  for(let d=0;d<days;d++){
+    const dt=new Date(now);dt.setDate(dt.getDate()-d);const ds=dt.toISOString().split("T")[0];
+    activeEmps.forEach((emp,ei)=>{
+      if(Math.random()<0.05)return; // 5% NCNS
+      const shiftStart=7+Math.floor(Math.random()*2);
+      const shiftLen=emp.rotation==="12hr"?12:8;
+      const late=Math.random()<0.05?Math.floor(Math.random()*45)+1:0;
+      const missed=Math.random()<0.10;
+      const inH=shiftStart+(late/60);
+      const outH=shiftStart+shiftLen+(Math.random()*0.5-0.25);
+      const inTime=`${String(Math.floor(inH)).padStart(2,"0")}:${String(Math.floor((inH%1)*60)).padStart(2,"0")}`;
+      const outTime=missed?"":`${String(Math.floor(outH)).padStart(2,"0")}:${String(Math.floor((outH%1)*60)).padStart(2,"0")}`;
+      const hours=missed?0:Math.round((outH-inH)*100)/100;
+      let status="normal";
+      if(missed)status="missed";
+      else if(late>0)status="late";
+      punches.push({id:`PU-${ds}-${emp.id}`,empId:emp.id,empName:emp.name,role:emp.role,date:ds,
+        clockIn:`${ds}T${inTime}:00`,clockOut:outTime?`${ds}T${outTime}:00`:"",
+        hours:Math.max(0,hours),status,lateMinutes:late,source:"system",
+        corrected:false,originalIn:null,originalOut:null,correctedBy:null,correctedAt:null});
+    });
+  }
+  return punches.sort((a,b)=>b.date.localeCompare(a.date));
+}
+
+function genAnalytics(emps,weeks=12){
+  const data={payroll:[],attendance:[],turnover:[],hppd:[]};
+  const activeEmps=emps.filter(e=>e.status==="active");
+  const roles=["CNA","RN","LPN","CMA","Dietary","Housekeeping"];
+  for(let w=0;w<weeks;w++){
+    const wk=new Date();wk.setDate(wk.getDate()-w*7);const ws=wk.toISOString().split("T")[0];
+    const basePayroll=activeEmps.length*1200+Math.random()*5000;
+    const otCost=basePayroll*0.08*(1+Math.random()*0.1);
+    data.payroll.push({week:ws,total:Math.round(basePayroll),overtime:Math.round(otCost),
+      byRole:Object.fromEntries(roles.map(r=>[r,Math.round(basePayroll*(r==="CNA"?0.35:r==="RN"?0.25:r==="LPN"?0.15:r==="CMA"?0.10:0.075)*(0.9+Math.random()*0.2))]))});
+    const budget=Math.round(basePayroll*1.05);
+    data.payroll[data.payroll.length-1].budget=budget;
+    data.attendance.push({week:ws,missedPunches:Math.floor(Math.random()*8)+1,ncns:Math.floor(Math.random()*3),
+      lateClockIns:Math.floor(Math.random()*6)+2,avgScore:85+Math.floor(Math.random()*12),
+      byDow:[1+Math.random()*3,2+Math.random()*2,1+Math.random()*2,1.5+Math.random()*2,2+Math.random()*3,3+Math.random()*4,2.5+Math.random()*3].map(Math.round)});
+    data.turnover.push({week:ws,rate:Math.round((8+Math.random()*12)*10)/10,avgTenure:Math.round((18+Math.random()*24)*10)/10,
+      hires:Math.floor(Math.random()*4),terms:Math.floor(Math.random()*3),retention90:Math.round((70+Math.random()*25)*10)/10,
+      byRole:Object.fromEntries(roles.slice(0,4).map(r=>[r,Math.round((5+Math.random()*15)*10)/10]))});
+    const census=Math.floor(40+Math.random()*20);const directHrs=census*(3+Math.random()*1.5);
+    data.hppd.push({week:ws,hppd:Math.round(directHrs/census*100)/100,census,directHours:Math.round(directHrs),
+      rnHppd:Math.round((0.5+Math.random()*0.3)*100)/100,nursingHppd:Math.round((2.5+Math.random()*0.8)*100)/100,
+      byJobCode:{4:Math.round(directHrs*0.2),6:Math.round(directHrs*0.25),8:Math.round(directHrs*0.4),10:Math.round(directHrs*0.15)}});
+  }
+  data.exitReasons=[{label:"Better pay",value:32},{label:"Relocation",value:18},{label:"Burnout",value:24},{label:"Career change",value:14},{label:"Personal",value:12}];
+  data.tenureByDept=[{label:"Nursing",value:22},{label:"Dietary",value:18},{label:"Housekeeping",value:14},{label:"Rehab",value:28},{label:"Admin",value:36}];
+  return data;
+}
+
+function genAuditLog(){
+  const actions=["login","view_phi","edit_punch","approve_doc","export_data","generate_pbj","sync_adp","edit_schedule","add_employee","approve_timeoff"];
+  const users=["Super Admin","Rebecca Torres","Michael Park"];
+  const log=[];
+  for(let i=0;i<50;i++){
+    const dt=new Date();dt.setMinutes(dt.getMinutes()-i*Math.floor(Math.random()*60+5));
+    const action=actions[Math.floor(Math.random()*actions.length)];
+    log.push({id:`AL-${i}`,timestamp:dt.toISOString(),user:users[Math.floor(Math.random()*users.length)],
+      action,details:action==="login"?"Logged in from 192.168.1."+Math.floor(Math.random()*255):
+        action==="view_phi"?"Viewed employee E00"+Math.ceil(Math.random()*7)+" records":
+        action==="edit_punch"?"Corrected punch for E00"+Math.ceil(Math.random()*7):
+        action==="approve_doc"?"Approved documents for E00"+Math.ceil(Math.random()*7):
+        action==="export_data"?"Exported SmartLinx CSV":
+        action==="generate_pbj"?"Generated PBJ report for F001":
+        action==="sync_adp"?"Synced ADP workers for F001":
+        action==="edit_schedule"?"Modified schedule for E00"+Math.ceil(Math.random()*7):
+        action==="add_employee"?"Added new employee":
+        "Approved time-off request"});
+  }
+  return log;
+}
+
 // ═══ CSS ═══
 const css=`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
 :root{--bg:#F8FAFB;--card:#fff;--hover:#F1F5F9;--brd:#E2E8F0;--brd2:#F1F5F9;
@@ -403,7 +517,11 @@ textarea{resize:vertical;font-family:inherit}
 .month-nav button{padding:6px 14px;border-radius:var(--rs);border:none;background:transparent;font-family:inherit;font-size:12px;font-weight:600;color:var(--t2);cursor:pointer;transition:all .15s}
 .month-nav button.active{background:var(--blue);color:#fff;box-shadow:var(--sh)}
 .off-req{cursor:pointer;transition:all .15s;position:relative}
-.off-req:hover{opacity:.85;box-shadow:0 1px 4px rgba(220,38,38,.2)}`;
+.off-req:hover{opacity:.85;box-shadow:0 1px 4px rgba(220,38,38,.2)}
+@keyframes pulse-badge{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.notif-badge{animation:pulse-badge 2s ease-in-out infinite}
+.chart-tooltip{position:absolute;background:#1E293B;color:#fff;padding:4px 8px;border-radius:4px;font-size:10px;pointer-events:none;white-space:nowrap;z-index:50}
+.chart-tooltip::after{content:'';position:absolute;top:100%;left:50%;margin-left:-3px;border:3px solid transparent;border-top-color:#1E293B}`;
 
 // ═══ SHARED COMPONENTS ═══
 function Badge({children,v="default",style:st}){
@@ -485,6 +603,104 @@ function HipaaBar(){
     <I.Shield s={12} c="#D97706"/><span style={{fontWeight:600}}>HIPAA Protected</span>
     <span style={{color:"var(--t3)"}}>— Encrypted in transit & at rest · Auto-lock 15 min</span>
   </div>;
+}
+
+// ═══ SVG CHART COMPONENTS ═══
+function MiniLine({data=[],w=300,h=120,color="var(--blue)",area=false,dots=true,threshold=null,xLabels=[],yLabel=""}){
+  if(!data.length)return null;
+  const pad={t:10,r:10,b:20,l:yLabel?30:10};
+  const cw=w-pad.l-pad.r;const ch=h-pad.t-pad.b;
+  const mn=Math.min(...data);const mx=Math.max(...data);
+  const range=mx-mn||1;
+  const pts=data.map((v,i)=>({x:pad.l+(i/(data.length-1||1))*cw,y:pad.t+ch-(((v-mn)/range)*ch)}));
+  const pathD=pts.map((p,i)=>`${i===0?"M":"L"}${p.x},${p.y}`).join(" ");
+  const areaD=pathD+` L${pts[pts.length-1].x},${pad.t+ch} L${pts[0].x},${pad.t+ch} Z`;
+  const thY=threshold!=null?pad.t+ch-(((threshold-mn)/range)*ch):null;
+  return <svg width={w} height={h} style={{overflow:"visible"}}>
+    {area&&<path d={areaD} fill={color} opacity=".08"/>}
+    <path d={pathD} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    {dots&&pts.map((p,i)=><circle key={i} cx={p.x} cy={p.y} r="3" fill="#fff" stroke={color} strokeWidth="1.5"/>)}
+    {thY!=null&&thY>=pad.t&&thY<=pad.t+ch&&<><line x1={pad.l} y1={thY} x2={w-pad.r} y2={thY} stroke="var(--red)" strokeWidth="1" strokeDasharray="4,3" opacity=".7"/>
+      <text x={w-pad.r+2} y={thY+3} fontSize="8" fill="var(--red)">{threshold}</text></>}
+    {xLabels.length>0&&xLabels.map((l,i)=>{const x=pad.l+(i/(xLabels.length-1||1))*cw;return <text key={i} x={x} y={h-2} fontSize="8" fill="var(--t3)" textAnchor="middle">{l}</text>;})}
+    {yLabel&&<text x="2" y={pad.t+ch/2} fontSize="8" fill="var(--t3)" transform={`rotate(-90,2,${pad.t+ch/2})`} textAnchor="middle">{yLabel}</text>}
+  </svg>;
+}
+
+function MiniBar({data=[],w=300,h=120,horizontal=false,grouped=false}){
+  if(!data.length)return null;
+  const pad={t:8,r:8,b:22,l:horizontal?60:8};
+  const cw=w-pad.l-pad.r;const ch=h-pad.t-pad.b;
+  const vals=grouped?data.map(d=>Math.max(d.v1||0,d.v2||0)):data.map(d=>d.v||0);
+  const mx=Math.max(...vals)||1;
+  if(horizontal){
+    const barH=Math.min(18,ch/data.length-4);
+    return <svg width={w} height={h}>
+      {data.map((d,i)=>{const y=pad.t+i*(ch/data.length)+(ch/data.length-barH)/2;const bw=(d.v/mx)*cw;
+        return <g key={i}><rect x={pad.l} y={y} width={Math.max(2,bw)} height={barH} rx="3" fill={d.c||"var(--blue)"} opacity=".8"/>
+          <text x={pad.l-4} y={y+barH/2+3} fontSize="9" fill="var(--t3)" textAnchor="end">{d.l}</text>
+          <text x={pad.l+bw+4} y={y+barH/2+3} fontSize="9" fill="var(--t2)" fontWeight="600">{d.v}</text></g>;})}
+    </svg>;
+  }
+  const barW=grouped?Math.min(14,(cw/data.length-6)/2):Math.min(24,cw/data.length-6);
+  return <svg width={w} height={h}>
+    {data.map((d,i)=>{const x=pad.l+i*(cw/data.length)+(cw/data.length-barW*(grouped?2.2:1))/2;
+      if(grouped){const h1=((d.v1||0)/mx)*ch;const h2=((d.v2||0)/mx)*ch;
+        return <g key={i}>
+          <rect x={x} y={pad.t+ch-h1} width={barW} height={h1} rx="2" fill={d.c1||"var(--blue)"} opacity=".7"/>
+          <rect x={x+barW+2} y={pad.t+ch-h2} width={barW} height={h2} rx="2" fill={d.c2||"var(--green)"} opacity=".7"/>
+          <text x={x+barW} y={h-4} fontSize="8" fill="var(--t3)" textAnchor="middle">{d.l}</text></g>;}
+      const bh=((d.v||0)/mx)*ch;
+      return <g key={i}><rect x={x} y={pad.t+ch-bh} width={barW} height={Math.max(2,bh)} rx="2" fill={d.c||"var(--blue)"} opacity=".8"/>
+        <text x={x+barW/2} y={pad.t+ch-bh-4} fontSize="8" fill="var(--t2)" textAnchor="middle" fontWeight="600">{d.v}</text>
+        <text x={x+barW/2} y={h-4} fontSize="8" fill="var(--t3)" textAnchor="middle">{d.l}</text></g>;})}
+  </svg>;
+}
+
+function MiniDonut({data=[],size=140,thickness=24}){
+  if(!data.length)return null;
+  const total=data.reduce((s,d)=>s+d.v,0)||1;
+  const cx=size/2;const cy=size/2;const r=(size-thickness)/2-2;
+  let cumAngle=-90;
+  const arcs=data.map(d=>{const angle=(d.v/total)*360;const startA=cumAngle;cumAngle+=angle;
+    const endA=cumAngle;const largeArc=angle>180?1:0;
+    const rad=n=>n*Math.PI/180;
+    const x1=cx+r*Math.cos(rad(startA));const y1=cy+r*Math.sin(rad(startA));
+    const x2=cx+r*Math.cos(rad(endA));const y2=cy+r*Math.sin(rad(endA));
+    return{d:`M${x1},${y1} A${r},${r} 0 ${largeArc} 1 ${x2},${y2}`,color:d.c,label:d.l,pct:Math.round(d.v/total*100)};});
+  return <div style={{display:"flex",alignItems:"center",gap:16}}>
+    <svg width={size} height={size}>
+      {arcs.map((a,i)=><path key={i} d={a.d} fill="none" stroke={a.color} strokeWidth={thickness} strokeLinecap="round"/>)}
+      <text x={cx} y={cy-4} textAnchor="middle" fontSize="16" fontWeight="700" fill="var(--t1)">{total}</text>
+      <text x={cx} y={cy+10} textAnchor="middle" fontSize="9" fill="var(--t3)">total</text>
+    </svg>
+    <div style={{display:"flex",flexDirection:"column",gap:4}}>
+      {data.map((d,i)=><div key={i} style={{display:"flex",alignItems:"center",gap:6,fontSize:11}}>
+        <div style={{width:8,height:8,borderRadius:2,background:d.c,flexShrink:0}}/>
+        <span style={{color:"var(--t2)"}}>{d.l}</span>
+        <span style={{fontWeight:600,marginLeft:"auto"}}>{arcs[i].pct}%</span>
+      </div>)}
+    </div>
+  </div>;
+}
+
+function MiniGauge({value=0,min=0,max=5,thresholds=[{v:2,c:"var(--red)"},{v:3.48,c:"var(--amber)"},{v:5,c:"var(--green)"}],size=160}){
+  const cx=size/2;const cy=size/2+10;const r=size/2-16;
+  const range=max-min||1;const pct=Math.max(0,Math.min(1,(value-min)/range));
+  const startA=Math.PI;const endA=0;const needleA=startA-pct*Math.PI;
+  const rad=a=>({x:cx+r*Math.cos(a),y:cy-r*Math.sin(a)});
+  return <svg width={size} height={size/2+24} style={{overflow:"visible"}}>
+    {thresholds.map((t,i)=>{const prev=i===0?min:thresholds[i-1].v;
+      const a1=startA-((prev-min)/range)*Math.PI;const a2=startA-((t.v-min)/range)*Math.PI;
+      const p1=rad(a1);const p2=rad(a2);const large=Math.abs(a1-a2)>Math.PI?1:0;
+      return <path key={i} d={`M${p1.x},${p1.y} A${r},${r} 0 ${large} 1 ${p2.x},${p2.y}`} fill="none" stroke={t.c} strokeWidth="10" opacity=".25" strokeLinecap="round"/>;
+    })}
+    <line x1={cx} y1={cy} x2={cx+r*0.75*Math.cos(needleA)} y2={cy-r*0.75*Math.sin(needleA)} stroke="var(--t1)" strokeWidth="2.5" strokeLinecap="round"/>
+    <circle cx={cx} cy={cy} r="4" fill="var(--t1)"/>
+    <text x={cx} y={cy+18} textAnchor="middle" fontSize="18" fontWeight="700" fill={value>=3.48?"var(--green)":"var(--red)"}>{value}</text>
+    <text x={cx-r} y={cy+10} fontSize="8" fill="var(--t3)">{min}</text>
+    <text x={cx+r} y={cy+10} fontSize="8" fill="var(--t3)" textAnchor="end">{max}</text>
+  </svg>;
 }
 
 // ═══ DATA ═══
@@ -1214,17 +1430,20 @@ function Sidebar({view,setView,role,onLogout,pcc,adp}){
     {id:"review",label:"Doc Review",icon:I.Inbox,r:["super_admin","admin"]},
     {id:"schedule",label:"Schedule",icon:I.Calendar,r:["super_admin","admin","employee"]},
     {id:"shifts",label:"Shift Board",icon:I.Clock,r:["super_admin","admin"]},
+    {id:"timeclock",label:"Time Clock",icon:I.TimeClock,r:["super_admin","admin"]},
+    {id:"datacenter",label:"Data Center",icon:I.Chart,r:["super_admin","admin"]},
     {id:"onboarding",label:"Onboarding Flow",icon:I.Onboard,r:["super_admin","admin"]},
     {id:"integrations",label:"Integrations",icon:I.Plug,r:["super_admin"]},
     {id:"pbj",label:"PBJ Reports",icon:I.ClipDoc,r:["super_admin"]},
     {id:"accounts",label:"Accounts",icon:I.Shield,r:["super_admin"]},
+    {id:"audit",label:"Audit Log",icon:I.History,r:["super_admin"]},
     {id:"billing",label:"Billing",icon:I.Billing,r:["super_admin","admin"]},
   ];
   return <div style={{width:210,background:"#fff",borderRight:"1px solid var(--brd)",display:"flex",flexDirection:"column",height:"100vh",position:"fixed",left:0,top:0,zIndex:100}}>
     <div style={{padding:"18px 14px",borderBottom:"1px solid var(--brd)"}}>
       <div style={{display:"flex",alignItems:"center",gap:9}}>
         <div style={{width:30,height:30,borderRadius:"var(--rs)",background:"var(--blue)",display:"flex",alignItems:"center",justifyContent:"center"}}><I.Building s={16} c="#fff"/></div>
-        <div><div style={{fontSize:14,fontWeight:700}}>StaffHub</div><div style={{fontSize:9,color:"var(--t3)",display:"flex",alignItems:"center",gap:3}}><span style={{width:5,height:5,borderRadius:"50%",background:"var(--green)"}}/>SmartLinx{pcc?.connected&&<><span style={{margin:"0 2px"}}>·</span><span style={{width:5,height:5,borderRadius:"50%",background:"var(--green)"}}/>PCC</>}{adp?.connected&&<><span style={{margin:"0 2px"}}>·</span><span style={{width:5,height:5,borderRadius:"50%",background:"var(--green)"}}/>ADP</>}</div></div>
+        <div><div style={{fontSize:12,fontWeight:700}}>Manage my Staffing</div><div style={{fontSize:9,color:"var(--t3)",display:"flex",alignItems:"center",gap:3}}><span style={{width:5,height:5,borderRadius:"50%",background:"var(--green)"}}/>SmartLinx{pcc?.connected&&<><span style={{margin:"0 2px"}}>·</span><span style={{width:5,height:5,borderRadius:"50%",background:"var(--green)"}}/>PCC</>}{adp?.connected&&<><span style={{margin:"0 2px"}}>·</span><span style={{width:5,height:5,borderRadius:"50%",background:"var(--green)"}}/>ADP</>}</div></div>
       </div></div>
     <nav style={{flex:1,padding:"6px 5px",display:"flex",flexDirection:"column",gap:1,overflowY:"auto"}}>
       {items.filter(i=>i.r.includes(role)).map(it=>{const a=view===it.id;return <button key={it.id} onClick={()=>setView(it.id)} style={{display:"flex",alignItems:"center",gap:9,width:"100%",padding:"8px 11px",borderRadius:"var(--rs)",border:"none",background:a?"var(--blueL)":"transparent",color:a?"var(--blue)":"var(--t2)",fontFamily:"inherit",fontSize:12,fontWeight:a?600:500,cursor:"pointer",textAlign:"left"}}>
@@ -1313,7 +1532,7 @@ function ADPDashboardWidgets({adp}){
     {hasPay&&<Card style={{padding:14,marginBottom:12}}>
       <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><I.Dollar s={14} c="#059669"/><h3 style={{fontSize:11,fontWeight:700,textTransform:"uppercase",color:"var(--t3)"}}>Labor Cost</h3></div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
-        {[{l:"Gross",v:"$"+sd.payroll.data?.summary?.totalGross?.toLocaleString(),c:"var(--blue)"},{l:"Net",v:"$"+sd.payroll.data?.summary?.totalNet?.toLocaleString(),c:"var(--green)"},{l:"Per Employee",v:"$"+Math.round(sd.payroll.data?.summary?.totalGross/sd.payroll.data?.summary?.employees)?.toLocaleString(),c:"var(--purple)"}].map((s,i)=>
+        {[{l:"Gross",v:"$"+sd.payroll.data?.summary?.totalGross?.toLocaleString(),c:"var(--blue)"},{l:"Net",v:"$"+sd.payroll.data?.summary?.totalNet?.toLocaleString(),c:"var(--green)"},{l:"Per Employee",v:"$"+Math.round((sd.payroll.data?.summary?.totalGross||0)/(sd.payroll.data?.summary?.employees||1))?.toLocaleString(),c:"var(--purple)"}].map((s,i)=>
           <div key={i} style={{textAlign:"center",padding:6,borderRadius:"var(--rs)",background:"var(--bg)"}}>
             <div style={{fontSize:14,fontWeight:700,color:s.c}}>{s.v}</div><div style={{fontSize:9,color:"var(--t3)"}}>{s.l}</div></div>)}
       </div>
@@ -1373,7 +1592,7 @@ function DashboardView({emps,setView,pcc,adp}){
 }
 
 // ═══ EMPLOYEES (invite, filter, view progress) ═══
-function EmployeesView({emps,setEmps}){
+function EmployeesView({emps,setEmps,onProfile}){
   const[filter,setFilter]=useState("all");
   const[showInv,setShowInv]=useState(false);
   const[invN,setInvN]=useState("");const[invE,setInvE]=useState("");const[invR,setInvR]=useState("CNA");
@@ -1417,7 +1636,7 @@ function EmployeesView({emps,setEmps}){
     <Card style={{overflow:"hidden"}}><table style={{width:"100%",borderCollapse:"collapse"}}><thead><tr style={{borderBottom:"1px solid var(--brd)"}}>
       {["Employee","Role","Facility","Status","Progress","SmartLinx"].map(h=><th key={h} style={{padding:"10px 16px",textAlign:"left",fontSize:10,fontWeight:600,color:"var(--t3)",textTransform:"uppercase",background:"var(--bg)"}}>{h}</th>)}</tr></thead>
       <tbody>{fl.map((e,i)=><tr key={e.id} className="fi" style={{borderBottom:"1px solid var(--brd2)",animationDelay:`${i*.03}s`}}>
-        <td style={{padding:"10px 16px"}}><div style={{display:"flex",alignItems:"center",gap:8}}><Avatar initials={e.avatar} size={30}/><div><div style={{fontSize:13,fontWeight:600}}>{e.name}</div><div style={{fontSize:10,color:"var(--t3)"}}>{e.email}</div></div></div></td>
+        <td style={{padding:"10px 16px"}}><div style={{display:"flex",alignItems:"center",gap:8}}><Avatar initials={e.avatar} size={30}/><div><div style={{fontSize:13,fontWeight:600,cursor:onProfile?"pointer":"default",color:onProfile?"var(--blue)":"var(--t1)"}} onClick={()=>onProfile&&onProfile(e.id)}>{e.name}</div><div style={{fontSize:10,color:"var(--t3)"}}>{e.email}</div></div></div></td>
         <td style={{padding:"10px 16px",fontSize:12,color:"var(--t2)"}}>{e.role}</td>
         <td style={{padding:"10px 16px",fontSize:11,color:"var(--t2)"}}>{getFacility(e.facilityId).name.split(" ").slice(0,2).join(" ")}</td>
         <td style={{padding:"10px 16px"}}>{statusBadge(e)}</td>
@@ -2087,7 +2306,7 @@ function IntegrationsView({pcc,setPcc,adp,setAdp,emps}){
   const saveAndConnect=async()=>{const cfg={tenantId,clientId,baseUrl,scope:"launch/patient patient/*.read openid fhirUser"};localStorage.setItem("pcc_config",JSON.stringify(cfg));const mockTokens={access_token:"mock_at_"+Date.now(),refresh_token:"mock_rt_"+Date.now(),expires_in:3600,_expires_at:Date.now()+3600000,token_type:"Bearer",scope:cfg.scope};sessionStorage.setItem("pcc_tokens",JSON.stringify(mockTokens));setPcc(p=>({...p,config:cfg,tokens:mockTokens,connected:true,lastAuth:new Date().toISOString(),error:null}));setShowSetup(false);};
   const disconnectPcc=()=>{sessionStorage.removeItem("pcc_tokens");setPcc(p=>({...p,tokens:null,connected:false,census:null,error:null}));};
   const fetchCensus=async()=>{setFetchingCensus(true);try{const s=await PCC.getCensusSummary(pcc.config?.baseUrl,pcc.tokens);setPcc(p=>({...p,census:s}));}catch(e){setPcc(p=>({...p,error:e.message}));}setFetchingCensus(false);};
-  const exportStaff=()=>{setExporting(true);const bundle={resourceType:"Bundle",type:"collection",timestamp:new Date().toISOString(),entry:activeEmps.map(e=>({resource:PCC.formatEmployeeForPCC(e,e.formData)}))};const blob=new Blob([JSON.stringify(bundle,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`staffhub-practitioners-${new Date().toISOString().split("T")[0]}.json`;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);setTimeout(()=>setExporting(false),600);};
+  const exportStaff=()=>{setExporting(true);const bundle={resourceType:"Bundle",type:"collection",timestamp:new Date().toISOString(),entry:activeEmps.map(e=>({resource:PCC.formatEmployeeForPCC(e,e.formData)}))};const blob=new Blob([JSON.stringify(bundle,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`mms-practitioners-${new Date().toISOString().split("T")[0]}.json`;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);setTimeout(()=>setExporting(false),600);};
 
   // ADP functions
   const connectAdp=async()=>{
@@ -2122,7 +2341,7 @@ function IntegrationsView({pcc,setPcc,adp,setAdp,emps}){
 
   return <div className="fi">
     <h1 style={{fontSize:22,fontWeight:700,marginBottom:2}}>Integrations</h1>
-    <p style={{color:"var(--t3)",fontSize:13,marginBottom:12}}>Connect external systems to StaffHub</p>
+    <p style={{color:"var(--t3)",fontSize:13,marginBottom:12}}>Connect external systems</p>
     <div style={{display:"flex",gap:0,borderBottom:"1px solid var(--brd)",marginBottom:16}}>{tabBtn("adp","ADP Workforce Now")}{tabBtn("pcc","PointClickCare")}</div>
 
     {/* ════ ADP TAB ════ */}
@@ -2358,20 +2577,28 @@ function IntegrationsView({pcc,setPcc,adp,setAdp,emps}){
   </div>;
 }
 
-// ═══ PBJ REPORTS (CMS Payroll-Based Journal) ═══
-function PBJReportView({adp}){
+// ═══ PBJ REPORTS (CMS Payroll-Based Journal) — Enhanced ═══
+function PBJReportView({adp,punches,emps,pcc}){
   const[facility,setFacility]=useState("F001");
   const[startDate,setStartDate]=useState(()=>{const d=new Date();d.setDate(d.getDate()-13);return d.toISOString().split("T")[0];});
   const[endDate,setEndDate]=useState(()=>new Date().toISOString().split("T")[0]);
   const[generating,setGenerating]=useState(false);
   const[report,setReport]=useState(null);
   const[showCodes,setShowCodes]=useState(false);
+  const[dataSource,setDataSource]=useState("adp");
+  const[deficiencies,setDeficiencies]=useState([]);
+  const[workflowStep,setWorkflowStep]=useState("draft"); // draft, validated, review, submitted
+  const[expandedDef,setExpandedDef]=useState(null);
+  const[manualCensus,setManualCensus]=useState("");
+  const[submissionHistory,setSubmissionHistory]=useState([]);
 
   const fac=FACILITIES.find(f=>f.id===facility)||FACILITIES[0];
 
   const generate=async()=>{
     setGenerating(true);setReport(null);
-    try{const d=await ADP.generatePBJData(facility,startDate,endDate);setReport(d);}
+    try{const d=await ADP.generatePBJData(facility,startDate,endDate);setReport(d);
+      const defs=pbjValidate(d);setDeficiencies(defs);
+      setWorkflowStep(defs.filter(d=>d.severity==="critical").length>0?"review":"validated");}
     catch(e){setReport({error:e.message});}
     setGenerating(false);
   };
@@ -2402,6 +2629,31 @@ function PBJReportView({adp}){
     </Card>}
 
     {adp.connected&&<>
+      {/* Workflow Status Bar */}
+      <div style={{display:"flex",gap:2,marginBottom:16}}>
+        {[["draft","Draft"],["validated","Validated"],["review","Deficiency Review"],["submitted","Submitted"]].map(([s,l],i)=>{
+          const steps=["draft","validated","review","submitted"];const ci=steps.indexOf(workflowStep);const si=steps.indexOf(s);
+          const done=si<ci;const active=s===workflowStep;
+          return <div key={s} style={{flex:1,padding:"8px 12px",textAlign:"center",fontSize:11,fontWeight:active?700:500,
+            background:done?"var(--greenL)":active?"var(--blueL)":"var(--bg)",
+            color:done?"var(--green)":active?"var(--blue)":"var(--t3)",
+            borderBottom:`3px solid ${done?"var(--green)":active?"var(--blue)":"var(--brd)"}`,
+            borderRadius:i===0?"var(--rs) 0 0 0":i===3?"0 var(--rs) 0 0":"0"}}>{done&&<I.Check s={10} c="#059669"/>} {l}</div>;})}
+      </div>
+
+      {/* Data Source Toggle */}
+      <Card style={{padding:14,marginBottom:14}}>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <span style={{fontSize:12,fontWeight:600}}>Data Source:</span>
+          {[["adp","ADP Mock Data"],["punches","App Punch Data"]].map(([v,l])=>
+            <label key={v} style={{display:"flex",alignItems:"center",gap:6,fontSize:12,cursor:"pointer"}}>
+              <input type="radio" checked={dataSource===v} onChange={()=>setDataSource(v)} style={{accentColor:"var(--blue)"}}/>
+              {l}
+            </label>)}
+          {pcc?.connected&&<Badge v="success" style={{marginLeft:"auto"}}>PCC Census Available</Badge>}
+        </div>
+      </Card>
+
       {/* Report Parameters */}
       <Card style={{padding:18,marginBottom:14}}>
         <h3 style={{fontSize:13,fontWeight:700,marginBottom:12}}>Report Parameters</h3>
@@ -2475,6 +2727,60 @@ function PBJReportView({adp}){
           {report.validation.errors.length===0&&report.validation.warnings.length===0&&<p style={{fontSize:11,color:"var(--green)"}}>All records pass validation. Ready for CMS submission.</p>}
         </Card>
 
+        {/* Deficiency Review Panel */}
+        {deficiencies.length>0&&<Card style={{padding:18,marginBottom:14}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <I.Alert s={16} c="#DC2626"/>
+              <h3 style={{fontSize:13,fontWeight:700}}>Deficiency Report</h3>
+            </div>
+            <div style={{display:"flex",gap:6}}>
+              <Badge v="danger">{deficiencies.filter(d=>d.severity==="critical").length} Critical</Badge>
+              <Badge v="warning">{deficiencies.filter(d=>d.severity==="warning").length} Warnings</Badge>
+              <Badge v="info">{deficiencies.filter(d=>d.severity==="info").length} Info</Badge>
+            </div>
+          </div>
+          {deficiencies.map((def,i)=><div key={i} style={{marginBottom:6,border:"1px solid var(--brd)",borderRadius:"var(--rs)",overflow:"hidden"}}>
+            <div onClick={()=>setExpandedDef(expandedDef===i?null:i)} style={{display:"flex",alignItems:"center",gap:8,padding:"10px 14px",cursor:"pointer",background:def.severity==="critical"?"var(--redL)":def.severity==="warning"?"var(--amberL)":"var(--blueL)"}}>
+              <Badge v={def.severity==="critical"?"danger":def.severity==="warning"?"warning":"info"}>{def.severity}</Badge>
+              <span style={{fontSize:12,flex:1}}>{def.msg}</span>
+              <I.Right s={12} c="var(--t3)"/>
+            </div>
+            {expandedDef===i&&<div style={{padding:"10px 14px",borderTop:"1px solid var(--brd)",fontSize:12}}>
+              {def.dates&&<div style={{marginBottom:4}}><strong>Affected dates:</strong> {def.dates.join(", ")}</div>}
+              {def.action&&<div style={{marginBottom:8}}><strong>Recommended:</strong> {def.action}</div>}
+            </div>}
+          </div>)}
+          <div style={{display:"flex",gap:8,marginTop:12}}>
+            <Btn v="secondary" size="sm" onClick={()=>{const defs=pbjValidate(report);setDeficiencies(defs);setWorkflowStep(defs.filter(d=>d.severity==="critical").length>0?"review":"validated");}} icon={<I.Refresh s={12}/>}>Re-validate</Btn>
+            {deficiencies.filter(d=>d.severity==="critical").length===0?
+              <Btn size="sm" onClick={()=>{setWorkflowStep("submitted");setSubmissionHistory(p=>[...p,{period:`${startDate} to ${endDate}`,generatedAt:new Date().toISOString(),deficiencies:deficiencies.length,status:"submitted"}]);}} icon={<I.Send s={12} c="#fff"/>}>Submit to CMS</Btn>
+              :<div style={{fontSize:11,color:"var(--red)",display:"flex",alignItems:"center",gap:6}}><I.Alert s={12} c="#DC2626"/>Submission blocked — resolve critical deficiencies first</div>}
+          </div>
+        </Card>}
+
+        {/* HPPD Bar Chart */}
+        {report.census.length>0&&<Card style={{padding:18,marginBottom:14}}>
+          <h3 style={{fontSize:13,fontWeight:700,marginBottom:12}}>Daily HPPD (CMS min: 3.48)</h3>
+          <div style={{display:"flex",gap:1,alignItems:"end",height:100}}>
+            {report.census.map((c,i)=>{
+              const dayStaff=(report.staffing||[]).filter(s=>s.date===c.date);
+              const dayHrs=dayStaff.reduce((s,r)=>s+r.hours,0);
+              const dayHppd=c.residents>0?dayHrs/c.residents:0;
+              const below=dayHppd<3.48;const max=6;const pct=Math.min(100,(dayHppd/max)*100);
+              return <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center"}}>
+                <div style={{fontSize:7,color:below?"var(--red)":"var(--green)",fontWeight:600,marginBottom:2}}>{dayHppd.toFixed(1)}</div>
+                <div style={{width:"100%",background:below?"var(--red)":"var(--green)",borderRadius:"2px 2px 0 0",height:`${pct}%`,minHeight:2,opacity:.7,transition:"height .3s"}}/>
+              </div>;
+            })}
+          </div>
+          <div style={{display:"flex",justifyContent:"space-between",fontSize:9,color:"var(--t3)",marginTop:4}}>
+            <span>{report.census[0]?.date}</span><span>{report.census[report.census.length-1]?.date}</span>
+          </div>
+          <div style={{height:1,background:"var(--red)",marginTop:4,opacity:.5}}/>
+          <div style={{fontSize:9,color:"var(--red)",textAlign:"right"}}>CMS min 3.48</div>
+        </Card>}
+
         {/* Census Data */}
         <Card style={{padding:18,marginBottom:14}}>
           <h3 style={{fontSize:13,fontWeight:700,marginBottom:12}}>Daily Census ({report.census.length} days)</h3>
@@ -2507,7 +2813,7 @@ function BillingView(){
     <h1 style={{fontSize:22,fontWeight:700,marginBottom:16}}>Billing</h1>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:18}}>
       <Card style={{padding:20}}>
-        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}><div style={{width:38,height:38,borderRadius:"var(--rs)",background:"var(--blueL)",display:"flex",alignItems:"center",justifyContent:"center"}}><I.Building s={20} c="#2563EB"/></div><div><div style={{fontSize:16,fontWeight:700}}>StaffHub Pro</div><div style={{fontSize:12,color:"var(--t3)"}}>Up to 100 employees</div></div></div>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}><div style={{width:38,height:38,borderRadius:"var(--rs)",background:"var(--blueL)",display:"flex",alignItems:"center",justifyContent:"center"}}><I.Building s={20} c="#2563EB"/></div><div><div style={{fontSize:16,fontWeight:700}}>Manage my Staffing Pro</div><div style={{fontSize:12,color:"var(--t3)"}}>Up to 100 employees</div></div></div>
         <div style={{marginBottom:16}}><span style={{fontSize:32,fontWeight:700}}>$299</span><span style={{color:"var(--t3)"}}>/mo</span></div>
         {["SmartLinx Integration","Unlimited Onboarding","Shift Management","HIPAA Compliant"].map(f=><div key={f} style={{display:"flex",alignItems:"center",gap:6,fontSize:12,color:"var(--t2)",marginBottom:4}}><I.Check s={12} c="#059669"/>{f}</div>)}
       </Card>
@@ -2546,6 +2852,521 @@ function BillingView(){
     </Modal></div>;
 }
 
+// ═══ TIME CLOCK VIEW ═══
+function TimeClockView({punches,setPunches,emps}){
+  const[tab,setTab]=useState("log");
+  const[filterDate,setFilterDate]=useState("");
+  const[filterEmp,setFilterEmp]=useState("");
+  const[editPunch,setEditPunch]=useState(null);
+  const[editIn,setEditIn]=useState("");
+  const[editOut,setEditOut]=useState("");
+  const[csvText,setCsvText]=useState("");
+  const[csvPreview,setCsvPreview]=useState(null);
+  const[importing,setImporting]=useState(false);
+  const[summaryMode,setSummaryMode]=useState("daily");
+  const[dragOver,setDragOver]=useState(false);
+
+  const activeEmps=emps.filter(e=>e.status==="active");
+  const filtered=punches.filter(p=>{
+    if(filterDate&&!p.date.startsWith(filterDate))return false;
+    if(filterEmp&&p.empId!==filterEmp)return false;
+    return true;
+  });
+
+  const handleCSVUpload=(text)=>{
+    setCsvText(text);
+    const lines=text.trim().split("\n");
+    if(lines.length<2){setCsvPreview(null);return;}
+    const header=lines[0].toLowerCase().split(",").map(h=>h.trim());
+    const rows=lines.slice(1).map(l=>{const cols=l.split(",").map(c=>c.trim());const obj={};header.forEach((h,j)=>{obj[h]=cols[j]||"";});return obj;});
+    setCsvPreview({header,rows:rows.slice(0,10),total:rows.length});
+  };
+
+  const doImport=async()=>{
+    setImporting(true);
+    const records=await SLX.importPunchCSV(csvText);
+    const mapped=records.map(r=>{
+      const emp=activeEmps.find(e=>e.id===r.empId||e.name.toLowerCase().includes((r.empId||"").toLowerCase()));
+      return{...r,empName:emp?.name||r.empId,role:emp?.role||"",hours:r.clockIn&&r.clockOut?Math.round((new Date(`2000-01-01T${r.clockOut}`)-new Date(`2000-01-01T${r.clockIn}`))/(3600000)*100)/100:0};
+    });
+    setPunches(p=>[...mapped,...p]);
+    setImporting(false);setCsvText("");setCsvPreview(null);setTab("log");
+  };
+
+  const saveEdit=()=>{
+    if(!editPunch)return;
+    setPunches(p=>p.map(pu=>pu.id===editPunch.id?{...pu,
+      clockIn:editIn?`${pu.date}T${editIn}:00`:pu.clockIn,
+      clockOut:editOut?`${pu.date}T${editOut}:00`:pu.clockOut,
+      status:"corrected",corrected:true,originalIn:pu.clockIn,originalOut:pu.clockOut,
+      correctedBy:"Admin",correctedAt:new Date().toISOString(),
+      hours:editIn&&editOut?Math.round((new Date(`2000-01-01T${editOut}:00`)-new Date(`2000-01-01T${editIn}:00`))/(3600000)*100)/100:pu.hours
+    }:pu));
+    setEditPunch(null);
+  };
+
+  // Hours summary calculation
+  const calcSummary=()=>{
+    const byEmp={};
+    punches.forEach(p=>{
+      if(!byEmp[p.empId])byEmp[p.empId]={name:p.empName,role:p.role,days:{},total:0};
+      if(!byEmp[p.empId].days[p.date])byEmp[p.empId].days[p.date]=0;
+      byEmp[p.empId].days[p.date]+=p.hours||0;
+      byEmp[p.empId].total+=p.hours||0;
+    });
+    return byEmp;
+  };
+
+  const corrections=punches.filter(p=>p.corrected);
+  const tabBtn=(id,label,count)=><button onClick={()=>setTab(id)} style={{padding:"8px 16px",fontSize:12,fontWeight:tab===id?600:500,color:tab===id?"var(--blue)":"var(--t3)",background:tab===id?"var(--blueL)":"transparent",border:"none",borderBottom:tab===id?"2px solid var(--blue)":"2px solid transparent",cursor:"pointer",fontFamily:"inherit"}}>{label}{count!=null&&<Badge v={tab===id?"info":"default"} style={{marginLeft:6,fontSize:8}}>{count}</Badge>}</button>;
+
+  return <div className="fi">
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+      <div><h1 style={{fontSize:22,fontWeight:700}}>Time Clock</h1><p style={{color:"var(--t3)",fontSize:12,marginTop:2}}>Punch records, imports, hours summary</p></div>
+    </div>
+    <div style={{display:"flex",gap:0,borderBottom:"1px solid var(--brd)",marginBottom:16}}>
+      {tabBtn("log","Punch Log",punches.length)}{tabBtn("import","Import CSV")}{tabBtn("hours","Hours Summary")}{tabBtn("corrections","Corrections",corrections.length)}
+    </div>
+
+    {tab==="log"&&<>
+      <div style={{display:"flex",gap:10,marginBottom:14}}>
+        <input type="date" value={filterDate} onChange={e=>setFilterDate(e.target.value)} style={{padding:"8px 12px",border:"1px solid var(--brd)",borderRadius:"var(--rs)",fontFamily:"inherit",fontSize:12}}/>
+        <select value={filterEmp} onChange={e=>setFilterEmp(e.target.value)} style={{padding:"8px 12px",border:"1px solid var(--brd)",borderRadius:"var(--rs)",fontFamily:"inherit",fontSize:12,minWidth:160}}>
+          <option value="">All Employees</option>
+          {activeEmps.map(e=><option key={e.id} value={e.id}>{e.name}</option>)}
+        </select>
+        <Btn v="secondary" size="sm" onClick={()=>{setFilterDate("");setFilterEmp("");}}>Clear</Btn>
+      </div>
+      <Card style={{overflow:"hidden"}}>
+        <table style={{width:"100%",borderCollapse:"collapse"}}><thead><tr style={{borderBottom:"1px solid var(--brd)"}}>
+          {["Employee","Role","Date","Clock In","Clock Out","Hours","Status",""].map(h=><th key={h} style={{padding:"10px 12px",textAlign:"left",fontSize:10,fontWeight:600,color:"var(--t3)",textTransform:"uppercase",background:"var(--bg)"}}>{h}</th>)}</tr></thead>
+          <tbody>{filtered.slice(0,50).map((p,i)=><tr key={p.id} className="fi" style={{borderBottom:"1px solid var(--brd2)",animationDelay:`${i*.02}s`,background:p.status==="missed"?"var(--redL)":p.status==="late"?"var(--amberL)":p.status==="corrected"?"var(--blueL)":"transparent"}}>
+            <td style={{padding:"8px 12px",fontSize:12,fontWeight:500}}>{p.empName}</td>
+            <td style={{padding:"8px 12px"}}><Badge v={p.role==="RN"?"info":p.role==="LPN"?"purple":"default"}>{p.role}</Badge></td>
+            <td style={{padding:"8px 12px",fontSize:12}}>{p.date}</td>
+            <td style={{padding:"8px 12px",fontSize:12,fontFamily:"monospace"}}>{p.clockIn?p.clockIn.split("T")[1]?.slice(0,5)||"":""}</td>
+            <td style={{padding:"8px 12px",fontSize:12,fontFamily:"monospace"}}>{p.clockOut?p.clockOut.split("T")[1]?.slice(0,5)||"":"—"}</td>
+            <td style={{padding:"8px 12px",fontSize:12,fontWeight:600}}>{p.hours?p.hours.toFixed(1)+"h":"—"}</td>
+            <td style={{padding:"8px 12px"}}><Badge v={p.status==="normal"?"success":p.status==="late"?"warning":p.status==="missed"?"danger":p.status==="corrected"?"info":"default"}>{p.status}</Badge></td>
+            <td style={{padding:"8px 12px"}}><button onClick={()=>{setEditPunch(p);setEditIn(p.clockIn?.split("T")[1]?.slice(0,5)||"");setEditOut(p.clockOut?.split("T")[1]?.slice(0,5)||"");}} style={{background:"none",border:"none",cursor:"pointer",color:"var(--blue)",fontSize:11,fontWeight:600,fontFamily:"inherit"}}>Edit</button></td>
+          </tr>)}</tbody>
+        </table>
+        {filtered.length>50&&<div style={{padding:10,textAlign:"center",fontSize:11,color:"var(--t3)"}}>Showing 50 of {filtered.length} records</div>}
+      </Card>
+    </>}
+
+    {tab==="import"&&<>
+      <Card style={{padding:24,marginBottom:16}}>
+        <div onDragOver={e=>{e.preventDefault();setDragOver(true);}} onDragLeave={()=>setDragOver(false)} onDrop={e=>{e.preventDefault();setDragOver(false);const f=e.dataTransfer?.files?.[0];if(f){const r=new FileReader();r.onload=ev=>handleCSVUpload(ev.target.result);r.readAsText(f);}}}
+          style={{border:`2px dashed ${dragOver?"var(--blue)":"var(--brd)"}`,borderRadius:"var(--r)",padding:40,textAlign:"center",background:dragOver?"var(--blueL)":"var(--bg)",cursor:"pointer",transition:"all .2s"}}
+          onClick={()=>{const inp=document.createElement("input");inp.type="file";inp.accept=".csv";inp.onchange=e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>handleCSVUpload(ev.target.result);r.readAsText(f);}};inp.click();}}>
+          <I.Upload s={36} c={dragOver?"#2563EB":"#94A3B8"}/>
+          <div style={{fontSize:14,fontWeight:600,color:"var(--t2)",marginTop:12}}>Drag & drop CSV file or click to browse</div>
+          <div style={{fontSize:11,color:"var(--t3)",marginTop:4}}>Accepts: emp_id,date,time,type OR emp_id,date,in,out</div>
+        </div>
+      </Card>
+      {csvPreview&&<Card style={{padding:18,marginBottom:16}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+          <h3 style={{fontSize:14,fontWeight:700}}>Preview ({csvPreview.total} records)</h3>
+          <div style={{display:"flex",gap:8}}>
+            <Btn v="secondary" size="sm" onClick={()=>{setCsvText("");setCsvPreview(null);}}>Cancel</Btn>
+            <Btn size="sm" onClick={doImport} disabled={importing} icon={importing?<Spinner size={12}/>:<I.Upload s={12} c="#fff"/>}>{importing?"Importing...":"Import All"}</Btn>
+          </div>
+        </div>
+        <div style={{overflow:"auto",maxHeight:300}}>
+          <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+            <thead><tr style={{borderBottom:"1px solid var(--brd)"}}>{csvPreview.header.map(h=><th key={h} style={{padding:"6px 8px",textAlign:"left",fontWeight:600,color:"var(--t3)",textTransform:"uppercase",background:"var(--bg)"}}>{h}</th>)}</tr></thead>
+            <tbody>{csvPreview.rows.map((r,i)=><tr key={i} style={{borderBottom:"1px solid var(--brd2)"}}>{csvPreview.header.map(h=><td key={h} style={{padding:"6px 8px"}}>{r[h]||""}</td>)}</tr>)}</tbody>
+          </table>
+        </div>
+      </Card>}
+    </>}
+
+    {tab==="hours"&&<>
+      <div style={{display:"flex",gap:8,marginBottom:14}}>
+        <Btn v={summaryMode==="daily"?"primary":"secondary"} size="sm" onClick={()=>setSummaryMode("daily")}>Daily</Btn>
+        <Btn v={summaryMode==="weekly"?"primary":"secondary"} size="sm" onClick={()=>setSummaryMode("weekly")}>Weekly</Btn>
+        <div style={{marginLeft:"auto"}}><Btn v="secondary" size="sm" icon={<I.Export s={12}/>} onClick={()=>{
+          const summary=calcSummary();const rows=Object.entries(summary).map(([id,d])=>`${id},${d.name},${d.role},${d.total.toFixed(1)}`);
+          const csv="EmpID,Name,Role,TotalHours\n"+rows.join("\n");
+          downloadCSV(csv,`hours-summary-${new Date().toISOString().split("T")[0]}.csv`);
+        }}>Export CSV</Btn></div>
+      </div>
+      <Card style={{overflow:"hidden"}}>
+        {(()=>{const summary=calcSummary();const dates=[...new Set(punches.map(p=>p.date))].sort().slice(-7);
+          return <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+            <thead><tr style={{borderBottom:"1px solid var(--brd)"}}>
+              <th style={{padding:"8px 12px",textAlign:"left",fontSize:10,fontWeight:600,color:"var(--t3)",background:"var(--bg)",position:"sticky",left:0}}>Employee</th>
+              {dates.map(d=><th key={d} style={{padding:"8px 8px",textAlign:"center",fontSize:10,fontWeight:600,color:"var(--t3)",background:"var(--bg)"}}>{d.slice(5)}</th>)}
+              <th style={{padding:"8px 12px",textAlign:"right",fontSize:10,fontWeight:600,color:"var(--t3)",background:"var(--bg)"}}>Total</th>
+            </tr></thead>
+            <tbody>{Object.entries(summary).map(([id,d])=>{const weekTotal=dates.reduce((s,dt)=>s+(d.days[dt]||0),0);const isOT=weekTotal>40;
+              return <tr key={id} style={{borderBottom:"1px solid var(--brd2)",background:isOT?"var(--amberL)":"transparent"}}>
+                <td style={{padding:"8px 12px",fontWeight:500,position:"sticky",left:0,background:isOT?"var(--amberL)":"#fff"}}>{d.name} <span style={{fontSize:10,color:"var(--t3)"}}>({d.role})</span></td>
+                {dates.map(dt=><td key={dt} style={{padding:"8px 8px",textAlign:"center"}}>{d.days[dt]?d.days[dt].toFixed(1):"—"}</td>)}
+                <td style={{padding:"8px 12px",textAlign:"right",fontWeight:700,color:isOT?"var(--amber)":"var(--t1)"}}>{weekTotal.toFixed(1)}h {isOT&&<Badge v="warning" style={{fontSize:8}}>OT</Badge>}</td>
+              </tr>;})}
+            </tbody>
+          </table>;
+        })()}
+      </Card>
+    </>}
+
+    {tab==="corrections"&&<>
+      {corrections.length===0?<Card style={{padding:40,textAlign:"center"}}><I.History s={36} c="#CBD5E1"/><p style={{marginTop:10,color:"var(--t3)",fontSize:13}}>No corrections recorded</p></Card>
+      :<Card style={{overflow:"hidden"}}>
+        <table style={{width:"100%",borderCollapse:"collapse"}}><thead><tr style={{borderBottom:"1px solid var(--brd)"}}>
+          {["Employee","Date","Original In","Original Out","New In","New Out","Changed By","Changed At"].map(h=><th key={h} style={{padding:"8px 10px",textAlign:"left",fontSize:10,fontWeight:600,color:"var(--t3)",textTransform:"uppercase",background:"var(--bg)"}}>{h}</th>)}</tr></thead>
+          <tbody>{corrections.map((p,i)=><tr key={p.id} style={{borderBottom:"1px solid var(--brd2)"}}>
+            <td style={{padding:"8px 10px",fontSize:12}}>{p.empName}</td>
+            <td style={{padding:"8px 10px",fontSize:12}}>{p.date}</td>
+            <td style={{padding:"8px 10px",fontSize:11,fontFamily:"monospace",color:"var(--red)",textDecoration:"line-through"}}>{p.originalIn?.split("T")[1]?.slice(0,5)||"—"}</td>
+            <td style={{padding:"8px 10px",fontSize:11,fontFamily:"monospace",color:"var(--red)",textDecoration:"line-through"}}>{p.originalOut?.split("T")[1]?.slice(0,5)||"—"}</td>
+            <td style={{padding:"8px 10px",fontSize:11,fontFamily:"monospace",color:"var(--green)",fontWeight:600}}>{p.clockIn?.split("T")[1]?.slice(0,5)||"—"}</td>
+            <td style={{padding:"8px 10px",fontSize:11,fontFamily:"monospace",color:"var(--green)",fontWeight:600}}>{p.clockOut?.split("T")[1]?.slice(0,5)||"—"}</td>
+            <td style={{padding:"8px 10px",fontSize:11}}>{p.correctedBy||"—"}</td>
+            <td style={{padding:"8px 10px",fontSize:10,color:"var(--t3)"}}>{p.correctedAt?new Date(p.correctedAt).toLocaleString():"—"}</td>
+          </tr>)}</tbody>
+        </table>
+      </Card>}
+    </>}
+
+    <Modal open={!!editPunch} onClose={()=>setEditPunch(null)} title="Edit Punch" width={400}>
+      {editPunch&&<div>
+        <div style={{marginBottom:14,padding:12,background:"var(--bg)",borderRadius:"var(--rs)"}}><div style={{fontSize:13,fontWeight:600}}>{editPunch.empName}</div><div style={{fontSize:11,color:"var(--t3)"}}>{editPunch.date} · {editPunch.role}</div></div>
+        <Inp label="Clock In (HH:MM)" value={editIn} onChange={e=>setEditIn(e.target.value)} placeholder="07:00"/>
+        <Inp label="Clock Out (HH:MM)" value={editOut} onChange={e=>setEditOut(e.target.value)} placeholder="15:00"/>
+        <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}><Btn v="secondary" onClick={()=>setEditPunch(null)}>Cancel</Btn><Btn onClick={saveEdit}>Save Correction</Btn></div>
+      </div>}
+    </Modal>
+  </div>;
+}
+
+// ═══ DATA CENTER (ANALYTICS DASHBOARD) ═══
+function DataCenterView({analyticsData,punches,emps}){
+  const[section,setSection]=useState("payroll");
+  const[period,setPeriod]=useState("current");
+
+  if(!analyticsData)return <div className="fi"><h1 style={{fontSize:22,fontWeight:700,marginBottom:16}}>Data Center</h1><Card style={{padding:40,textAlign:"center"}}><I.BarChart2 s={36} c="#CBD5E1"/><p style={{marginTop:10,color:"var(--t3)",fontSize:13}}>Analytics data loading...</p></Card></div>;
+
+  const weeks=period==="current"?4:period==="quarter"?13:analyticsData.payroll.length;
+  const payData=analyticsData.payroll.slice(0,weeks);
+  const attData=analyticsData.attendance.slice(0,weeks);
+  const turnData=analyticsData.turnover.slice(0,weeks);
+  const hppdData=analyticsData.hppd.slice(0,weeks);
+  const roles=["CNA","RN","LPN","CMA","Dietary","Housekeeping"];
+  const roleColors={"CNA":"var(--blue)","RN":"var(--green)","LPN":"var(--purple)","CMA":"var(--amber)","Dietary":"var(--cyan)","Housekeeping":"var(--red)"};
+
+  const KPI=({label,value,sub,color,icon:Ic})=><Card style={{padding:14,textAlign:"center"}}>
+    {Ic&&<Ic s={16} c={color||"var(--blue)"}/>}
+    <div style={{fontSize:22,fontWeight:700,color:color||"var(--blue)",marginTop:4}}>{value}</div>
+    <div style={{fontSize:10,color:"var(--t3)",marginTop:2}}>{label}</div>
+    {sub&&<div style={{fontSize:9,color:"var(--t3)",marginTop:2}}>{sub}</div>}
+  </Card>;
+
+  const secBtn=(id,label)=><button onClick={()=>setSection(id)} style={{padding:"8px 16px",borderRadius:"var(--rs)",border:section===id?"2px solid var(--blue)":"1px solid var(--brd)",background:section===id?"var(--blueL)":"#fff",fontFamily:"inherit",fontSize:11,fontWeight:600,color:section===id?"var(--blue)":"var(--t2)",cursor:"pointer"}}>{label}</button>;
+
+  return <div className="fi">
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+      <div><h1 style={{fontSize:22,fontWeight:700}}>Data Center</h1><p style={{color:"var(--t3)",fontSize:12,marginTop:2}}>Analytics & insights</p></div>
+      <div style={{display:"flex",gap:6}}>
+        {[["current","Current"],["quarter","Quarter"],["ytd","YTD"]].map(([v,l])=><button key={v} onClick={()=>setPeriod(v)} style={{padding:"6px 12px",borderRadius:"var(--rs)",border:period===v?"2px solid var(--blue)":"1px solid var(--brd)",background:period===v?"var(--blueL)":"#fff",fontFamily:"inherit",fontSize:11,fontWeight:600,color:period===v?"var(--blue)":"var(--t3)",cursor:"pointer"}}>{l}</button>)}
+      </div>
+    </div>
+    <div style={{display:"flex",gap:6,marginBottom:16}}>{secBtn("payroll","Payroll & Labor")}{secBtn("attendance","Attendance")}{secBtn("pbj","PBJ & HPPD")}{secBtn("turnover","Turnover")}</div>
+
+    {section==="payroll"&&<>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:16}}>
+        <KPI label="Total Payroll" value={"$"+Math.round(payData.reduce((s,d)=>s+d.total,0)/1000)+"k"} color="var(--blue)" icon={I.Dollar}/>
+        <KPI label="Avg Hourly Rate" value={"$"+(payData.length?Math.round(payData[0].total/emps.filter(e=>e.status==="active").length/80):0)} color="var(--green)"/>
+        <KPI label="OT Cost" value={"$"+Math.round(payData.reduce((s,d)=>s+d.overtime,0)/1000)+"k"} color="var(--amber)" icon={I.Alert}/>
+        <KPI label="Cost/Patient/Day" value={"$"+Math.round(payData[0]?.total/50/7||0)} color="var(--purple)"/>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:16}}>
+        <Card style={{padding:16}}><h3 style={{fontSize:11,fontWeight:700,textTransform:"uppercase",color:"var(--t3)",marginBottom:12}}>Payroll Trend</h3>
+          <MiniLine data={payData.map(d=>d.total).reverse()} w={340} h={130} color="var(--blue)" area dots={false} xLabels={payData.map(d=>d.week.slice(5)).reverse()}/>
+        </Card>
+        <Card style={{padding:16}}><h3 style={{fontSize:11,fontWeight:700,textTransform:"uppercase",color:"var(--t3)",marginBottom:12}}>Labor Cost by Role</h3>
+          <MiniBar data={roles.map(r=>({l:r,v:Math.round((payData[0]?.byRole?.[r]||0)/1000),c:roleColors[r]}))} w={340} h={130}/>
+        </Card>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+        <Card style={{padding:16}}><h3 style={{fontSize:11,fontWeight:700,textTransform:"uppercase",color:"var(--t3)",marginBottom:12}}>Budget vs Actual</h3>
+          <MiniBar data={roles.slice(0,4).map(r=>({l:r,v1:Math.round((payData[0]?.byRole?.[r]||0)/1000),v2:Math.round((payData[0]?.budget||0)/roles.length/1000),c1:roleColors[r],c2:"var(--hover)"}))} w={340} h={130} grouped/>
+        </Card>
+        <Card style={{padding:16}}><h3 style={{fontSize:11,fontWeight:700,textTransform:"uppercase",color:"var(--t3)",marginBottom:12}}>Overtime Trend</h3>
+          <MiniLine data={payData.map(d=>d.overtime).reverse()} w={340} h={130} color="var(--amber)" area/>
+        </Card>
+      </div>
+    </>}
+
+    {section==="attendance"&&<>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:16}}>
+        <KPI label="Missed Punches" value={attData.reduce((s,d)=>s+d.missedPunches,0)} color="var(--red)" icon={I.Alert}/>
+        <KPI label="NCNS Count" value={attData.reduce((s,d)=>s+d.ncns,0)} color="var(--red)"/>
+        <KPI label="Late Clock-Ins" value={attData.reduce((s,d)=>s+d.lateClockIns,0)} color="var(--amber)" icon={I.TimeClock}/>
+        <KPI label="Avg Attendance" value={(attData.reduce((s,d)=>s+d.avgScore,0)/attData.length||0).toFixed(0)+"%"} color="var(--green)"/>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:16}}>
+        <Card style={{padding:16}}><h3 style={{fontSize:11,fontWeight:700,textTransform:"uppercase",color:"var(--t3)",marginBottom:12}}>Missed Punch Trend</h3>
+          <MiniLine data={attData.map(d=>d.missedPunches).reverse()} w={340} h={130} color="var(--red)" area/>
+        </Card>
+        <Card style={{padding:16}}><h3 style={{fontSize:11,fontWeight:700,textTransform:"uppercase",color:"var(--t3)",marginBottom:12}}>Tardiness by Day of Week</h3>
+          <MiniBar data={["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((d,i)=>({l:d,v:Math.round(attData.reduce((s,a)=>s+(a.byDow?.[i]||0),0)/attData.length),c:i>=5?"var(--amber)":"var(--blue)"}))} w={340} h={130}/>
+        </Card>
+      </div>
+      <Card style={{padding:16}}>
+        <h3 style={{fontSize:11,fontWeight:700,textTransform:"uppercase",color:"var(--t3)",marginBottom:12}}>Top 10 Attendance Issues</h3>
+        {(()=>{const empStats={};punches.forEach(p=>{if(!empStats[p.empId])empStats[p.empId]={name:p.empName,role:p.role,missed:0,late:0,ncns:0};
+          if(p.status==="missed")empStats[p.empId].missed++;if(p.status==="late")empStats[p.empId].late++;});
+          const sorted=Object.values(empStats).sort((a,b)=>(b.missed+b.late+b.ncns)-(a.missed+a.late+a.ncns)).slice(0,10);
+          return <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+            <thead><tr style={{borderBottom:"1px solid var(--brd)"}}>{["Employee","Role","Missed","Late","NCNS","Points"].map(h=><th key={h} style={{padding:"8px 10px",textAlign:"left",fontSize:10,fontWeight:600,color:"var(--t3)"}}>{h}</th>)}</tr></thead>
+            <tbody>{sorted.map((e,i)=>{const pts=e.missed*ATTENDANCE_POINTS.missed_punch+e.late*ATTENDANCE_POINTS.late_1_15+e.ncns*ATTENDANCE_POINTS.ncns;
+              return <tr key={i} style={{borderBottom:"1px solid var(--brd2)"}}><td style={{padding:"8px 10px",fontWeight:500}}>{e.name}</td><td style={{padding:"8px 10px"}}><Badge>{e.role}</Badge></td>
+                <td style={{padding:"8px 10px",color:"var(--red)",fontWeight:600}}>{e.missed}</td><td style={{padding:"8px 10px",color:"var(--amber)",fontWeight:600}}>{e.late}</td>
+                <td style={{padding:"8px 10px",color:"var(--red)",fontWeight:600}}>{e.ncns}</td><td style={{padding:"8px 10px",fontWeight:700}}>{pts.toFixed(1)}</td></tr>;})}
+            </tbody></table>;})()}
+      </Card>
+    </>}
+
+    {section==="pbj"&&<>
+      <div style={{display:"flex",gap:16,marginBottom:16}}>
+        <Card style={{padding:16,flex:"0 0 180px",textAlign:"center"}}><h3 style={{fontSize:10,fontWeight:700,textTransform:"uppercase",color:"var(--t3)",marginBottom:8}}>Current HPPD</h3>
+          <MiniGauge value={hppdData[0]?.hppd||0} min={0} max={6} size={150}/>
+        </Card>
+        <div style={{flex:1,display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
+          <KPI label="Current HPPD" value={hppdData[0]?.hppd||0} color={hppdData[0]?.hppd>=3.48?"var(--green)":"var(--red)"}/>
+          <KPI label="Avg Census" value={hppdData[0]?.census||0} color="var(--blue)"/>
+          <KPI label="Direct Care Hrs" value={hppdData[0]?.directHours||0} color="var(--purple)"/>
+          <KPI label="PBJ Ready" value={hppdData[0]?.hppd>=3.48?"Yes":"No"} color={hppdData[0]?.hppd>=3.48?"var(--green)":"var(--red)"}/>
+        </div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:16}}>
+        <Card style={{padding:16}}><h3 style={{fontSize:11,fontWeight:700,textTransform:"uppercase",color:"var(--t3)",marginBottom:12}}>HPPD Trend (CMS min: 3.48)</h3>
+          <MiniLine data={hppdData.map(d=>d.hppd).reverse()} w={340} h={130} color="var(--green)" area threshold={3.48} xLabels={hppdData.map(d=>d.week.slice(5)).reverse()}/>
+        </Card>
+        <Card style={{padding:16}}><h3 style={{fontSize:11,fontWeight:700,textTransform:"uppercase",color:"var(--t3)",marginBottom:12}}>Hours by CMS Job Code</h3>
+          <MiniBar data={[{l:"RN (4)",v:Math.round(hppdData[0]?.byJobCode?.[4]||0),c:"var(--green)"},{l:"LPN (6)",v:Math.round(hppdData[0]?.byJobCode?.[6]||0),c:"var(--purple)"},{l:"CNA (8)",v:Math.round(hppdData[0]?.byJobCode?.[8]||0),c:"var(--blue)"},{l:"CMA (10)",v:Math.round(hppdData[0]?.byJobCode?.[10]||0),c:"var(--amber)"}]} w={340} h={130} horizontal/>
+        </Card>
+      </div>
+      {hppdData[0]?.hppd<3.48&&<Card style={{padding:16,borderLeft:"4px solid var(--red)",marginBottom:16}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}><I.Alert s={16} c="#DC2626"/><h3 style={{fontSize:13,fontWeight:700,color:"var(--red)"}}>Compliance Alert</h3></div>
+        <p style={{fontSize:12,color:"var(--t2)"}}>HPPD is below CMS minimum of 3.48. Immediate staffing adjustment required.</p>
+      </Card>}
+    </>}
+
+    {section==="turnover"&&<>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:16}}>
+        <KPI label="Turnover Rate" value={(turnData[0]?.rate||0)+"%"} color="var(--red)"/>
+        <KPI label="Avg Tenure" value={(turnData[0]?.avgTenure||0)+"mo"} color="var(--blue)"/>
+        <KPI label="90-Day Retention" value={(turnData[0]?.retention90||0)+"%"} color="var(--green)"/>
+        <KPI label="Open Positions" value={Math.floor(Math.random()*5)+2} color="var(--amber)"/>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:16}}>
+        <Card style={{padding:16}}><h3 style={{fontSize:11,fontWeight:700,textTransform:"uppercase",color:"var(--t3)",marginBottom:12}}>Turnover by Role</h3>
+          <MiniBar data={Object.entries(turnData[0]?.byRole||{}).map(([r,v])=>({l:r,v:Math.round(v),c:roleColors[r]||"var(--blue)"}))} w={340} h={130}/>
+        </Card>
+        <Card style={{padding:16}}><h3 style={{fontSize:11,fontWeight:700,textTransform:"uppercase",color:"var(--t3)",marginBottom:12}}>Hires vs Terminations</h3>
+          <MiniLine data={turnData.map(d=>d.hires).reverse()} w={340} h={130} color="var(--green)" area/>
+        </Card>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+        <Card style={{padding:16}}><h3 style={{fontSize:11,fontWeight:700,textTransform:"uppercase",color:"var(--t3)",marginBottom:12}}>Exit Reasons</h3>
+          <MiniDonut data={(analyticsData.exitReasons||[]).map((d,i)=>({...d,l:d.label,v:d.value,c:["var(--blue)","var(--green)","var(--red)","var(--purple)","var(--amber)"][i]}))} size={130} thickness={20}/>
+        </Card>
+        <Card style={{padding:16}}><h3 style={{fontSize:11,fontWeight:700,textTransform:"uppercase",color:"var(--t3)",marginBottom:12}}>Avg Tenure by Department</h3>
+          <MiniBar data={(analyticsData.tenureByDept||[]).map((d,i)=>({l:d.label,v:d.value,c:["var(--blue)","var(--amber)","var(--cyan)","var(--purple)","var(--green)"][i]}))} w={340} h={130}/>
+        </Card>
+      </div>
+    </>}
+  </div>;
+}
+
+// ═══ EMPLOYEE PROFILE VIEW ═══
+function EmployeeProfileView({emp,punches,emps,onBack}){
+  const[tab,setTab]=useState("overview");
+  if(!emp)return null;
+  const fac=getFacility(emp.facilityId);
+  const empPunches=(punches||[]).filter(p=>p.empId===emp.id).slice(0,30);
+  const totalHours=empPunches.reduce((s,p)=>s+(p.hours||0),0);
+  const missedCount=empPunches.filter(p=>p.status==="missed").length;
+  const lateCount=empPunches.filter(p=>p.status==="late").length;
+  const pts=missedCount*ATTENDANCE_POINTS.missed_punch+lateCount*ATTENDANCE_POINTS.late_1_15;
+
+  const tabBtn=(id,label)=><button onClick={()=>setTab(id)} style={{padding:"8px 14px",fontSize:12,fontWeight:tab===id?600:500,color:tab===id?"var(--blue)":"var(--t3)",background:tab===id?"var(--blueL)":"transparent",border:"none",borderBottom:tab===id?"2px solid var(--blue)":"2px solid transparent",cursor:"pointer",fontFamily:"inherit"}}>{label}</button>;
+
+  return <div className="fi">
+    <Btn v="ghost" size="sm" onClick={onBack} icon={<I.Left/>} style={{marginBottom:12}}>Back to Employees</Btn>
+    <div style={{display:"flex",gap:20,marginBottom:20}}>
+      <div style={{textAlign:"center"}}>
+        <Avatar initials={emp.avatar} size={72}/>
+        <div style={{fontSize:16,fontWeight:700,marginTop:8}}>{emp.name}</div>
+        <Badge v={emp.status==="active"?"success":"warning"}>{emp.status}</Badge>
+      </div>
+      <div style={{flex:1,display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
+        <Card style={{padding:12,textAlign:"center"}}><div style={{fontSize:11,color:"var(--t3)"}}>Role</div><div style={{fontSize:16,fontWeight:700}}>{emp.role}</div></Card>
+        <Card style={{padding:12,textAlign:"center"}}><div style={{fontSize:11,color:"var(--t3)"}}>Facility</div><div style={{fontSize:12,fontWeight:600}}>{fac.name.split(" ").slice(0,2).join(" ")}</div></Card>
+        <Card style={{padding:12,textAlign:"center"}}><div style={{fontSize:11,color:"var(--t3)"}}>Hours (14d)</div><div style={{fontSize:16,fontWeight:700,color:"var(--blue)"}}>{totalHours.toFixed(1)}</div></Card>
+        <Card style={{padding:12,textAlign:"center"}}><div style={{fontSize:11,color:"var(--t3)"}}>Points</div><div style={{fontSize:16,fontWeight:700,color:pts>5?"var(--red)":"var(--green)"}}>{pts.toFixed(1)}</div></Card>
+      </div>
+    </div>
+    <div style={{display:"flex",gap:0,borderBottom:"1px solid var(--brd)",marginBottom:16}}>
+      {tabBtn("overview","Overview")}{tabBtn("punches","Punches")}{tabBtn("attendance","Attendance")}{tabBtn("schedule","Schedule")}
+    </div>
+    {tab==="overview"&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
+      <Card style={{padding:16}}><h3 style={{fontSize:12,fontWeight:700,color:"var(--t3)",marginBottom:10}}>Contact</h3>
+        <div style={{fontSize:12,lineHeight:2}}><div><strong>Email:</strong> {emp.email}</div><div><strong>Facility:</strong> {fac.name}</div><div><strong>State:</strong> {fac.state}</div>
+          {emp.smartlinxId&&<div><strong>SmartLinx ID:</strong> <span style={{fontFamily:"monospace"}}>{emp.smartlinxId}</span></div>}</div>
+      </Card>
+      <Card style={{padding:16}}><h3 style={{fontSize:12,fontWeight:700,color:"var(--t3)",marginBottom:10}}>Schedule Config</h3>
+        <div style={{fontSize:12,lineHeight:2}}><div><strong>Type:</strong> {emp.schedType||"Not set"}</div><div><strong>Rotation:</strong> {emp.rotation||"N/A"}</div>
+          <div><strong>Pattern:</strong> {emp.pattern||"N/A"}</div><div><strong>Days On/Off:</strong> {emp.daysOn||"—"}/{emp.daysOff||"—"}</div></div>
+      </Card>
+    </div>}
+    {tab==="punches"&&<Card style={{overflow:"hidden"}}>
+      <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+        <thead><tr style={{borderBottom:"1px solid var(--brd)"}}>{["Date","Clock In","Clock Out","Hours","Status"].map(h=><th key={h} style={{padding:"8px 10px",textAlign:"left",fontSize:10,fontWeight:600,color:"var(--t3)",background:"var(--bg)"}}>{h}</th>)}</tr></thead>
+        <tbody>{empPunches.map((p,i)=><tr key={p.id} style={{borderBottom:"1px solid var(--brd2)",background:p.status==="missed"?"var(--redL)":"transparent"}}>
+          <td style={{padding:"8px 10px"}}>{p.date}</td><td style={{padding:"8px 10px",fontFamily:"monospace"}}>{p.clockIn?.split("T")[1]?.slice(0,5)||""}</td>
+          <td style={{padding:"8px 10px",fontFamily:"monospace"}}>{p.clockOut?.split("T")[1]?.slice(0,5)||"—"}</td>
+          <td style={{padding:"8px 10px",fontWeight:600}}>{p.hours?.toFixed(1)||"—"}</td>
+          <td style={{padding:"8px 10px"}}><Badge v={p.status==="normal"?"success":p.status==="late"?"warning":"danger"}>{p.status}</Badge></td>
+        </tr>)}</tbody>
+      </table>
+    </Card>}
+    {tab==="attendance"&&<Card style={{padding:18}}>
+      <h3 style={{fontSize:13,fontWeight:700,marginBottom:12}}>Attendance Summary</h3>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
+        <div style={{textAlign:"center",padding:12,background:"var(--bg)",borderRadius:"var(--rs)"}}><div style={{fontSize:20,fontWeight:700,color:"var(--green)"}}>{empPunches.filter(p=>p.status==="normal").length}</div><div style={{fontSize:10,color:"var(--t3)"}}>On Time</div></div>
+        <div style={{textAlign:"center",padding:12,background:"var(--amberL)",borderRadius:"var(--rs)"}}><div style={{fontSize:20,fontWeight:700,color:"var(--amber)"}}>{lateCount}</div><div style={{fontSize:10,color:"var(--t3)"}}>Late</div></div>
+        <div style={{textAlign:"center",padding:12,background:"var(--redL)",borderRadius:"var(--rs)"}}><div style={{fontSize:20,fontWeight:700,color:"var(--red)"}}>{missedCount}</div><div style={{fontSize:10,color:"var(--t3)"}}>Missed</div></div>
+        <div style={{textAlign:"center",padding:12,background:"var(--bg)",borderRadius:"var(--rs)"}}><div style={{fontSize:20,fontWeight:700,color:pts>5?"var(--red)":"var(--green)"}}>{pts.toFixed(1)}</div><div style={{fontSize:10,color:"var(--t3)"}}>Points</div></div>
+      </div>
+    </Card>}
+    {tab==="schedule"&&<Card style={{padding:18}}>
+      <p style={{fontSize:12,color:"var(--t3)"}}>Schedule view — {emp.schedType==="prn"?"PRN (As Needed)":`${emp.rotation||""} · ${emp.pattern||""} · ${emp.daysOn||""}on/${emp.daysOff||""}off`}</p>
+    </Card>}
+  </div>;
+}
+
+// ═══ NOTIFICATION BELL ═══
+function NotificationBell({notifications=[],onDismiss}){
+  const[open,setOpen]=useState(false);
+  const unread=notifications.filter(n=>!n.read).length;
+  return <div style={{position:"relative"}}>
+    <button onClick={()=>setOpen(!open)} style={{background:"none",border:"none",cursor:"pointer",padding:4,display:"flex",position:"relative"}}>
+      <I.Bell s={18} c={unread>0?"var(--blue)":"var(--t3)"}/>
+      {unread>0&&<span className="notif-badge" style={{position:"absolute",top:-2,right:-2,width:16,height:16,borderRadius:"50%",background:"var(--red)",color:"#fff",fontSize:9,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center"}}>{unread}</span>}
+    </button>
+    {open&&<div style={{position:"absolute",top:"100%",right:0,width:320,maxHeight:400,overflowY:"auto",background:"#fff",border:"1px solid var(--brd)",borderRadius:"var(--r)",boxShadow:"var(--shl)",zIndex:200}}>
+      <div style={{padding:"12px 16px",borderBottom:"1px solid var(--brd)",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <span style={{fontSize:13,fontWeight:700}}>Notifications</span>
+        {unread>0&&<Badge v="danger">{unread} new</Badge>}
+      </div>
+      {notifications.length===0?<div style={{padding:24,textAlign:"center",color:"var(--t3)",fontSize:12}}>No notifications</div>
+        :notifications.slice(0,15).map((n,i)=><div key={n.id||i} onClick={()=>onDismiss&&onDismiss(n.id)} style={{padding:"10px 16px",borderBottom:"1px solid var(--brd2)",cursor:"pointer",background:n.read?"transparent":"var(--blueL)"}}>
+          <div style={{display:"flex",alignItems:"center",gap:6}}>
+            <Badge v={n.type==="critical"?"danger":n.type==="warning"?"warning":"info"} style={{fontSize:8}}>{n.type||"info"}</Badge>
+            <span style={{fontSize:12,fontWeight:n.read?400:600}}>{n.message}</span>
+          </div>
+          <div style={{fontSize:10,color:"var(--t3)",marginTop:2}}>{n.time?new Date(n.time).toLocaleString():""}</div>
+        </div>)}
+    </div>}
+  </div>;
+}
+
+// ═══ AUDIT LOG VIEW ═══
+function AuditLogView({auditLog=[]}){
+  const[filterAction,setFilterAction]=useState("");
+  const[filterUser,setFilterUser]=useState("");
+  const actions=[...new Set(auditLog.map(l=>l.action))];
+  const users=[...new Set(auditLog.map(l=>l.user))];
+  const filtered=auditLog.filter(l=>{if(filterAction&&l.action!==filterAction)return false;if(filterUser&&l.user!==filterUser)return false;return true;});
+
+  return <div className="fi">
+    <h1 style={{fontSize:22,fontWeight:700,marginBottom:2}}>Audit Log</h1>
+    <p style={{color:"var(--t3)",fontSize:12,marginBottom:16}}>HIPAA compliance audit trail — all admin actions logged</p>
+    <div style={{display:"flex",gap:10,marginBottom:14}}>
+      <select value={filterAction} onChange={e=>setFilterAction(e.target.value)} style={{padding:"8px 12px",border:"1px solid var(--brd)",borderRadius:"var(--rs)",fontFamily:"inherit",fontSize:12}}>
+        <option value="">All Actions</option>{actions.map(a=><option key={a} value={a}>{a}</option>)}
+      </select>
+      <select value={filterUser} onChange={e=>setFilterUser(e.target.value)} style={{padding:"8px 12px",border:"1px solid var(--brd)",borderRadius:"var(--rs)",fontFamily:"inherit",fontSize:12}}>
+        <option value="">All Users</option>{users.map(u=><option key={u} value={u}>{u}</option>)}
+      </select>
+      <Btn v="secondary" size="sm" onClick={()=>{setFilterAction("");setFilterUser("");}}>Clear</Btn>
+      <div style={{marginLeft:"auto"}}><Badge>{filtered.length} entries</Badge></div>
+    </div>
+    <Card style={{overflow:"hidden"}}>
+      <table style={{width:"100%",borderCollapse:"collapse"}}><thead><tr style={{borderBottom:"1px solid var(--brd)"}}>
+        {["Timestamp","User","Action","Details"].map(h=><th key={h} style={{padding:"10px 14px",textAlign:"left",fontSize:10,fontWeight:600,color:"var(--t3)",textTransform:"uppercase",background:"var(--bg)"}}>{h}</th>)}</tr></thead>
+        <tbody>{filtered.slice(0,50).map((l,i)=><tr key={l.id} className="fi" style={{borderBottom:"1px solid var(--brd2)",animationDelay:`${i*.02}s`}}>
+          <td style={{padding:"8px 14px",fontSize:11,fontFamily:"monospace",color:"var(--t3)"}}>{new Date(l.timestamp).toLocaleString()}</td>
+          <td style={{padding:"8px 14px",fontSize:12,fontWeight:500}}>{l.user}</td>
+          <td style={{padding:"8px 14px"}}><Badge v={l.action==="view_phi"||l.action==="export_data"?"warning":l.action==="login"?"info":"default"}>{l.action}</Badge></td>
+          <td style={{padding:"8px 14px",fontSize:11,color:"var(--t2)"}}>{l.details}</td>
+        </tr>)}</tbody>
+      </table>
+      {filtered.length>50&&<div style={{padding:10,textAlign:"center",fontSize:11,color:"var(--t3)"}}>Showing 50 of {filtered.length}</div>}
+    </Card>
+  </div>;
+}
+
+// ═══ PBJ DEFICIENCY DETECTION ENGINE ═══
+function pbjValidate(report){
+  const deficiencies=[];
+  if(!report)return deficiencies;
+  const{census,staffing,summary}=report;
+  const cmsMinHPPD=3.48;const cmsMinNursing=2.78;const cmsMinRN=0.55;
+
+  // Group staffing by date
+  const byDate={};staffing.forEach(s=>{if(!byDate[s.date])byDate[s.date]={hours:0,rnHours:0,nursingHours:0,staff:[]};
+    byDate[s.date].hours+=s.hours;byDate[s.date].staff.push(s);
+    if(["4","5"].includes(s.jobCode))byDate[s.date].rnHours+=s.hours;
+    if(["4","5","6","7","8","9","10"].includes(s.jobCode))byDate[s.date].nursingHours+=s.hours;});
+
+  // Census by date
+  const censusByDate={};(census||[]).forEach(c=>{censusByDate[c.date]=c.residents;});
+
+  // Check each day
+  Object.entries(byDate).forEach(([date,d])=>{
+    const dailyCensus=censusByDate[date]||0;
+    if(dailyCensus<=0){deficiencies.push({severity:"warning",type:"data",msg:`Census data missing or zero on ${date}`,dates:[date],action:"Enter census data for this day"});return;}
+    const hppd=d.hours/dailyCensus;
+    if(hppd<cmsMinHPPD)deficiencies.push({severity:"critical",type:"staffing",msg:`HPPD ${hppd.toFixed(2)} below CMS minimum ${cmsMinHPPD} on ${date}`,dates:[date],action:"Add staffing hours to meet minimum"});
+    const nursingHppd=d.nursingHours/dailyCensus;
+    if(nursingHppd<cmsMinNursing)deficiencies.push({severity:"critical",type:"staffing",msg:`Nursing HPPD ${nursingHppd.toFixed(2)} below ${cmsMinNursing} on ${date}`,dates:[date],action:"Increase RN/LPN/CNA hours"});
+    const rnHppd=d.rnHours/dailyCensus;
+    if(rnHppd<cmsMinRN)deficiencies.push({severity:"critical",type:"staffing",msg:`RN HPPD ${rnHppd.toFixed(2)} below ${cmsMinRN} on ${date}`,dates:[date],action:"Increase RN coverage"});
+    if(d.rnHours===0)deficiencies.push({severity:"critical",type:"staffing",msg:`No RN coverage on ${date}`,dates:[date],action:"Assign RN hours for this day"});
+    if(d.staff.length===0)deficiencies.push({severity:"critical",type:"staffing",msg:`Complete staffing gap on ${date}`,dates:[date],action:"Add staff for this day"});
+  });
+
+  // Data quality checks
+  staffing.forEach(s=>{
+    if(s.hours>16)deficiencies.push({severity:"warning",type:"data",msg:`${s.firstName} ${s.lastName} worked ${s.hours}h on ${s.date} (>16h)`,dates:[s.date],employees:[s.employeeId],action:"Verify time records"});
+  });
+
+  // Check for employees without job code mapping
+  const unmapped=staffing.filter(s=>!s.jobCode||s.jobCode==="35");
+  if(unmapped.length>0)deficiencies.push({severity:"warning",type:"data",msg:`${unmapped.length} entries with unmapped CMS job code`,action:"Map employee roles to CMS job codes"});
+
+  // Check census gaps
+  const reportDays=Math.ceil((new Date(report.reportPeriod.end)-new Date(report.reportPeriod.start))/86400000)+1;
+  const censusCount=(census||[]).length;
+  if(censusCount<reportDays)deficiencies.push({severity:"warning",type:"data",msg:`Census data for only ${censusCount}/${reportDays} days`,action:"Add missing census data"});
+
+  // Weekend check
+  const weekdayHours=[];const weekendHours=[];
+  Object.entries(byDate).forEach(([date,d])=>{const dow=new Date(date+"T12:00:00").getDay();
+    if(dow===0||dow===6)weekendHours.push(d.hours);else weekdayHours.push(d.hours);});
+  const avgWD=weekdayHours.reduce((s,h)=>s+h,0)/(weekdayHours.length||1);
+  const avgWE=weekendHours.reduce((s,h)=>s+h,0)/(weekendHours.length||1);
+  if(avgWE<avgWD*0.8&&weekendHours.length>0)deficiencies.push({severity:"info",type:"compliance",msg:`Weekend staffing ${Math.round(avgWE)}h avg vs weekday ${Math.round(avgWD)}h (>${20}% gap)`,action:"Consider increasing weekend staffing"});
+
+  return deficiencies;
+}
+
 // ═══ LOGIN ═══
 function LoginScreen({onLogin}){
   const[email,setEmail]=useState("");const[pw,setPw]=useState("");const[role,setRole]=useState("super_admin");const[err,setErr]=useState("");
@@ -2561,7 +3382,7 @@ function LoginScreen({onLogin}){
         <div style={{padding:"32px 32px 0"}}>
           <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
             <div style={{width:38,height:38,borderRadius:"var(--r)",background:"var(--blue)",display:"flex",alignItems:"center",justifyContent:"center"}}><I.Building s={20} c="#fff"/></div>
-            <div><div style={{fontSize:20,fontWeight:700}}>StaffHub</div><div style={{fontSize:10,color:"var(--t3)"}}>HIPAA-Compliant Workforce Mgmt</div></div></div>
+            <div><div style={{fontSize:18,fontWeight:700}}>Manage my Staffing</div><div style={{fontSize:10,color:"var(--t3)"}}>HIPAA-Compliant Workforce Mgmt</div></div></div>
           <p style={{fontSize:13,color:"var(--t2)",margin:"16px 0 20px"}}>Sign in to your account.</p></div>
         <div style={{padding:"0 32px 28px"}}>
           <Inp label="Email" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@facility.com"/>
@@ -2612,7 +3433,7 @@ function PushToADPView({emps,onLogout}){
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           <div style={{width:38,height:38,borderRadius:"var(--r)",background:"var(--blue)",display:"flex",alignItems:"center",justifyContent:"center"}}><I.Building s={20} c="#fff"/></div>
-          <div><div style={{fontSize:20,fontWeight:700}}>StaffHub</div><div style={{fontSize:11,color:"var(--t3)"}}>Push Employee to ADP Workforce Now</div></div>
+          <div><div style={{fontSize:18,fontWeight:700}}>Manage my Staffing</div><div style={{fontSize:11,color:"var(--t3)"}}>Push Employee to ADP Workforce Now</div></div>
         </div>
         <button onClick={onLogout} style={{background:"none",border:"1px solid var(--brd)",borderRadius:"var(--rs)",padding:"6px 14px",fontSize:12,color:"var(--t2)",cursor:"pointer",fontFamily:"inherit"}}>Sign Out</button>
       </div>
@@ -2678,8 +3499,8 @@ function PushToADPView({emps,onLogout}){
               <Avatar initials={emp.avatar||emp.name.split(" ").map(w=>w[0]).join("")} size={28}/>
               <div><div style={{fontSize:13,fontWeight:600}}>{emp.name}</div></div>
             </div>
-            <Badge c={emp.role==="RN"?"blue":emp.role==="LPN"?"purple":emp.role==="CNA"?"green":"amber"}>{emp.role}</Badge>
-            <Badge c={emp.status==="active"?"green":emp.status==="onboarding"?"amber":emp.status==="review"?"red":"gray"}>{emp.status}</Badge>
+            <Badge v={emp.role==="RN"?"info":emp.role==="LPN"?"purple":emp.role==="CNA"?"success":"warning"}>{emp.role}</Badge>
+            <Badge v={emp.status==="active"?"success":emp.status==="onboarding"?"warning":emp.status==="review"?"danger":"default"}>{emp.status}</Badge>
             <div style={{fontSize:12,color:"var(--t2)"}}>{emp.email}</div>
             <div style={{fontSize:11,color:"var(--t3)"}}>{empFac?.name?.split(" ")[0]||"—"}</div>
             <div>
@@ -2710,7 +3531,7 @@ function PushToADPView({emps,onLogout}){
 //           after submit → schedule
 // Employee: homescreen = 2-week schedule
 // Admin/Super Admin: full sidebar navigation
-export default function StaffHubApp(){
+export default function ManageMyStaffingApp(){
   const[loggedIn,setLoggedIn]=useState(false);
   const[userEmail,setUserEmail]=useState("");
   const[role,setRole]=useState("super_admin");
@@ -2722,6 +3543,18 @@ export default function StaffHubApp(){
   const[shiftReqs,setShiftReqs]=useState([]);
   const[timeOffReqs,setTimeOffReqs]=useState([]);
   const[myEmpId]=useState("E001");
+  const[punches,setPunches]=useState(()=>genPunches(INIT_EMP,14));
+  const[analyticsData]=useState(()=>genAnalytics(INIT_EMP,12));
+  const[notifications,setNotifications]=useState(()=>{
+    const n=[];const now=new Date();
+    n.push({id:"n1",type:"warning",message:"2 employees have expiring certifications",time:new Date(now-3600000).toISOString(),read:false});
+    n.push({id:"n2",type:"critical",message:"3 missed punches today",time:new Date(now-7200000).toISOString(),read:false});
+    n.push({id:"n3",type:"info",message:"PBJ report ready for Q4 review",time:new Date(now-86400000).toISOString(),read:false});
+    n.push({id:"n4",type:"warning",message:"OT alert: James Wilson at 38 hours",time:new Date(now-43200000).toISOString(),read:false});
+    return n;
+  });
+  const[auditLog]=useState(()=>genAuditLog());
+  const[profileEmp,setProfileEmp]=useState(null);
 
   // ── PCC (PointClickCare) state ──
   const[pcc,setPcc]=useState(()=>{
@@ -2874,17 +3707,23 @@ export default function StaffHubApp(){
     <div style={{display:"flex",minHeight:"100vh",background:"var(--bg)"}}>
       <Sidebar view={view} setView={setView} role={role} onLogout={()=>{setLoggedIn(false);setUserEmail("");}} pcc={pcc} adp={adp}/>
       <main style={{marginLeft:210,flex:1,padding:"20px 28px",maxWidth:"calc(100vw - 210px)"}}>
-        <HipaaBar/>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <HipaaBar/>
+          <div style={{padding:"5px 20px"}}><NotificationBell notifications={notifications} onDismiss={(id)=>setNotifications(p=>p.map(n=>n.id===id?{...n,read:true}:n))}/></div>
+        </div>
         <div style={{paddingTop:14}}>
           {view==="dashboard"&&<DashboardView emps={emps} setView={setView} pcc={pcc} adp={adp}/>}
-          {view==="employees"&&<EmployeesView emps={emps} setEmps={setEmps}/>}
+          {view==="employees"&&(profileEmp?<EmployeeProfileView emp={emps.find(e=>e.id===profileEmp)} punches={punches} emps={emps} onBack={()=>setProfileEmp(null)}/>:<EmployeesView emps={emps} setEmps={setEmps} onProfile={setProfileEmp}/>)}
           {view==="review"&&<ReviewView emps={emps} setEmps={setEmps}/>}
           {view==="schedule"&&<ScheduleView emps={emps} setEmps={setEmps}/>}
           {view==="shifts"&&<ShiftBoardView emps={emps} shifts={shifts} setShifts={setShifts} shiftReqs={shiftReqs} setShiftReqs={setShiftReqs} timeOffReqs={timeOffReqs} setTimeOffReqs={setTimeOffReqs}/>}
+          {view==="timeclock"&&<TimeClockView punches={punches} setPunches={setPunches} emps={emps}/>}
+          {view==="datacenter"&&<DataCenterView analyticsData={analyticsData} punches={punches} emps={emps}/>}
           {view==="onboarding"&&<OnboardFlowView steps={obSteps} setSteps={setObSteps}/>}
           {view==="integrations"&&<IntegrationsView pcc={pcc} setPcc={setPcc} adp={adp} setAdp={setAdp} emps={emps}/>}
-          {view==="pbj"&&<PBJReportView adp={adp}/>}
+          {view==="pbj"&&<PBJReportView adp={adp} punches={punches} emps={emps} pcc={pcc}/>}
           {view==="accounts"&&<AccountsView admins={admins} setAdmins={setAdmins}/>}
+          {view==="audit"&&<AuditLogView auditLog={auditLog}/>}
           {view==="billing"&&<BillingView/>}
         </div>
       </main>
