@@ -180,38 +180,45 @@ const FACILITIES=[
 const getFacility=(id)=>FACILITIES.find(f=>f.id===id)||FACILITIES[0];
 
 const STEPS_TX=[
-  {id:"app",label:"Employment Application",desc:"Personal info, education, employment history, references",icon:"📋",type:"form"},
-  {id:"newhire",label:"New Hire Info",desc:"Demographics, job details, pay rate, schedule",icon:"📄",type:"form"},
-  {id:"emergency",label:"Emergency Contacts",desc:"Primary & secondary emergency contacts, physician",icon:"🚨",type:"form"},
-  {id:"w4",label:"Federal W-4",desc:"IRS employee withholding certificate (2026)",icon:"💰",type:"form"},
-  {id:"i9",label:"Form I-9",desc:"USCIS employment eligibility verification",icon:"📋",type:"form"},
-  {id:"dpscch",label:"TX DPS Background Check",desc:"Texas DPS criminal conviction history verification",icon:"🔍",type:"form"},
-  {id:"deposit",label:"Direct Deposit",desc:"Bank routing & account for payroll",icon:"🏦",type:"form"},
-  {id:"videos",label:"Training Videos",desc:"Orientation, safety, HIPAA compliance",icon:"🎬",type:"video"},
-  {id:"policy",label:"Policy Acknowledgment",desc:"Employee handbook, HIPAA confidentiality",icon:"✅",type:"form"},
+  {id:"app",label:"Employment Application",desc:"Personal info, education, employment history, references",icon:"File",type:"form"},
+  {id:"newhire",label:"New Hire Info",desc:"Demographics, job details, schedule",icon:"Person",type:"form"},
+  {id:"emergency",label:"Emergency Contacts",desc:"Primary & secondary emergency contacts, physician",icon:"Bell",type:"form"},
+  {id:"w4",label:"Federal W-4",desc:"IRS employee withholding certificate (2026)",icon:"Dollar",type:"form"},
+  {id:"i9",label:"Form I-9",desc:"USCIS employment eligibility verification",icon:"Shield",type:"form"},
+  {id:"dpscch",label:"TX DPS Background Check",desc:"Texas DPS criminal conviction history verification",icon:"Eye",type:"form"},
+  {id:"deposit",label:"Direct Deposit",desc:"Bank routing & account for payroll",icon:"Billing",type:"form"},
+  {id:"videos",label:"Training Videos",desc:"Orientation, safety, HIPAA compliance",icon:"Video",type:"video"},
+  {id:"policy",label:"Policy Acknowledgment",desc:"Employee handbook, HIPAA confidentiality",icon:"Check",type:"form"},
 ];
 const STEPS_OK=[
-  {id:"app",label:"Employment Application",desc:"Personal info, education, employment history, references",icon:"📋",type:"form"},
-  {id:"newhire",label:"New Hire Info",desc:"Demographics, job details, pay rate, schedule",icon:"📄",type:"form"},
-  {id:"emergency",label:"Emergency Contacts",desc:"Primary & secondary emergency contacts, physician",icon:"🚨",type:"form"},
-  {id:"w4",label:"Federal W-4",desc:"IRS employee withholding certificate (2026)",icon:"💰",type:"form"},
-  {id:"okw4",label:"OK State W-4",desc:"Oklahoma employee withholding allowance certificate",icon:"💰",type:"form"},
-  {id:"i9",label:"Form I-9",desc:"USCIS employment eligibility verification",icon:"📋",type:"form"},
-  {id:"bgc",label:"OK Background Check",desc:"OK Long Term Care Security Act — consent & fingerprint",icon:"🔍",type:"form"},
-  {id:"deposit",label:"Direct Deposit",desc:"Bank routing & account for payroll",icon:"🏦",type:"form"},
-  {id:"videos",label:"Training Videos",desc:"Orientation, safety, HIPAA compliance",icon:"🎬",type:"video"},
-  {id:"policy",label:"Policy Acknowledgment",desc:"Employee handbook, HIPAA confidentiality",icon:"✅",type:"form"},
+  {id:"app",label:"Employment Application",desc:"Personal info, education, employment history, references",icon:"File",type:"form"},
+  {id:"newhire",label:"New Hire Info",desc:"Demographics, job details, schedule",icon:"Person",type:"form"},
+  {id:"emergency",label:"Emergency Contacts",desc:"Primary & secondary emergency contacts, physician",icon:"Bell",type:"form"},
+  {id:"w4",label:"Federal W-4",desc:"IRS employee withholding certificate (2026)",icon:"Dollar",type:"form"},
+  {id:"okw4",label:"OK State W-4",desc:"Oklahoma employee withholding allowance certificate",icon:"Dollar",type:"form"},
+  {id:"i9",label:"Form I-9",desc:"USCIS employment eligibility verification",icon:"Shield",type:"form"},
+  {id:"bgc",label:"OK Background Check",desc:"OK Long Term Care Security Act — consent & fingerprint",icon:"Eye",type:"form"},
+  {id:"deposit",label:"Direct Deposit",desc:"Bank routing & account for payroll",icon:"Billing",type:"form"},
+  {id:"videos",label:"Training Videos",desc:"Orientation, safety, HIPAA compliance",icon:"Video",type:"video"},
+  {id:"policy",label:"Policy Acknowledgment",desc:"Employee handbook, HIPAA confidentiality",icon:"Check",type:"form"},
 ];
 const getStepsForState=(st)=>st==="OK"?STEPS_OK:STEPS_TX;
+const getStepsForInvite=(state,inviteType)=>{
+  const all=getStepsForState(state);
+  if(inviteType==="app_only")return all.filter(s=>s.id==="app");
+  if(inviteType==="paperwork")return all.filter(s=>s.id!=="app");
+  return all; // "full"
+};
 const CLOUD_BACKUP={url:null,status:"not_configured"}; // destination TBD
+const HANDBOOK_PDF={url:null}; // destination TBD
 
 const INIT_EMP=[
-  {id:"E001",name:"Maria Santos",role:"CNA",email:"maria.s@email.com",status:"active",onboardingComplete:true,smartlinxId:"SLX-440122",avatar:"MS",facilityId:"F001",schedType:"scheduled",rotation:"8hr",pattern:"Day",daysOn:5,daysOff:2,formData:null,submittedDocs:null,cloudBackupAt:null},
-  {id:"E002",name:"James Wilson",role:"RN",email:"james.w@email.com",status:"active",onboardingComplete:true,smartlinxId:"SLX-440233",avatar:"JW",facilityId:"F001",schedType:"scheduled",rotation:"12hr",pattern:"Day12",daysOn:3,daysOff:4,formData:null,submittedDocs:null,cloudBackupAt:null},
-  {id:"E003",name:"Aisha Johnson",role:"LPN",email:"aisha.j@email.com",status:"onboarding",onboardingComplete:false,smartlinxId:null,avatar:"AJ",facilityId:"F002",schedType:null,rotation:null,pattern:null,daysOn:null,daysOff:null,formData:{firstName:"Aisha",lastName:"Johnson"},submittedDocs:null,cloudBackupAt:null},
-  {id:"E004",name:"David Chen",role:"CNA",email:"david.c@email.com",status:"active",onboardingComplete:true,smartlinxId:"SLX-440344",avatar:"DC",facilityId:"F001",schedType:"prn",rotation:null,pattern:null,daysOn:null,daysOff:null,formData:null,submittedDocs:null,cloudBackupAt:null},
-  {id:"E005",name:"Sarah Kim",role:"RN",email:"sarah.k@email.com",status:"invited",onboardingComplete:false,smartlinxId:null,avatar:"SK",facilityId:"F002",schedType:null,formData:null,submittedDocs:null,cloudBackupAt:null},
-  {id:"E006",name:"Tom Rivera",role:"CMA",email:"tom.r@email.com",status:"active",onboardingComplete:true,smartlinxId:"SLX-440455",avatar:"TR",facilityId:"F001",schedType:"scheduled",rotation:"8hr",pattern:"Eve",daysOn:5,daysOff:2,formData:null,submittedDocs:null,cloudBackupAt:null},
+  {id:"E001",name:"Maria Santos",role:"CNA",email:"maria.s@email.com",status:"active",onboardingComplete:true,smartlinxId:"SLX-440122",avatar:"MS",facilityId:"F001",schedType:"scheduled",rotation:"8hr",pattern:"Day",daysOn:5,daysOff:2,formData:null,submittedDocs:null,cloudBackupAt:null,inviteType:"full",applicationStatus:null},
+  {id:"E002",name:"James Wilson",role:"RN",email:"james.w@email.com",status:"active",onboardingComplete:true,smartlinxId:"SLX-440233",avatar:"JW",facilityId:"F001",schedType:"scheduled",rotation:"12hr",pattern:"Day12",daysOn:3,daysOff:4,formData:null,submittedDocs:null,cloudBackupAt:null,inviteType:"full",applicationStatus:null},
+  {id:"E003",name:"Aisha Johnson",role:"LPN",email:"aisha.j@email.com",status:"onboarding",onboardingComplete:false,smartlinxId:null,avatar:"AJ",facilityId:"F002",schedType:null,rotation:null,pattern:null,daysOn:null,daysOff:null,formData:{firstName:"Aisha",lastName:"Johnson"},submittedDocs:null,cloudBackupAt:null,inviteType:"full",applicationStatus:null},
+  {id:"E004",name:"David Chen",role:"CNA",email:"david.c@email.com",status:"active",onboardingComplete:true,smartlinxId:"SLX-440344",avatar:"DC",facilityId:"F001",schedType:"prn",rotation:null,pattern:null,daysOn:null,daysOff:null,formData:null,submittedDocs:null,cloudBackupAt:null,inviteType:"full",applicationStatus:null},
+  {id:"E005",name:"Sarah Kim",role:"RN",email:"sarah.k@email.com",status:"invited",onboardingComplete:false,smartlinxId:null,avatar:"SK",facilityId:"F002",schedType:null,formData:null,submittedDocs:null,cloudBackupAt:null,inviteType:"full",applicationStatus:null},
+  {id:"E006",name:"Tom Rivera",role:"CMA",email:"tom.r@email.com",status:"active",onboardingComplete:true,smartlinxId:"SLX-440455",avatar:"TR",facilityId:"F001",schedType:"scheduled",rotation:"8hr",pattern:"Eve",daysOn:5,daysOff:2,formData:null,submittedDocs:null,cloudBackupAt:null,inviteType:"full",applicationStatus:null},
   {id:"E007",name:"Priya Patel",role:"CMA",email:"priya.p@email.com",status:"review",onboardingComplete:false,smartlinxId:null,avatar:"PP",facilityId:"F001",schedType:null,
     formData:{firstName:"Priya",lastName:"Patel",ssn:"***-**-1234",dob:"1995-03-15",address:"123 Oak St",city:"Austin",state:"TX",zip:"78701",
       app_position:"CMA",app_usCitizen:"yes",app_workAuth:"yes",app_salary:"$15/hr",app_dateAvail:"2026-03-01",
@@ -220,7 +227,7 @@ const INIT_EMP=[
       dps_consent:true,
       dd_bank1Name:"Chase",dd_bank1Routing:"021000021",dd_bank1Account:"****4567",dd_bank1Type:"checking",
       _videosDone:{v1:1,v2:1,v3:1},_policySigned:true},
-    submittedDocs:{at:"2026-02-22T14:30:00"}},
+    submittedDocs:{at:"2026-02-22T14:30:00"},inviteType:"full",applicationStatus:null},
 ];
 const INIT_ADMINS=[
   {id:"A001",name:"Rebecca Torres",email:"rebecca.t@facility.com",status:"active"},
@@ -249,6 +256,7 @@ function OnboardPortal({emp,onSave,onSubmit,steps}){
   const[saving,setSaving]=useState(false);
   const[done,setDone]=useState(false);
   const lastSave=useRef(null);
+  const tabsRef=useRef(null);
   const fac=getFacility(emp.facilityId);
 
   const upd=(k,v)=>setFd(p=>({...p,[k]:v}));
@@ -260,8 +268,10 @@ function OnboardPortal({emp,onSave,onSubmit,steps}){
     onSave(full);lastSave.current=new Date();
   },[fd,vids,signed,onSave]);
 
-  useEffect(()=>{const t=setInterval(doSave,30000);return()=>clearInterval(t);},[doSave]);
-  const manSave=async()=>{setSaving(true);doSave();await new Promise(r=>setTimeout(r,500));setSaving(false);};
+  useEffect(()=>{const t=setInterval(doSave,10000);return()=>clearInterval(t);},[doSave]);
+  useEffect(()=>{const el=tabsRef.current?.children[step];if(el)el.scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"});},[step]);
+  // Auto-save on every data change (debounced 2s)
+  useEffect(()=>{const t=setTimeout(()=>{setSaving(true);doSave();setTimeout(()=>setSaving(false),400);},2000);return()=>clearTimeout(t);},[fd,vids,signed]);
 
   const stepOk=(s)=>{
     if(s.id==="app")return!!(fd.firstName&&fd.lastName&&fd.address&&fd.city&&fd.state&&fd.zip&&fd.phone&&fd.ssn&&fd.app_position&&fd.app_usCitizen&&fd.app_workAuth);
@@ -397,8 +407,7 @@ function OnboardPortal({emp,onSave,onSubmit,steps}){
       <Inp label="Department" value={fd.nh_dept||""} onChange={e=>upd("nh_dept",e.target.value)}/>
       <Sel label="Status" value={fd.nh_status||""} onChange={e=>upd("nh_status",e.target.value)} req><option value="">Select…</option><option>Full-Time</option><option>Part-Time</option><option>PRN</option><option>Rehire</option></Sel>
     </div>
-    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"0 10px"}}>
-      <Inp label="Hourly Rate" value={fd.nh_hourlyRate||""} onChange={e=>upd("nh_hourlyRate",e.target.value)} placeholder="$15.00"/>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0 10px"}}>
       <Inp label="Weekly Scheduled Hours" value={fd.nh_weeklyHrs||""} onChange={e=>upd("nh_weeklyHrs",e.target.value)}/>
       <Inp label="Shift (Daily Hours)" value={fd.nh_shift||""} onChange={e=>upd("nh_shift",e.target.value)} placeholder="7a-3p"/>
     </div>
@@ -570,7 +579,6 @@ function OnboardPortal({emp,onSave,onSubmit,steps}){
       <Inp label="Eye Color" value={fd.bgc_eyes||""} onChange={e=>upd("bgc_eyes",e.target.value)}/>
     </div>
     <Inp label="Other states lived in after age 17" value={fd.bgc_otherStates||""} onChange={e=>upd("bgc_otherStates",e.target.value)}/>
-    <div style={{padding:10,background:"var(--amberL)",borderRadius:"var(--rs)",border:"1px solid #FDE68A",marginBottom:10,fontSize:11,color:"var(--amber)"}}><b>Note:</b> A $10 processing fee for fingerprinting applies. You have 10 calendar days from hire to submit fingerprints at a designated OK-SCREEN site.</div>
     <label style={{display:"flex",alignItems:"flex-start",gap:10,cursor:"pointer",padding:"12px 14px",background:fd.bgc_consent?"var(--greenL)":"var(--hover)",border:`1px solid ${fd.bgc_consent?"#A7F3D0":"var(--brd)"}`,borderRadius:"var(--rs)"}}>
       <input type="checkbox" checked={!!fd.bgc_consent} onChange={e=>upd("bgc_consent",e.target.checked)} style={{marginTop:2,width:18,height:18,accentColor:"var(--green)"}}/>
       <div><div style={{fontSize:13,fontWeight:600}}>I consent to a national criminal background check</div>
@@ -646,6 +654,12 @@ function OnboardPortal({emp,onSave,onSubmit,steps}){
   // ─── Policy Acknowledgment ───
   const FormPolicy=()=><div className="fi">
     <p style={{fontSize:14,fontWeight:700,marginBottom:14}}>Policy Acknowledgment</p>
+    {/* Employee Handbook Download */}
+    <div style={{padding:14,background:"var(--bg)",border:"1px solid var(--brd)",borderRadius:"var(--rs)",marginBottom:14,display:"flex",alignItems:"center",gap:10}}>
+      <div style={{width:32,height:32,borderRadius:"var(--rs)",background:"var(--blueL)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><I.File s={16} c="#2563EB"/></div>
+      {HANDBOOK_PDF.url?<div style={{flex:1}}><div style={{fontSize:13,fontWeight:600}}>Employee Handbook</div><div style={{fontSize:11,color:"var(--t3)"}}>Download and review before signing</div></div>:<div style={{flex:1}}><div style={{fontSize:13,fontWeight:600,color:"var(--t3)"}}>Employee Handbook</div><div style={{fontSize:11,color:"var(--t3)"}}>PDF will be available here</div></div>}
+      {HANDBOOK_PDF.url&&<a href={HANDBOOK_PDF.url} target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:5,padding:"6px 12px",borderRadius:"var(--rs)",background:"var(--blue)",color:"#fff",fontSize:12,fontWeight:600,textDecoration:"none"}}><I.File s={12} c="#fff"/>Download PDF</a>}
+    </div>
     <Card style={{padding:18,maxHeight:260,overflowY:"auto",marginBottom:14,fontSize:13,color:"var(--t2)",lineHeight:1.7}}>
       <p><b>Employee Handbook:</b> I acknowledge receipt of the Employee Handbook and agree to abide by all policies.</p>
       <p style={{marginTop:10}}><b>HIPAA Confidentiality:</b> I agree to maintain confidentiality of all Protected Health Information (PHI) per 45 CFR Parts 160 and 164. Unauthorized disclosure may result in disciplinary action and/or penalties.</p>
@@ -658,11 +672,13 @@ function OnboardPortal({emp,onSave,onSubmit,steps}){
     </label>
   </div>;
 
+  const isAppOnly=steps.length===1&&steps[0].id==="app";
+
   if(done)return <div style={{minHeight:"80vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
     <div className="su" style={{textAlign:"center",maxWidth:380}}>
       <div style={{width:56,height:56,borderRadius:"50%",background:"var(--greenL)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px"}}><I.Check s={28} c="#059669"/></div>
-      <h2 style={{fontSize:20,fontWeight:700,marginBottom:8}}>Submitted!</h2>
-      <p style={{fontSize:13,color:"var(--t2)",lineHeight:1.6}}>Your paperwork has been sent to admin for review. You'll be notified once approved and your schedule will appear here.</p>
+      <h2 style={{fontSize:20,fontWeight:700,marginBottom:8}}>{isAppOnly?"Application Submitted!":"Submitted!"}</h2>
+      <p style={{fontSize:13,color:"var(--t2)",lineHeight:1.6}}>{isAppOnly?"Your application has been sent to admin for review. You'll be notified once a decision is made.":"Your paperwork has been sent to admin for review. You'll be notified once approved and your schedule will appear here."}</p>
     </div></div>;
 
   return <div style={{maxWidth:900,margin:"0 auto"}}>
@@ -675,8 +691,8 @@ function OnboardPortal({emp,onSave,onSubmit,steps}){
           <p style={{fontSize:12,color:"var(--t3)",marginTop:2}}>{fac.name} ({fac.state}) · Complete your onboarding below · saves automatically</p>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <Btn v="secondary" size="sm" icon={saving?<Spinner size={12}/>:<I.Save s={13}/>} onClick={manSave} disabled={saving}>{saving?"Saving…":"Save"}</Btn>
-          {lastSave.current&&<span style={{fontSize:10,color:"var(--t3)"}}>Saved {lastSave.current.toLocaleTimeString()}</span>}
+          {saving&&<Spinner size={12}/>}
+          {lastSave.current&&<span style={{fontSize:10,color:"var(--t3)"}}>{saving?"Saving…":`Auto-saved ${lastSave.current.toLocaleTimeString()}`}</span>}
         </div>
       </div>
 
@@ -688,13 +704,13 @@ function OnboardPortal({emp,onSave,onSubmit,steps}){
       </div>
 
       {/* Step tabs */}
-      <div style={{display:"flex",gap:3,marginBottom:18,overflowX:"auto",paddingBottom:2}}>
+      <div ref={tabsRef} style={{display:"flex",gap:3,marginBottom:18,overflowX:"auto",paddingBottom:2,scrollBehavior:"smooth"}}>
         {steps.map((s,i)=>{const ok=stepOk(s);const act=i===step;return <button key={s.id} onClick={()=>setStep(i)} style={{
           display:"flex",alignItems:"center",gap:6,padding:"8px 14px",borderRadius:"var(--rs)",
           border:act?"2px solid var(--blue)":"1px solid var(--brd)",fontSize:12,fontWeight:600,fontFamily:"inherit",
           background:act?"var(--blueL)":ok?"var(--greenL)":"#fff",cursor:"pointer",
           color:act?"var(--blue)":ok?"var(--green)":"var(--t2)",whiteSpace:"nowrap",flexShrink:0}}>
-          <span style={{fontSize:14}}>{s.icon}</span>{s.label}{ok&&<I.Check s={12} c="#059669"/>}
+          {I[s.icon]&&<span style={{display:"flex"}}>{(() => {const Ic=I[s.icon];return <Ic s={14} c={act?"#2563EB":ok?"#059669":"#94A3B8"}/>;})()}</span>}{s.label}{ok&&<I.Check s={12} c="#059669"/>}
         </button>;})}
       </div>
 
@@ -718,7 +734,7 @@ function OnboardPortal({emp,onSave,onSubmit,steps}){
         <Btn v="secondary" onClick={()=>setStep(Math.max(0,step-1))} disabled={step===0} icon={<I.Left/>}>Prev</Btn>
         <div style={{display:"flex",gap:8}}>
           {step<steps.length-1&&<Btn v="secondary" onClick={()=>setStep(step+1)}>Next <I.Right c="#475569"/></Btn>}
-          {allOk&&<Btn onClick={doSubmit} icon={<I.Send s={14} c="#fff"/>}>Submit All Paperwork</Btn>}
+          {allOk&&<Btn onClick={doSubmit} icon={<I.Send s={14} c="#fff"/>}>{isAppOnly?"Submit Application":"Submit All Paperwork"}</Btn>}
         </div>
       </div>
     </div>
@@ -763,8 +779,9 @@ function DashboardView({emps,setView}){
     {l:"Active",v:emps.filter(e=>e.status==="active").length,ic:I.Users,c:"var(--green)",bg:"var(--greenL)"},
     {l:"Onboarding",v:emps.filter(e=>e.status==="onboarding").length,ic:I.Onboard,c:"var(--amber)",bg:"var(--amberL)"},
     {l:"Review",v:emps.filter(e=>e.status==="review").length,ic:I.Inbox,c:"var(--red)",bg:"var(--redL)"},
+    {l:"App Approved",v:emps.filter(e=>e.status==="app_approved").length,ic:I.Check,c:"var(--purple)",bg:"var(--purpleL)"},
     {l:"Invited",v:emps.filter(e=>e.status==="invited").length,ic:I.Mail,c:"var(--blue)",bg:"var(--blueL)"},
-    {l:"Synced",v:emps.filter(e=>e.smartlinxId).length,ic:I.Sync,c:"var(--purple)",bg:"var(--purpleL)"},
+    {l:"Synced",v:emps.filter(e=>e.smartlinxId).length,ic:I.Sync,c:"var(--cyan)",bg:"var(--cyanL)"},
   ];
   return <div className="fi">
     <h1 style={{fontSize:22,fontWeight:700,marginBottom:2}}>Dashboard</h1>
@@ -777,9 +794,9 @@ function DashboardView({emps,setView}){
     </div>
     <div style={{display:"grid",gridTemplateColumns:"1.5fr 1fr",gap:12}}>
       <Card style={{padding:18}}><h3 style={{fontSize:12,fontWeight:700,textTransform:"uppercase",color:"var(--t3)",marginBottom:12}}>Pipeline</h3>
-        {emps.filter(e=>!e.onboardingComplete).map((e,i)=><div key={e.id} className="fi" style={{display:"flex",alignItems:"center",gap:8,padding:"8px 10px",borderRadius:"var(--rs)",marginBottom:3,background:"var(--bg)",border:"1px solid var(--brd2)",animationDelay:`${i*.05}s`}}>
+        {emps.filter(e=>!e.onboardingComplete||e.status==="app_approved").map((e,i)=><div key={e.id} className="fi" style={{display:"flex",alignItems:"center",gap:8,padding:"8px 10px",borderRadius:"var(--rs)",marginBottom:3,background:"var(--bg)",border:"1px solid var(--brd2)",animationDelay:`${i*.05}s`}}>
           <Avatar initials={e.avatar} size={28}/><div style={{flex:1}}><div style={{fontSize:12,fontWeight:600}}>{e.name}</div><div style={{fontSize:10,color:"var(--t3)"}}>{e.role}</div></div>
-          <Badge v={e.status==="review"?"danger":e.status==="onboarding"?"warning":"info"}>{e.status}</Badge>
+          <Badge v={e.status==="review"?"danger":e.status==="app_approved"?"purple":e.status==="onboarding"?"warning":"info"}>{e.status==="app_approved"?"App Approved":e.status}</Badge>
         </div>)}</Card>
       <Card style={{padding:18}}><h3 style={{fontSize:12,fontWeight:700,textTransform:"uppercase",color:"var(--t3)",marginBottom:12}}>Quick Actions</h3>
         {[{l:"Send Invite",ic:I.Mail,a:()=>setView("employees"),c:"var(--blue)",bg:"var(--blueL)"},
@@ -797,22 +814,40 @@ function EmployeesView({emps,setEmps}){
   const[showInv,setShowInv]=useState(false);
   const[invN,setInvN]=useState("");const[invE,setInvE]=useState("");const[invR,setInvR]=useState("CNA");
   const[invF,setInvF]=useState("F001");
+  const[invType,setInvType]=useState("full");
   const[sending,setSending]=useState(false);
 
+  const closeInv=()=>{setShowInv(false);setInvN("");setInvE("");setInvType("full");};
   const sendInv=async()=>{if(!invE||!invN)return;setSending(true);await new Promise(r=>setTimeout(r,1000));
-    setEmps(p=>[...p,{id:`E${String(p.length+1).padStart(3,"0")}`,name:invN,email:invE,role:invR,status:"invited",onboardingComplete:false,smartlinxId:null,avatar:invN.split(" ").map(n=>n[0]).join("").slice(0,2).toUpperCase(),facilityId:invF,formData:null,submittedDocs:null,cloudBackupAt:null,schedType:null,rotation:null,pattern:null,daysOn:null,daysOff:null}]);
-    setInvN("");setInvE("");setSending(false);setShowInv(false);};
+    setEmps(p=>[...p,{id:`E${String(p.length+1).padStart(3,"0")}`,name:invN,email:invE,role:invR,status:"invited",onboardingComplete:false,smartlinxId:null,avatar:invN.split(" ").map(n=>n[0]).join("").slice(0,2).toUpperCase(),facilityId:invF,formData:null,submittedDocs:null,cloudBackupAt:null,schedType:null,rotation:null,pattern:null,daysOn:null,daysOff:null,inviteType:invType,applicationStatus:null}]);
+    setSending(false);closeInv();};
 
-  const fl=filter==="all"?emps:emps.filter(e=>e.status===filter);
+  const sendPaperwork=(empId)=>{setEmps(p=>p.map(e=>e.id===empId?{...e,inviteType:"paperwork",status:"invited",applicationStatus:"approved"}:e));};
+
+  const fl=filter==="all"?emps:emps.filter(e=>e.status===filter||(filter==="app_approved"&&e.status==="app_approved")||(filter==="app_rejected"&&e.status==="app_rejected"));
   const ct=k=>k==="all"?emps.length:emps.filter(e=>e.status===k).length;
+
+  const statusBadge=(e)=>{
+    if(e.status==="app_approved")return <Badge v="purple">App Approved</Badge>;
+    if(e.status==="app_rejected")return <Badge v="danger">App Rejected</Badge>;
+    return <Badge v={e.status==="active"?"success":e.status==="review"?"danger":e.status==="onboarding"?"warning":"info"}>{e.status}</Badge>;
+  };
+  const progressText=(e)=>{
+    if(e.status==="active")return"Complete";
+    if(e.status==="review")return"Awaiting review";
+    if(e.status==="onboarding")return"Filling forms";
+    if(e.status==="app_approved")return null;
+    if(e.status==="app_rejected")return"Application rejected";
+    return"Invite sent";
+  };
 
   return <div className="fi">
     <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
       <div><h1 style={{fontSize:22,fontWeight:700}}>Employees</h1><p style={{color:"var(--t3)",fontSize:12,marginTop:2}}>Invite, track, manage</p></div>
       <Btn onClick={()=>setShowInv(true)} icon={<I.Mail s={14} c="#fff"/>}>Send Invite</Btn>
     </div>
-    <div style={{display:"flex",gap:3,marginBottom:14}}>
-      {[["all","All"],["invited","Invited"],["onboarding","Filling"],["review","Review"],["active","Active"]].map(([k,l])=>
+    <div style={{display:"flex",gap:3,marginBottom:14,flexWrap:"wrap"}}>
+      {[["all","All"],["invited","Invited"],["onboarding","Filling"],["review","Review"],["app_approved","App Approved"],["active","Active"]].map(([k,l])=>
         <button key={k} onClick={()=>setFilter(k)} style={{padding:"6px 12px",borderRadius:"var(--rs)",border:filter===k?"2px solid var(--blue)":"1px solid var(--brd)",background:filter===k?"var(--blueL)":"#fff",fontFamily:"inherit",fontSize:11,fontWeight:600,color:filter===k?"var(--blue)":"var(--t2)",cursor:"pointer"}}>{l} ({ct(k)})</button>)}
     </div>
     <Card style={{overflow:"hidden"}}><table style={{width:"100%",borderCollapse:"collapse"}}><thead><tr style={{borderBottom:"1px solid var(--brd)"}}>
@@ -821,18 +856,32 @@ function EmployeesView({emps,setEmps}){
         <td style={{padding:"10px 16px"}}><div style={{display:"flex",alignItems:"center",gap:8}}><Avatar initials={e.avatar} size={30}/><div><div style={{fontSize:13,fontWeight:600}}>{e.name}</div><div style={{fontSize:10,color:"var(--t3)"}}>{e.email}</div></div></div></td>
         <td style={{padding:"10px 16px",fontSize:12,color:"var(--t2)"}}>{e.role}</td>
         <td style={{padding:"10px 16px",fontSize:11,color:"var(--t2)"}}>{getFacility(e.facilityId).name.split(" ").slice(0,2).join(" ")}</td>
-        <td style={{padding:"10px 16px"}}><Badge v={e.status==="active"?"success":e.status==="review"?"danger":e.status==="onboarding"?"warning":"info"}>{e.status}</Badge></td>
-        <td style={{padding:"10px 16px",fontSize:11,color:"var(--t3)"}}>{e.status==="active"?"Complete":e.status==="review"?"Awaiting review":e.status==="onboarding"?"Filling forms":"Invite sent"}</td>
+        <td style={{padding:"10px 16px"}}>{statusBadge(e)}</td>
+        <td style={{padding:"10px 16px",fontSize:11,color:"var(--t3)"}}>{e.status==="app_approved"?<Btn size="sm" v="primary" icon={<I.Send s={12} c="#fff"/>} onClick={()=>sendPaperwork(e.id)}>Send Paperwork</Btn>:progressText(e)}</td>
         <td style={{padding:"10px 16px"}}>{e.smartlinxId?<span style={{fontSize:11,color:"var(--green)",fontFamily:"monospace"}}>{e.smartlinxId}</span>:<span style={{color:"var(--t3)",fontSize:11}}>—</span>}</td>
       </tr>)}</tbody></table></Card>
-    <Modal open={showInv} onClose={()=>setShowInv(false)} title="Send Onboarding Invite">
-      <p style={{fontSize:12,color:"var(--t2)",marginBottom:16,lineHeight:1.6}}>New hire receives a secure link to fill out paperwork on their device. They can save & resume across sessions. Once submitted, docs appear in your Review queue.</p>
+    <Modal open={showInv} onClose={closeInv} title="Send Onboarding Invite">
+      <p style={{fontSize:12,color:"var(--t2)",marginBottom:16,lineHeight:1.6}}>{invType==="app_only"?"Send only the Employment Application for screening before hiring.":invType==="paperwork"?"Send new hire paperwork (no application) for already-approved applicants.":"New hire receives the full package — application + all paperwork. They can save & resume across sessions."}</p>
+      {/* Invite Type Selector */}
+      <div style={{marginBottom:16}}>
+        <label style={{display:"block",fontSize:12,fontWeight:600,color:"var(--t2)",marginBottom:8}}>Invite Type</label>
+        <div style={{display:"flex",gap:6}}>
+          {[["full","Full Bundle","Application + all paperwork"],["app_only","Application Only","Screen before hiring"],["paperwork","New Hire Paperwork","Already-approved applicant"]].map(([v,l,d])=>
+            <button key={v} onClick={()=>setInvType(v)} style={{flex:1,padding:"10px 8px",borderRadius:"var(--rs)",border:invType===v?"2px solid var(--blue)":"1px solid var(--brd)",background:invType===v?"var(--blueL)":"#fff",fontFamily:"inherit",cursor:"pointer",textAlign:"center"}}>
+              <div style={{fontSize:12,fontWeight:600,color:invType===v?"var(--blue)":"var(--t2)"}}>{l}</div>
+              <div style={{fontSize:10,color:invType===v?"var(--blue)":"var(--t3)",marginTop:2}}>{d}</div>
+            </button>)}
+        </div>
+      </div>
       <Inp label="Full Name" value={invN} onChange={e=>setInvN(e.target.value)} placeholder="Jane Smith" req/>
       <Inp label="Email" type="email" value={invE} onChange={e=>setInvE(e.target.value)} placeholder="jane@email.com" req/>
       <Sel label="Role" value={invR} onChange={e=>setInvR(e.target.value)} req>{["CNA","CMA","LPN","RN","Dietary","Housekeeping","Maintenance"].map(r=><option key={r}>{r}</option>)}</Sel>
       <Sel label="Facility" value={invF} onChange={e=>setInvF(e.target.value)} req>{FACILITIES.map(f=><option key={f.id} value={f.id}>{f.name} ({f.state})</option>)}</Sel>
-      <div style={{padding:10,background:"var(--blueL)",borderRadius:"var(--rs)",marginBottom:14,fontSize:11,color:"var(--blue)"}}><b>Document Package:</b> {getFacility(invF).state==="OK"?"Oklahoma (OK-W-4, Background Check)":"Texas (DPS CCH Verification)"}</div>
-      <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}><Btn v="secondary" onClick={()=>setShowInv(false)}>Cancel</Btn>
+      <div style={{padding:10,background:"var(--blueL)",borderRadius:"var(--rs)",marginBottom:14,fontSize:11,color:"var(--blue)"}}>
+        <b>{invType==="app_only"?"Document:":invType==="paperwork"?"Package:":"Full Package:"}</b>{" "}
+        {invType==="app_only"?"Employment Application only":invType==="paperwork"?`New hire paperwork — ${getFacility(invF).state==="OK"?"Oklahoma (OK-W-4, Background Check)":"Texas (DPS CCH Verification)"}`:`Application + ${getFacility(invF).state==="OK"?"Oklahoma (OK-W-4, Background Check)":"Texas (DPS CCH Verification)"}`}
+      </div>
+      <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}><Btn v="secondary" onClick={closeInv}>Cancel</Btn>
         <Btn onClick={sendInv} disabled={!invN||!invE||sending} icon={sending?<Spinner size={12}/>:<I.Send s={13} c="#fff"/>}>{sending?"Sending…":"Send Invite"}</Btn></div>
     </Modal></div>;
 }
@@ -840,45 +889,87 @@ function EmployeesView({emps,setEmps}){
 // ═══ DOC REVIEW QUEUE ═══
 function ReviewView({emps,setEmps}){
   const[syncing,setSyncing]=useState(null);const[viewDoc,setViewDoc]=useState(null);
+  const[rates,setRates]=useState({});  // {empId: hourlyRate string}
   const pending=emps.filter(e=>e.status==="review");
+  const hasRate=(id)=>!!(rates[id]&&rates[id].trim());
+  const isAppOnlyEmp=(e)=>e.inviteType==="app_only";
 
-  const upload=async(id)=>{setSyncing(id);const r=await SLX.syncEmployee();
-    setEmps(p=>p.map(e=>e.id===id?{...e,status:"active",onboardingComplete:true,smartlinxId:r.id}:e));setSyncing(null);};
+  const upload=async(id)=>{if(!hasRate(id))return;setSyncing(id);const r=await SLX.syncEmployee();
+    setEmps(p=>p.map(e=>e.id===id?{...e,status:"active",onboardingComplete:true,smartlinxId:r.id,formData:{...e.formData,admin_hourlyRate:rates[id]}}:e));setSyncing(null);};
+
+  const approveApp=(id)=>{setEmps(p=>p.map(e=>e.id===id?{...e,status:"app_approved",applicationStatus:"approved"}:e));};
+  const rejectApp=(id)=>{setEmps(p=>p.map(e=>e.id===id?{...e,status:"app_rejected",applicationStatus:"rejected"}:e));};
 
   const Row=({l,v})=><div style={{display:"flex",justifyContent:"space-between",padding:"5px 0",borderBottom:"1px solid var(--brd2)"}}><span style={{fontSize:12,color:"var(--t3)"}}>{l}</span><span style={{fontSize:12,fontWeight:600}}>{v||"—"}</span></div>;
+
+  const subTypeBadge=(e)=>{
+    if(e.inviteType==="app_only")return <Badge v="purple">Application Only</Badge>;
+    if(e.inviteType==="paperwork")return <Badge v="cyan">Paperwork</Badge>;
+    return <Badge v="info">Full Bundle</Badge>;
+  };
 
   return <div className="fi">
     <h1 style={{fontSize:22,fontWeight:700,marginBottom:2}}>Document Review</h1>
     <p style={{color:"var(--t3)",fontSize:12,marginBottom:16}}>Review submitted docs → upload to SmartLinx</p>
     {pending.length===0?<Card style={{padding:40,textAlign:"center"}}><I.Inbox s={36} c="#CBD5E1"/><p style={{marginTop:10,color:"var(--t3)",fontSize:13}}>No documents awaiting review</p></Card>
-    :pending.map((e,i)=><Card key={e.id} className="fi" style={{padding:18,marginBottom:10,borderLeft:"4px solid var(--amber)",animationDelay:`${i*.07}s`}}>
+    :pending.map((e,i)=>{const appOnly=isAppOnlyEmp(e);return <Card key={e.id} className="fi" style={{padding:18,marginBottom:10,borderLeft:`4px solid ${appOnly?"var(--purple)":hasRate(e.id)?"var(--green)":"var(--amber)"}`,animationDelay:`${i*.07}s`}}>
       <div style={{display:"flex",alignItems:"center",gap:12}}>
         <Avatar initials={e.avatar} size={38}/>
-        <div style={{flex:1}}><div style={{fontSize:15,fontWeight:700}}>{e.name}</div><div style={{fontSize:12,color:"var(--t3)"}}>{e.role} · Submitted {e.submittedDocs?.at?new Date(e.submittedDocs.at).toLocaleDateString():""}</div></div>
-        <Btn size="sm" v="secondary" icon={<I.Eye s={13}/>} onClick={()=>setViewDoc(e.id)}>Review</Btn>
-        <Btn size="sm" icon={syncing===e.id?<Spinner size={12}/>:<I.Upload s={13} c="#fff"/>} onClick={()=>upload(e.id)} disabled={syncing===e.id}>{syncing===e.id?"Uploading…":"Upload to SmartLinx"}</Btn>
-      </div></Card>)}
+        <div style={{flex:1}}><div style={{fontSize:15,fontWeight:700,display:"flex",alignItems:"center",gap:8}}>{e.name} {subTypeBadge(e)}</div><div style={{fontSize:12,color:"var(--t3)"}}>{e.role} · Submitted {e.submittedDocs?.at?new Date(e.submittedDocs.at).toLocaleDateString():""}</div></div>
+        <div style={{display:"flex",alignItems:"center",gap:6}}>
+          {appOnly?<>
+            <Btn size="sm" v="secondary" icon={<I.Eye s={13}/>} onClick={()=>setViewDoc(e.id)}>Review</Btn>
+            <Btn size="sm" v="success" icon={<I.Check s={12} c="#059669"/>} onClick={()=>approveApp(e.id)}>Approve App</Btn>
+            <Btn size="sm" v="danger" icon={<I.X s={12} c="#DC2626"/>} onClick={()=>rejectApp(e.id)}>Reject</Btn>
+          </>:<>
+            <div style={{display:"flex",alignItems:"center",gap:4}}>
+              <label style={{fontSize:10,fontWeight:600,color:"var(--t2)",whiteSpace:"nowrap"}}>Rate $/hr</label>
+              <input type="text" value={rates[e.id]||""} onChange={ev=>setRates(p=>({...p,[e.id]:ev.target.value}))} placeholder="0.00" style={{width:72,padding:"6px 8px",border:`1px solid ${hasRate(e.id)?"var(--green)":"var(--red)"}`,borderRadius:"var(--rs)",fontSize:12,fontFamily:"inherit",fontWeight:600,textAlign:"right"}}/>
+            </div>
+            <Btn size="sm" v="secondary" icon={<I.Eye s={13}/>} onClick={()=>setViewDoc(e.id)}>Review</Btn>
+            <Btn size="sm" icon={syncing===e.id?<Spinner size={12}/>:<I.Upload s={13} c="#fff"/>} onClick={()=>upload(e.id)} disabled={syncing===e.id||!hasRate(e.id)}>{syncing===e.id?"Uploading…":"Upload to SmartLinx"}</Btn>
+          </>}
+        </div>
+      </div>
+      {!appOnly&&!hasRate(e.id)&&<div style={{display:"flex",alignItems:"center",gap:6,marginTop:10,padding:"8px 12px",background:"var(--redL)",borderRadius:"var(--rs)",border:"1px solid #FECACA",fontSize:11,color:"var(--red)"}}><I.Alert s={13} c="#DC2626"/>Enter hourly rate before uploading to SmartLinx</div>}
+    </Card>;})}
     <Modal open={!!viewDoc} onClose={()=>setViewDoc(null)} title="Review Documents" width={640}>
-      {viewDoc&&(()=>{const e=emps.find(x=>x.id===viewDoc);if(!e?.formData)return null;const d=e.formData;const fac=getFacility(e.facilityId);const st=fac.state;
+      {viewDoc&&(()=>{const e=emps.find(x=>x.id===viewDoc);if(!e?.formData)return null;const d=e.formData;const fac=getFacility(e.facilityId);const st=fac.state;const appOnly=isAppOnlyEmp(e);const isPaperwork=e.inviteType==="paperwork";
         return <div>
           <div style={{fontSize:10,color:"var(--amber)",display:"flex",alignItems:"center",gap:4,padding:"5px 8px",background:"#FFFBEB",borderRadius:4,border:"1px solid #FDE68A",marginBottom:14}}><I.Lock s={10} c="#D97706"/>PHI/PII — Authorized access logged per HIPAA §164.312(b)</div>
-          <div style={{padding:10,background:"var(--blueL)",borderRadius:"var(--rs)",marginBottom:14,fontSize:11,color:"var(--blue)",display:"flex",alignItems:"center",gap:6}}><I.Building s={13} c="#2563EB"/><b>{fac.name}</b> — {st} document package</div>
+          <div style={{padding:10,background:"var(--blueL)",borderRadius:"var(--rs)",marginBottom:14,fontSize:11,color:"var(--blue)",display:"flex",alignItems:"center",gap:6}}><I.Building s={13} c="#2563EB"/><b>{fac.name}</b> — {st} document package · {subTypeBadge(e)}</div>
+          {/* Personal Info + Position — always shown */}
           <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",marginBottom:8,borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Personal Information</p>
           <Row l="Name" v={`${d.firstName||""} ${d.mi?d.mi+". ":""}${d.lastName||""}`}/><Row l="DOB" v={d.dob}/><Row l="SSN" v={d.ssn}/><Row l="Address" v={`${d.address||""}, ${d.city||""} ${d.state||""} ${d.zip||""}`}/><Row l="Phone" v={d.phone}/><Row l="Position" v={d.app_position}/>
-          <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",margin:"12px 0 8px",borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Emergency Contacts</p>
-          <Row l="Contact 1" v={d.ec1_name?`${d.ec1_name} (${d.ec1_relation||""}) ${d.ec1_phone||""}`:""}/><Row l="Contact 2" v={d.ec2_name?`${d.ec2_name} (${d.ec2_relation||""}) ${d.ec2_phone||""}`:"—"}/>
-          <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",margin:"12px 0 8px",borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Tax & Eligibility</p>
-          <Row l="W-4 Filing" v={d.w4_filingStatus}/>{st==="OK"&&<Row l="OK W-4 Filing" v={d.okw4_filingStatus}/>}{st==="OK"&&<Row l="OK Allowances" v={d.okw4_totalAllowances}/>}
-          <Row l="I-9 Citizenship" v={d.i9_citizenship}/>
-          <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",margin:"12px 0 8px",borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Background Check</p>
-          {st==="TX"?<Row l="TX DPS CCH" v={d.dps_consent?"Consent Given":"Not Consented"}/>:<Row l="OK BGC" v={d.bgc_consent?"Consent Given":"Not Consented"}/>}
-          <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",margin:"12px 0 8px",borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Direct Deposit</p>
-          <Row l="Bank 1" v={d.dd_bank1Name}/><Row l="Routing" v={d.dd_bank1Routing}/><Row l="Account" v={d.dd_bank1Account}/><Row l="Type" v={d.dd_bank1Type}/>
-          {d.dd_bank2Name&&<><Row l="Bank 2" v={d.dd_bank2Name}/><Row l="Routing 2" v={d.dd_bank2Routing}/><Row l="Account 2" v={d.dd_bank2Account}/></>}
-          <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",margin:"12px 0 8px",borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Training & Policy</p>
-          <Row l="Videos" v={d._videosDone?`${Object.keys(d._videosDone).length}/3 complete`:"Not started"}/><Row l="Policy Signed" v={d._policySigned?"Yes":"No"}/>
-          <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:16}}><Btn v="secondary" onClick={()=>setViewDoc(null)}>Close</Btn>
-            <Btn icon={<I.Upload s={13} c="#fff"/>} onClick={()=>{upload(viewDoc);setViewDoc(null);}}>Approve & Upload to SmartLinx</Btn></div>
+          {/* Sections only for paperwork or full */}
+          {!appOnly&&<>
+            <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",margin:"12px 0 8px",borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Emergency Contacts</p>
+            <Row l="Contact 1" v={d.ec1_name?`${d.ec1_name} (${d.ec1_relation||""}) ${d.ec1_phone||""}`:""}/><Row l="Contact 2" v={d.ec2_name?`${d.ec2_name} (${d.ec2_relation||""}) ${d.ec2_phone||""}`:"—"}/>
+            <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",margin:"12px 0 8px",borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Tax & Eligibility</p>
+            <Row l="W-4 Filing" v={d.w4_filingStatus}/>{st==="OK"&&<Row l="OK W-4 Filing" v={d.okw4_filingStatus}/>}{st==="OK"&&<Row l="OK Allowances" v={d.okw4_totalAllowances}/>}
+            <Row l="I-9 Citizenship" v={d.i9_citizenship}/>
+            <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",margin:"12px 0 8px",borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Background Check</p>
+            {st==="TX"?<Row l="TX DPS CCH" v={d.dps_consent?"Consent Given":"Not Consented"}/>:<Row l="OK BGC" v={d.bgc_consent?"Consent Given":"Not Consented"}/>}
+            <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",margin:"12px 0 8px",borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Direct Deposit</p>
+            <Row l="Bank 1" v={d.dd_bank1Name}/><Row l="Routing" v={d.dd_bank1Routing}/><Row l="Account" v={d.dd_bank1Account}/><Row l="Type" v={d.dd_bank1Type}/>
+            {d.dd_bank2Name&&<><Row l="Bank 2" v={d.dd_bank2Name}/><Row l="Routing 2" v={d.dd_bank2Routing}/><Row l="Account 2" v={d.dd_bank2Account}/></>}
+            <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",margin:"12px 0 8px",borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Training & Policy</p>
+            <Row l="Videos" v={d._videosDone?`${Object.keys(d._videosDone).length}/3 complete`:"Not started"}/><Row l="Policy Signed" v={d._policySigned?"Yes":"No"}/>
+            <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",margin:"12px 0 8px",borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Compensation (Admin)</p>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+              <label style={{fontSize:12,fontWeight:600,color:"var(--t2)",whiteSpace:"nowrap"}}>Hourly Rate ($)</label>
+              <input type="text" value={rates[viewDoc]||""} onChange={ev=>setRates(p=>({...p,[viewDoc]:ev.target.value}))} placeholder="0.00" style={{width:120,padding:"8px 12px",border:`1px solid ${hasRate(viewDoc)?"var(--green)":"var(--red)"}`,borderRadius:"var(--rs)",fontSize:14,fontFamily:"inherit",fontWeight:700,textAlign:"right"}}/>
+            </div>
+            {!hasRate(viewDoc)&&<div style={{display:"flex",alignItems:"center",gap:6,padding:"8px 12px",background:"var(--redL)",borderRadius:"var(--rs)",border:"1px solid #FECACA",fontSize:11,color:"var(--red)",marginBottom:8}}><I.Alert s={13} c="#DC2626"/>Hourly rate is required before uploading to SmartLinx</div>}
+          </>}
+          <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:16}}>
+            <Btn v="secondary" onClick={()=>setViewDoc(null)}>Close</Btn>
+            {appOnly?<>
+              <Btn v="danger" icon={<I.X s={13} c="#DC2626"/>} onClick={()=>{rejectApp(viewDoc);setViewDoc(null);}}>Reject</Btn>
+              <Btn v="success" icon={<I.Check s={13} c="#fff"/>} onClick={()=>{approveApp(viewDoc);setViewDoc(null);}}>Approve Application</Btn>
+            </>:
+              <Btn icon={<I.Upload s={13} c="#fff"/>} disabled={!hasRate(viewDoc)} onClick={()=>{upload(viewDoc);setViewDoc(null);}}>Approve & Upload to SmartLinx</Btn>}
+          </div>
         </div>;})()}
     </Modal></div>;
 }
@@ -1334,11 +1425,11 @@ function OnboardFlowView({steps,setSteps}){
     </div>
     <Card style={{padding:"10px 16px",marginBottom:10,background:"var(--blueL)",border:"1px dashed #93C5FD"}}>
       <div style={{display:"flex",alignItems:"center",gap:8}}><I.Building s={16} c="#2563EB"/><div style={{fontSize:12,fontWeight:600,color:"var(--blue)"}}>{stateInfo[activeState].fac} — {stateInfo[activeState].name} document package</div></div></Card>
-    {stateSteps.map((s,i)=>{const TI=tI[s.type]||I.File;return(
+    {stateSteps.map((s,i)=>{const SIcon=I[s.icon]||tI[s.type]||I.File;return(
       <div key={s.id} draggable onDragStart={()=>{dr.current=i}} onDragEnter={()=>{dv.current=i}} onDragEnd={onEnd} onDragOver={e=>e.preventDefault()}
         style={{display:"flex",alignItems:"center",gap:8,padding:"10px 14px",background:"#fff",border:"1px solid var(--brd)",borderRadius:"var(--rs)",cursor:"grab",boxShadow:"var(--sh)",marginBottom:3}}>
         <I.Grip s={12} c="#CBD5E1"/>
-        <div style={{width:28,height:28,borderRadius:"var(--rs)",background:s.type==="video"?"var(--purpleL)":s.type==="link"?"var(--amberL)":"var(--blueL)",display:"flex",alignItems:"center",justifyContent:"center"}}><TI s={14} c={s.type==="video"?"#7C3AED":s.type==="link"?"#D97706":"#2563EB"}/></div>
+        <div style={{width:28,height:28,borderRadius:"var(--rs)",background:s.type==="video"?"var(--purpleL)":s.type==="link"?"var(--amberL)":"var(--blueL)",display:"flex",alignItems:"center",justifyContent:"center"}}><SIcon s={14} c={s.type==="video"?"#7C3AED":s.type==="link"?"#D97706":"#2563EB"}/></div>
         <div style={{flex:1,minWidth:0}}><div style={{fontSize:12,fontWeight:600,display:"flex",alignItems:"center",gap:5}}>{s.label}<Badge v={s.type==="video"?"purple":s.type==="link"?"warning":"info"} style={{fontSize:8}}>{s.type}</Badge></div><div style={{fontSize:10,color:"var(--t3)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{s.desc}</div></div>
         <span style={{fontSize:10,color:"var(--t3)",fontWeight:600,background:"var(--bg)",padding:"2px 6px",borderRadius:4}}>#{i+1}</span>
         <button onClick={()=>setSteps({...steps,[activeState]:stateSteps.filter(x=>x.id!==s.id)})} style={{background:"none",border:"none",cursor:"pointer",padding:3,display:"flex"}}><I.Trash s={13} c="#DC2626"/></button>
@@ -1381,7 +1472,9 @@ function AccountsView({admins,setAdmins}){
 
 // ═══ BILLING ═══
 function BillingView(){
-  const[showPay,setShowPay]=useState(false);
+  const[showPay,setShowPay]=useState(false);const[showUpd,setShowUpd]=useState(false);
+  const[cardNum,setCardNum]=useState("");const[cardExp,setCardExp]=useState("");const[cardCvc,setCardCvc]=useState("");const[cardName,setCardName]=useState("");const[updSaving,setUpdSaving]=useState(false);
+  const[cardInfo,setCardInfo]=useState({last4:"4242",exp:"12/27"});
   const inv=[{id:"INV-2026-02",d:"Feb 1, 2026",a:"$299.00"},{id:"INV-2026-01",d:"Jan 1, 2026",a:"$299.00"},{id:"INV-2025-12",d:"Dec 1, 2025",a:"$299.00"}];
   return <div className="fi">
     <h1 style={{fontSize:22,fontWeight:700,marginBottom:16}}>Billing</h1>
@@ -1394,9 +1487,9 @@ function BillingView(){
       <Card style={{padding:20}}>
         <h3 style={{fontSize:13,fontWeight:700,marginBottom:14}}>Payment</h3>
         <div style={{padding:14,background:"var(--bg)",borderRadius:"var(--rs)",border:"1px solid var(--brd)",marginBottom:14,display:"flex",alignItems:"center",gap:10}}>
-          <I.Billing s={20} c="#2563EB"/><div><div style={{fontSize:13,fontWeight:600}}>•••• 4242</div><div style={{fontSize:11,color:"var(--t3)"}}>Exp 12/27</div></div><Badge v="success" style={{marginLeft:"auto"}}>Default</Badge></div>
+          <I.Billing s={20} c="#2563EB"/><div><div style={{fontSize:13,fontWeight:600}}>•••• {cardInfo.last4}</div><div style={{fontSize:11,color:"var(--t3)"}}>Exp {cardInfo.exp}</div></div><Badge v="success" style={{marginLeft:"auto"}}>Default</Badge></div>
         <Btn onClick={()=>setShowPay(true)} icon={<I.Billing s={14} c="#fff"/>} style={{width:"100%",justifyContent:"center",marginBottom:8}}>Make Payment</Btn>
-        <Btn v="secondary" style={{width:"100%",justifyContent:"center"}}>Update Method</Btn>
+        <Btn v="secondary" onClick={()=>setShowUpd(true)} style={{width:"100%",justifyContent:"center"}}>Update Method</Btn>
       </Card></div>
     <Card style={{overflow:"hidden"}}><div style={{padding:"12px 18px",borderBottom:"1px solid var(--brd)"}}><h3 style={{fontSize:13,fontWeight:700}}>Invoices</h3></div>
       <table style={{width:"100%",borderCollapse:"collapse"}}><tbody>{inv.map(i=><tr key={i.id} style={{borderBottom:"1px solid var(--brd2)"}}>
@@ -1408,7 +1501,22 @@ function BillingView(){
       <div style={{textAlign:"center",padding:"16px 0"}}>
         <div style={{fontSize:34,fontWeight:700,marginBottom:16}}>$299.00</div>
         <Btn style={{width:"100%",justifyContent:"center"}} size="lg" onClick={()=>setShowPay(false)} icon={<I.Check s={15} c="#fff"/>}>Process Payment</Btn>
-      </div></Modal></div>;
+      </div></Modal>
+    <Modal open={showUpd} onClose={()=>setShowUpd(false)} title="Update Payment Method">
+      <div style={{padding:"4px 0"}}>
+        <Inp label="Cardholder Name" value={cardName} onChange={e=>setCardName(e.target.value)} placeholder="John Smith" req/>
+        <Inp label="Card Number" value={cardNum} onChange={e=>{const v=e.target.value.replace(/\D/g,"").slice(0,16);setCardNum(v.replace(/(.{4})/g,"$1 ").trim());}} placeholder="1234 5678 9012 3456" req/>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+          <Inp label="Expiration" value={cardExp} onChange={e=>{let v=e.target.value.replace(/\D/g,"").slice(0,4);if(v.length>2)v=v.slice(0,2)+"/"+v.slice(2);setCardExp(v);}} placeholder="MM/YY" req/>
+          <Inp label="CVC" value={cardCvc} onChange={e=>setCardCvc(e.target.value.replace(/\D/g,"").slice(0,4))} placeholder="123" req/>
+        </div>
+        <div style={{padding:10,background:"var(--greenL)",borderRadius:"var(--rs)",marginBottom:14,fontSize:11,color:"var(--green)",display:"flex",alignItems:"center",gap:6}}><I.Shield s={13} c="#059669"/>Card data encrypted — PCI DSS compliant</div>
+        <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+          <Btn v="secondary" onClick={()=>{setShowUpd(false);setCardNum("");setCardExp("");setCardCvc("");setCardName("");}}>Cancel</Btn>
+          <Btn disabled={!cardNum||!cardExp||!cardCvc||!cardName||updSaving} onClick={async()=>{setUpdSaving(true);await new Promise(r=>setTimeout(r,1200));const last4=cardNum.replace(/\s/g,"").slice(-4);setCardInfo({last4,exp:cardExp});setUpdSaving(false);setShowUpd(false);setCardNum("");setCardExp("");setCardCvc("");setCardName("");}} icon={updSaving?<Spinner size={12}/>:<I.Save s={13} c="#fff"/>}>{updSaving?"Saving…":"Save Card"}</Btn>
+        </div>
+      </div>
+    </Modal></div>;
 }
 
 // ═══ LOGIN ═══
@@ -1457,12 +1565,39 @@ export default function StaffHubApp(){
 
   // ── NEW HIRE: onboarding portal is their homescreen ──
   if(role==="new_hire"){
-    const me=emps.find(e=>e.id==="E003")||emps.find(e=>e.status==="onboarding");
+    const me=emps.find(e=>e.id==="E003")||emps.find(e=>e.status==="onboarding")||emps.find(e=>e.status==="invited");
+    const empState=me?getFacility(me.facilityId).state:"TX";
+    const invType=me?.inviteType||"full";
+    const filteredSteps=getStepsForInvite(empState,invType);
+
+    // App-only flow: after submission show confirmation screen (not schedule)
+    if(me && invType==="app_only" && (me.status==="review"||me.status==="app_approved"||me.status==="app_rejected")){
+      return <><style>{css}</style>
+        <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--bg)"}}>
+          <div className="su" style={{textAlign:"center",maxWidth:420}}>
+            {me.status==="review"&&<>
+              <div style={{width:56,height:56,borderRadius:"50%",background:"var(--amberL)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px"}}><I.Clock s={28} c="#D97706"/></div>
+              <h2 style={{fontSize:20,fontWeight:700,marginBottom:8}}>Application Submitted</h2>
+              <p style={{fontSize:13,color:"var(--t2)",lineHeight:1.6}}>Your application is under review. You'll be notified once a decision is made.</p>
+            </>}
+            {me.status==="app_approved"&&<>
+              <div style={{width:56,height:56,borderRadius:"50%",background:"var(--greenL)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px"}}><I.Check s={28} c="#059669"/></div>
+              <h2 style={{fontSize:20,fontWeight:700,marginBottom:8,color:"var(--green)"}}>Application Approved!</h2>
+              <p style={{fontSize:13,color:"var(--t2)",lineHeight:1.6}}>Congratulations! Your application has been approved. You'll receive onboarding paperwork shortly.</p>
+            </>}
+            {me.status==="app_rejected"&&<>
+              <div style={{width:56,height:56,borderRadius:"50%",background:"var(--redL)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px"}}><I.X s={28} c="#DC2626"/></div>
+              <h2 style={{fontSize:20,fontWeight:700,marginBottom:8,color:"var(--red)"}}>Application Not Approved</h2>
+              <p style={{fontSize:13,color:"var(--t2)",lineHeight:1.6}}>Thank you for your interest. Unfortunately, we are unable to move forward at this time.</p>
+            </>}
+            <div style={{marginTop:20}}><button onClick={()=>setLoggedIn(false)} style={{background:"none",border:"none",color:"var(--t3)",fontFamily:"inherit",fontSize:12,cursor:"pointer"}}>Sign Out</button></div>
+          </div></div></>;
+    }
+
     // Still filling out / not yet submitted
     if(me && !me.onboardingComplete && me.status!=="review"){
-      const empState=getFacility(me.facilityId).state;
       return <><style>{css}</style>
-        <OnboardPortal emp={me} steps={getStepsForState(empState)}
+        <OnboardPortal emp={me} steps={filteredSteps}
           onSave={(fd)=>setEmps(p=>p.map(e=>e.id===me.id?{...e,formData:fd,status:"onboarding"}:e))}
           onSubmit={(fd)=>setEmps(p=>p.map(e=>e.id===me.id?{...e,formData:fd,status:"review",submittedDocs:{at:new Date().toISOString()}}:e))}
         /></>;
