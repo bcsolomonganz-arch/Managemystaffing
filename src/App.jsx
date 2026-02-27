@@ -37,6 +37,13 @@ Eye:p=>{const{w,h,c}=_s(p,16);return<svg width={w} height={h} viewBox="0 0 24 24
 Save:p=>{const{w,h,c}=_s(p,16);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>;},
 Link:p=>{const{w,h,c}=_s(p,16);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>;},
 Inbox:p=>{const{w,h,c}=_s(p);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>;},
+Plug:p=>{const{w,h,c}=_s(p);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v4a6 6 0 01-12 0V8z"/></svg>;},
+Hospital:p=>{const{w,h,c}=_s(p);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>;},
+Chart:p=>{const{w,h,c}=_s(p);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>;},
+ClipDoc:p=>{const{w,h,c}=_s(p);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15h6"/><path d="M9 11h6"/><path d="M9 19h3"/></svg>;},
+Zap:p=>{const{w,h,c}=_s(p,16);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg>;},
+Refresh:p=>{const{w,h,c}=_s(p,16);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0115-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 01-15 6.7L3 16"/></svg>;},
+Database:p=>{const{w,h,c}=_s(p);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4.03 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/></svg>;},
 };
 
 // ═══ API LAYER ═══
@@ -51,6 +58,313 @@ const SLX={
   async resolveTimeOff(id,action){await new Promise(r=>setTimeout(r,400));return{ok:true,action};},
   async backupToCloud(empId,data){await new Promise(r=>setTimeout(r,1500));return{ok:true,ts:new Date().toISOString()};},
 };
+
+// ═══ PCC (PointClickCare) FHIR / OAuth 2.0 LAYER ═══
+const PCC={
+  // — OAuth PKCE helpers —
+  generateCodeVerifier(){const a=new Uint8Array(32);crypto.getRandomValues(a);return btoa(String.fromCharCode(...a)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");},
+  async generateCodeChallenge(v){const e=new TextEncoder().encode(v);const d=await crypto.subtle.digest("SHA-256",e);return btoa(String.fromCharCode(...new Uint8Array(d))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");},
+  buildAuthorizeUrl({authEndpoint,clientId,redirectUri,scope,state,codeChallenge}){const p=new URLSearchParams({response_type:"code",client_id:clientId,redirect_uri:redirectUri,scope:scope||"launch/patient patient/*.read openid fhirUser",state,code_challenge:codeChallenge,code_challenge_method:"S256",aud:authEndpoint.replace(/\/authorize$/,"")});return`${authEndpoint}?${p}`;},
+  async exchangeToken({tokenEndpoint,code,redirectUri,clientId,codeVerifier}){const body=new URLSearchParams({grant_type:"authorization_code",code,redirect_uri:redirectUri,client_id:clientId,code_verifier:codeVerifier});const r=await fetch(tokenEndpoint,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body});if(!r.ok)throw new Error("Token exchange failed");const t=await r.json();t._expires_at=Date.now()+((t.expires_in||3600)*1000);return t;},
+  async refreshToken({tokenEndpoint,clientId,refreshToken:rt}){const body=new URLSearchParams({grant_type:"refresh_token",refresh_token:rt,client_id:clientId});const r=await fetch(tokenEndpoint,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body});if(!r.ok)throw new Error("Token refresh failed");const t=await r.json();t._expires_at=Date.now()+((t.expires_in||3600)*1000);return t;},
+  isTokenExpired(token){if(!token||!token._expires_at)return true;return Date.now()>(token._expires_at-300000);},
+
+  // — SMART discovery —
+  async discover(baseUrl){
+    // Mock: return realistic SMART configuration
+    await new Promise(r=>setTimeout(r,600));
+    return{authorization_endpoint:`${baseUrl}/authorize`,token_endpoint:`${baseUrl}/token`,capabilities:["launch-standalone","client-public","permission-v2"],scopes_supported:["launch/patient","patient/*.read","openid","fhirUser"]};
+  },
+
+  // — FHIR resource reads —
+  async fetchCensus(baseUrl,token){
+    await new Promise(r=>setTimeout(r,900));
+    const names=["Margaret T.","Robert K.","Dorothy L.","James W.","Helen M.","Richard B.","Betty S.","William D.","Frances P.","Charles H.","Ruth C.","Joseph N.","Evelyn A.","Thomas G.","Marie F.","George E.","Virginia R.","Edward J.","Alice Z.","Frank O.","Patricia Q.","Harold V.","Mildred U.","Raymond X.","Anna I.","Henry Y.","Catherine W.","Walter B.","Louise K.","Albert M.","Doris S.","Arthur T.","Irene L.","Carl D.","Gladys N.","Ernest P.","Florence R.","Stanley J.","Lillian G.","Leonard H.","Edna C.","Norman F."];
+    const types=["skilled","skilled","skilled","custodial","custodial","custodial","skilled","custodial","skilled","custodial","skilled","custodial","skilled","custodial","skilled","skilled","custodial","skilled","custodial","custodial","skilled","custodial","skilled","skilled","custodial","skilled","custodial","custodial","skilled","custodial","skilled","custodial","skilled","custodial","skilled","custodial","skilled","custodial","skilled","custodial","custodial","skilled"];
+    const floors=["1A","1B","2A","2B","3A"];
+    return{resourceType:"Bundle",type:"searchset",total:names.length,entry:names.map((n,i)=>({resource:{resourceType:"Patient",id:`PCC-P${String(i+1).padStart(3,"0")}`,name:[{text:n}],extension:[{url:"care-type",valueString:types[i]},{url:"floor",valueString:floors[i%floors.length]}]}}))};
+  },
+  async fetchEncounters(baseUrl,token){
+    await new Promise(r=>setTimeout(r,700));
+    return{resourceType:"Bundle",type:"searchset",total:6,entry:[{resource:{resourceType:"Encounter",id:"E1",class:{code:"SNF"},period:{start:"2025-01-15"}}}]};
+  },
+  async getCensusSummary(baseUrl,token){
+    const census=await PCC.fetchCensus(baseUrl,token);
+    const byType={};const byFloor={};
+    (census.entry||[]).forEach(e=>{
+      const ext=e.resource.extension||[];
+      const type=ext.find(x=>x.url==="care-type")?.valueString||"other";
+      const floor=ext.find(x=>x.url==="floor")?.valueString||"?";
+      byType[type]=(byType[type]||0)+1;byFloor[floor]=(byFloor[floor]||0)+1;
+    });
+    return{total:census.total,byType,byFloor,fetchedAt:new Date().toISOString()};
+  },
+
+  // — Staffing calculations —
+  calcStaffingRatios(census,activeEmps){
+    const total=census?.total||0;
+    const targets={CNA:{ratio:8,label:"CNA"},LPN:{ratio:25,label:"LPN"},RN:{ratio:40,label:"RN"}};
+    const counts={};activeEmps.forEach(e=>{const r=e.role?.toUpperCase();if(targets[r])counts[r]=(counts[r]||0)+1;});
+    return Object.entries(targets).map(([role,t])=>{const c=counts[role]||0;const actual=c>0?Math.round(total/c):null;const needed=Math.ceil(total/t.ratio);const compliant=c>=needed;return{role:t.label,count:c,needed,actual:actual?`1:${actual}`:"N/A",target:`1:${t.ratio}`,compliant};});
+  },
+
+  // — Employee export to FHIR Practitioner —
+  formatEmployeeForPCC(emp,formData){
+    const d=formData||{};
+    return{resourceType:"Practitioner",identifier:[{system:"urn:staffhub",value:emp.id}],active:emp.status==="active",name:[{family:d.lastName||emp.name.split(" ").pop(),given:[d.firstName||emp.name.split(" ")[0]]}],telecom:[{system:"email",value:emp.email}],qualification:[{code:{text:emp.role}}]};
+  },
+};
+
+// ═══ ADP WORKFORCE NOW — API LAYER ═══
+const ADP_JOB_CODES=[
+  {code:"1",title:"Administrator",category:"admin"},{code:"2",title:"Medical Director",category:"admin"},
+  {code:"3",title:"DNS/DON",category:"nursing"},{code:"4",title:"RN",category:"nursing"},
+  {code:"5",title:"RN w/ Admin Duties",category:"nursing"},{code:"6",title:"LPN/LVN",category:"nursing"},
+  {code:"7",title:"LPN/LVN w/ Admin Duties",category:"nursing"},{code:"8",title:"CNA",category:"nursing"},
+  {code:"9",title:"Nurse Aide in Training",category:"nursing"},{code:"10",title:"Medication Aide/Technician",category:"nursing"},
+  {code:"11",title:"Physical Therapist",category:"therapy"},{code:"12",title:"Physical Therapy Assistant",category:"therapy"},
+  {code:"13",title:"Occupational Therapist",category:"therapy"},{code:"14",title:"OT Assistant",category:"therapy"},
+  {code:"15",title:"Speech/Language Pathologist",category:"therapy"},{code:"16",title:"Therapeutic Recreation",category:"therapy"},
+  {code:"17",title:"Qualified Activities Professional",category:"activities"},{code:"18",title:"Other Activities Staff",category:"activities"},
+  {code:"19",title:"Qualified Social Worker",category:"social"},{code:"20",title:"Other Social Worker",category:"social"},
+  {code:"21",title:"Dentist",category:"medical"},{code:"22",title:"Podiatrist",category:"medical"},
+  {code:"23",title:"Mental Health Worker",category:"medical"},{code:"24",title:"Vocational Service Worker",category:"other"},
+  {code:"25",title:"Clinical Lab Technician",category:"medical"},{code:"26",title:"Diagnostic X-ray Technician",category:"medical"},
+  {code:"27",title:"Blood Bank Technician",category:"medical"},{code:"28",title:"Dietitian",category:"dietary"},
+  {code:"29",title:"Dietary Service Worker",category:"dietary"},{code:"30",title:"Food Service Worker",category:"dietary"},
+  {code:"31",title:"Housekeeping",category:"other"},{code:"32",title:"Maintenance",category:"other"},
+  {code:"33",title:"Laundry",category:"other"},{code:"34",title:"Central Supply Worker",category:"other"},
+  {code:"35",title:"Pharmacist",category:"medical"},
+];
+const ADP_ROLE_TO_PBJ={CNA:"8",RN:"4",LPN:"6",CMA:"10"};
+const ADP={
+  _log:[],_retries:3,
+  _addLog(method,facility,ok,detail){ADP._log.unshift({ts:new Date().toISOString(),method,facility,ok,detail,id:`L${Date.now()}`});if(ADP._log.length>200)ADP._log.length=200;},
+  async _withRetry(fn,method,facilityId){
+    for(let i=0;i<ADP._retries;i++){
+      try{const r=await fn();ADP._addLog(method,facilityId,true,`Success${i>0?` (retry ${i})`:""}`);return r;}
+      catch(e){ADP._addLog(method,facilityId,false,`Attempt ${i+1}: ${e.message}`);if(i===ADP._retries-1)throw e;await new Promise(r=>setTimeout(r,500*(i+1)));}
+    }
+  },
+
+  // — OAuth 2.0 —
+  buildAuthorizeUrl({clientId,redirectUri,scope,state}){return`https://accounts.adp.com/auth/oauth/v2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope||"api")}&state=${state}`;},
+  async exchangeToken({code,clientId,clientSecret,redirectUri}){
+    await new Promise(r=>setTimeout(r,800));
+    const t={access_token:"adp_at_"+Date.now(),refresh_token:"adp_rt_"+Date.now(),token_type:"Bearer",expires_in:3600,_expires_at:Date.now()+3600000,scope:"api"};
+    ADP._addLog("exchangeToken","—",true,"Token obtained");return t;
+  },
+  async refreshToken({refreshToken:rt,clientId,clientSecret}){
+    await new Promise(r=>setTimeout(r,400));
+    const t={access_token:"adp_at_"+Date.now(),refresh_token:"adp_rt_"+Date.now(),token_type:"Bearer",expires_in:3600,_expires_at:Date.now()+3600000,scope:"api"};
+    ADP._addLog("refreshToken","—",true,"Token refreshed");return t;
+  },
+  isTokenExpired(token){if(!token||!token._expires_at)return true;return Date.now()>(token._expires_at-300000);},
+
+  // — Worker API (HR) —
+  async fetchWorkers(facilityId){
+    return ADP._withRetry(async()=>{
+      await new Promise(r=>setTimeout(r,700));
+      const fac=FACILITIES.find(f=>f.id===facilityId);if(!fac)throw new Error("Unknown facility");
+      const count=Math.floor(fac.beds*0.7)+Math.floor(Math.random()*10);
+      const roles=["CNA","CNA","CNA","CNA","RN","RN","LPN","LPN","CMA","CMA"];
+      const depts=["Nursing","Nursing","Nursing","Rehab","Dietary","Admin","Housekeeping"];
+      const fnames=["Maria","James","Aisha","David","Sarah","Tom","Priya","Carlos","Linda","Robert","Angela","Kevin","Diana","Michael","Lisa","Steven","Rachel","Brian","Karen","Jose","Amy","Mark","Beth","Eric","Susan"];
+      const lnames=["Santos","Wilson","Johnson","Chen","Kim","Rivera","Patel","Garcia","Smith","Brown","Davis","Martinez","Lee","Taylor","White","Harris","Clark","Lewis","Hall","Allen"];
+      return Array.from({length:count},(_,i)=>({
+        workerId:`${fac.adpCode}-W${String(i+1).padStart(3,"0")}`,firstName:fnames[i%fnames.length],lastName:lnames[i%lnames.length],
+        role:roles[i%roles.length],department:depts[i%depts.length],
+        jobTitle:roles[i%roles.length]==="CNA"?"Certified Nursing Assistant":roles[i%roles.length]==="RN"?"Registered Nurse":roles[i%roles.length]==="LPN"?"Licensed Practical Nurse":"Certified Medication Aide",
+        hireDate:new Date(2020+Math.floor(Math.random()*5),Math.floor(Math.random()*12),1+Math.floor(Math.random()*28)).toISOString().split("T")[0],
+        terminationDate:null,status:"Active",facilityId,certifications:roles[i%roles.length]==="CNA"?["CNA"]:roles[i%roles.length]==="RN"?["RN","BLS"]:roles[i%roles.length]==="LPN"?["LPN","BLS"]:["CMA"],
+        payRate:roles[i%roles.length]==="RN"?32+Math.random()*8:roles[i%roles.length]==="LPN"?24+Math.random()*6:14+Math.random()*6,
+      }));
+    },"fetchWorkers",facilityId);
+  },
+
+  // — Schedule API —
+  async fetchSchedules(facilityId,days=14){
+    return ADP._withRetry(async()=>{
+      await new Promise(r=>setTimeout(r,600));
+      const fac=FACILITIES.find(f=>f.id===facilityId);if(!fac)throw new Error("Unknown facility");
+      const shifts=[];const types=["Day","Eve","Night","Day12","Nite12"];const locs=["1A","1B","2A","2B","3A","Main"];
+      const staffPerShift=Math.ceil(fac.beds/15);
+      for(let d=0;d<days;d++){const dt=new Date();dt.setDate(dt.getDate()+d);const ds=dt.toISOString().split("T")[0];
+        types.slice(0,3).forEach(t=>{for(let s=0;s<staffPerShift;s++){
+          shifts.push({id:`SCH-${facilityId}-${d}-${t}-${s}`,date:ds,type:t,startTime:t==="Day"?"07:00":t==="Eve"?"15:00":"23:00",endTime:t==="Day"?"15:00":t==="Eve"?"23:00":"07:00",
+            location:locs[s%locs.length],role:s<Math.ceil(staffPerShift*.6)?"CNA":s<Math.ceil(staffPerShift*.8)?"LPN":"RN",
+            staffed:Math.random()>.15,facilityId});}});}
+      return{facilityId,schedules:shifts,period:{start:new Date().toISOString().split("T")[0],days}};
+    },"fetchSchedules",facilityId);
+  },
+
+  // — Time Cards API —
+  async fetchTimeCards(facilityId,days=7){
+    return ADP._withRetry(async()=>{
+      await new Promise(r=>setTimeout(r,800));
+      const fac=FACILITIES.find(f=>f.id===facilityId);if(!fac)throw new Error("Unknown facility");
+      const cards=[];const workerCount=Math.floor(fac.beds*0.65);
+      for(let d=0;d<days;d++){const dt=new Date();dt.setDate(dt.getDate()-d);const ds=dt.toISOString().split("T")[0];
+        for(let w=0;w<workerCount;w++){
+          if(Math.random()>.25){const hrs=7.5+Math.random()*1.5;const ot=Math.random()>.85?Math.random()*3:0;
+            const role=["CNA","CNA","CNA","RN","LPN","CMA"][w%6];
+            cards.push({id:`TC-${facilityId}-${d}-${w}`,workerId:`W${String(w+1).padStart(3,"0")}`,date:ds,
+              clockIn:`${ds}T0${6+Math.floor(Math.random()*2)}:${String(Math.floor(Math.random()*60)).padStart(2,"0")}`,
+              clockOut:`${ds}T${14+Math.floor(Math.random()*3)}:${String(Math.floor(Math.random()*60)).padStart(2,"0")}`,
+              regularHours:Math.round(hrs*100)/100,overtimeHours:Math.round(ot*100)/100,role,facilityId,
+              directCare:["CNA","RN","LPN","CMA"].includes(role)});}}}
+      return{facilityId,timeCards:cards,period:{days}};
+    },"fetchTimeCards",facilityId);
+  },
+
+  // — PTO / Leave API —
+  async fetchPTO(facilityId){
+    return ADP._withRetry(async()=>{
+      await new Promise(r=>setTimeout(r,500));
+      const fac=FACILITIES.find(f=>f.id===facilityId);if(!fac)throw new Error("Unknown facility");
+      const count=Math.floor(fac.beds*0.3);const types=["Vacation","Sick","Personal","FMLA","Bereavement"];
+      const statuses=["Approved","Pending","Denied"];
+      const reqs=Array.from({length:count},(_,i)=>{const s=new Date();s.setDate(s.getDate()+Math.floor(Math.random()*30));
+        return{id:`PTO-${facilityId}-${i}`,workerId:`W${String(i+1).padStart(3,"0")}`,type:types[i%types.length],
+          startDate:s.toISOString().split("T")[0],days:1+Math.floor(Math.random()*5),status:statuses[Math.floor(Math.random()*3)],
+          balance:{vacation:Math.floor(Math.random()*15),sick:Math.floor(Math.random()*8),personal:Math.floor(Math.random()*3)},facilityId};});
+      return{facilityId,requests:reqs};
+    },"fetchPTO",facilityId);
+  },
+
+  // — Payroll Results API —
+  async fetchPayroll(facilityId,period="current"){
+    return ADP._withRetry(async()=>{
+      await new Promise(r=>setTimeout(r,900));
+      const fac=FACILITIES.find(f=>f.id===facilityId);if(!fac)throw new Error("Unknown facility");
+      const count=Math.floor(fac.beds*0.65);
+      const records=Array.from({length:count},(_,i)=>{
+        const role=["CNA","CNA","CNA","RN","LPN","CMA"][i%6];
+        const rate=role==="RN"?34:role==="LPN"?26:role==="CMA"?17:15;
+        const hrs=70+Math.random()*20;const otHrs=Math.random()>.7?Math.random()*10:0;
+        const gross=Math.round((hrs*rate+otHrs*rate*1.5)*100)/100;
+        const taxes=Math.round(gross*.22*100)/100;const deductions=Math.round(gross*.08*100)/100;
+        return{workerId:`W${String(i+1).padStart(3,"0")}`,role,hourlyRate:rate,regularHours:Math.round(hrs*100)/100,
+          overtimeHours:Math.round(otHrs*100)/100,grossPay:gross,taxes,deductions,netPay:Math.round((gross-taxes-deductions)*100)/100,facilityId};});
+      const totalGross=records.reduce((s,r)=>s+r.grossPay,0);const totalNet=records.reduce((s,r)=>s+r.netPay,0);
+      return{facilityId,period,records,summary:{employees:count,totalGross:Math.round(totalGross*100)/100,totalNet:Math.round(totalNet*100)/100,totalTaxes:records.reduce((s,r)=>s+r.taxes,0),avgHourlyRate:Math.round(records.reduce((s,r)=>s+r.hourlyRate,0)/count*100)/100}};
+    },"fetchPayroll",facilityId);
+  },
+
+  // — Recruiting API —
+  async fetchRequisitions(facilityId){
+    return ADP._withRetry(async()=>{
+      await new Promise(r=>setTimeout(r,500));
+      const fac=FACILITIES.find(f=>f.id===facilityId);if(!fac)throw new Error("Unknown facility");
+      const roles=["CNA","RN","LPN","CMA"];const statuses=["Open","Filled","Closed"];
+      const reqs=roles.map((r,i)=>({id:`REQ-${facilityId}-${i}`,title:r==="CNA"?"Certified Nursing Assistant":r==="RN"?"Registered Nurse":r==="LPN"?"Licensed Practical Nurse":"Certified Medication Aide",
+        role:r,facilityId,status:statuses[Math.floor(Math.random()*3)],applicants:Math.floor(Math.random()*12),
+        postedDate:new Date(Date.now()-Math.random()*30*86400000).toISOString().split("T")[0],urgency:Math.random()>.6?"High":"Normal"}));
+      return{facilityId,requisitions:reqs};
+    },"fetchRequisitions",facilityId);
+  },
+
+  // — PBJ Data Generation —
+  async generatePBJData(facilityId,startDate,endDate){
+    return ADP._withRetry(async()=>{
+      await new Promise(r=>setTimeout(r,1200));
+      const fac=FACILITIES.find(f=>f.id===facilityId);if(!fac)throw new Error("Unknown facility");
+      const workers=await ADP.fetchWorkers(facilityId);
+      const days=Math.ceil((new Date(endDate)-new Date(startDate))/86400000)+1;
+      const staffing=[];const census=[];
+      for(let d=0;d<days;d++){const dt=new Date(startDate);dt.setDate(dt.getDate()+d);const ds=dt.toISOString().split("T")[0];
+        const dailyResidents=fac.beds-Math.floor(Math.random()*Math.ceil(fac.beds*.15));
+        census.push({date:ds,residents:dailyResidents});
+        workers.slice(0,Math.ceil(workers.length*.8)).forEach((w,i)=>{
+          if(Math.random()>.2){const hrs=7.5+Math.random()*1;
+            staffing.push({date:ds,employeeId:w.workerId,firstName:w.firstName,lastName:w.lastName,
+              hireDate:w.hireDate,terminationDate:w.terminationDate,
+              jobCode:ADP_ROLE_TO_PBJ[w.role]||"8",jobTitle:ADP_JOB_CODES.find(j=>j.code===(ADP_ROLE_TO_PBJ[w.role]||"8"))?.title||"CNA",
+              hours:Math.round(hrs*100)/100,payTypeCode:"1"});}});
+      }
+      const totalDirectCareHours=staffing.reduce((s,r)=>s+r.hours,0);
+      const avgDailyCensus=Math.round(census.reduce((s,r)=>s+r.residents,0)/census.length);
+      return{facilityId,facilityName:fac.name,federalProviderNumber:fac.adpCode,
+        reportPeriod:{start:startDate,end:endDate,days},staffing,census,
+        summary:{totalRecords:staffing.length,totalDirectCareHours:Math.round(totalDirectCareHours),avgDailyCensus,
+          hppd:avgDailyCensus>0?Math.round(totalDirectCareHours/avgDailyCensus/days*100)/100:0,
+          byJobCode:Object.entries(staffing.reduce((a,r)=>{a[r.jobCode]=(a[r.jobCode]||0)+r.hours;return a;},{})).map(([code,hrs])=>({code,title:ADP_JOB_CODES.find(j=>j.code===code)?.title||"Unknown",totalHours:Math.round(hrs)}))},
+        validation:{errors:[],warnings:staffing.filter(s=>s.hours>16).length>0?[`${staffing.filter(s=>s.hours>16).length} entries with >16 hours`]:[],
+          passed:true}};
+    },"generatePBJData",facilityId);
+  },
+
+  generatePBJXml(pbjData){
+    const d=pbjData;
+    let xml=`<?xml version="1.0" encoding="UTF-8"?>\n<pbjSubmission xmlns="urn:cms:pbj">\n  <header>\n    <facilityId>${d.federalProviderNumber}</facilityId>\n    <facilityName>${d.facilityName}</facilityName>\n    <reportStart>${d.reportPeriod.start}</reportStart>\n    <reportEnd>${d.reportPeriod.end}</reportEnd>\n  </header>\n  <census>\n`;
+    d.census.forEach(c=>{xml+=`    <day date="${c.date}" residents="${c.residents}"/>\n`;});
+    xml+=`  </census>\n  <staffing>\n`;
+    d.staffing.forEach(s=>{xml+=`    <entry date="${s.date}" employeeId="${s.employeeId}" jobCode="${s.jobCode}" jobTitle="${s.jobTitle}" hours="${s.hours}" payType="${s.payTypeCode}"/>\n`;});
+    xml+=`  </staffing>\n  <summary hppd="${d.summary.hppd}" avgDailyCensus="${d.summary.avgDailyCensus}" totalDirectCareHours="${d.summary.totalDirectCareHours}"/>\n</pbjSubmission>`;
+    return xml;
+  },
+
+  // — Utility calculations —
+  calcHPPD(timeCards,censusTotal){
+    if(!timeCards?.length||!censusTotal)return 0;
+    const directHours=timeCards.filter(t=>t.directCare).reduce((s,t)=>s+t.regularHours+t.overtimeHours,0);
+    return Math.round(directHours/censusTotal*100)/100;
+  },
+  calcLaborCosts(payrollData){
+    if(!payrollData?.records)return{total:0,byRole:{}};
+    const byRole={};payrollData.records.forEach(r=>{byRole[r.role]=(byRole[r.role]||0)+r.grossPay;});
+    Object.keys(byRole).forEach(k=>{byRole[k]=Math.round(byRole[k]*100)/100;});
+    return{total:payrollData.summary?.totalGross||0,net:payrollData.summary?.totalNet||0,byRole,perEmployee:payrollData.summary?.totalGross/payrollData.summary?.employees||0};
+  },
+  calcStaffingVariance(scheduleData,timeCardData){
+    if(!scheduleData?.schedules||!timeCardData?.timeCards)return[];
+    const scheduled={};const actual={};
+    scheduleData.schedules.forEach(s=>{const k=`${s.date}-${s.role}`;scheduled[k]=(scheduled[k]||0)+1;});
+    timeCardData.timeCards.forEach(t=>{const k=`${t.date}-${t.role}`;actual[k]=(actual[k]||0)+1;});
+    const allKeys=[...new Set([...Object.keys(scheduled),...Object.keys(actual)])].sort();
+    return allKeys.map(k=>{const[date,role]=k.split("-");const s=scheduled[k]||0;const a=actual[k]||0;
+      return{date,role,scheduled:s,actual:a,variance:a-s,pct:s>0?Math.round((a/s)*100):a>0?999:100};});
+  },
+  validateData(timeCards){
+    const alerts=[];
+    timeCards?.forEach(t=>{
+      if(t.regularHours+t.overtimeHours>24)alerts.push({level:"error",msg:`Worker ${t.workerId} logged ${(t.regularHours+t.overtimeHours).toFixed(1)}h on ${t.date} (>24h)`,workerId:t.workerId,date:t.date});
+      else if(t.regularHours+t.overtimeHours>16)alerts.push({level:"warning",msg:`Worker ${t.workerId} logged ${(t.regularHours+t.overtimeHours).toFixed(1)}h on ${t.date} (>16h)`,workerId:t.workerId,date:t.date});
+      if(t.overtimeHours>0)alerts.push({level:"info",msg:`Overtime: ${t.workerId} — ${t.overtimeHours.toFixed(1)}h OT on ${t.date}`,workerId:t.workerId,date:t.date});
+    });
+    return alerts;
+  },
+};
+
+// ═══ CSV EXPORT FOR SMARTLINX ═══
+function generateSmartLinxCSV(emp, formData, rate, facility) {
+  const d = formData || {};
+  const esc = (v) => { const s = String(v ?? ""); return s.includes(",") || s.includes('"') || s.includes("\n") ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  const headers = ["Employee ID","First Name","MI","Last Name","SSN","DOB","Address","City","State","ZIP","Phone","Email","Position/Title","Department","Hire Date","Employment Status","Hourly Rate","Filing Status","Emergency Contact 1 Name","Emergency Contact 1 Phone","Bank Name","Routing Number","Account Number","Account Type","Facility Name","Facility State"];
+  const row = [
+    emp.id, d.firstName, d.mi || "", d.lastName, d.ssn, d.dob,
+    d.address, d.city, d.state, d.zip, d.phone || "", emp.email,
+    d.app_position || emp.role, emp.role, new Date().toISOString().split("T")[0],
+    "Active", rate, d.w4_filingStatus || "",
+    d.ec1_name || "", d.ec1_phone || "",
+    d.dd_bank1Name || "", d.dd_bank1Routing || "", d.dd_bank1Account || "", d.dd_bank1Type || "",
+    facility.name, facility.state
+  ];
+  return headers.map(esc).join(",") + "\n" + row.map(esc).join(",") + "\n";
+}
+
+function downloadCSV(csvString, filename) {
+  const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 function genSched(numDays=14){
   const shifts=[];const types=[
     {n:"Day",s:"7:00a",e:"3:00p",c:"#2563EB"},{n:"Eve",s:"3:00p",e:"11:00p",c:"#7C3AED"},
@@ -174,8 +488,24 @@ function HipaaBar(){
 
 // ═══ DATA ═══
 const FACILITIES=[
-  {id:"F001",name:"Tulia Health and Rehabilitation",state:"TX",address:"2510 W 24th Street, Tulia, TX 79088",phone:"806-296-5584"},
-  {id:"F002",name:"Oklahoma Care Center",state:"OK",address:"1200 N Main St, Oklahoma City, OK 73102",phone:"405-555-0100"},
+  {id:"F001",name:"Tulia Health and Rehabilitation",state:"TX",address:"2510 W 24th Street, Tulia, TX 79088",phone:"806-296-5584",beds:60,adpCode:"TUL-001"},
+  {id:"F002",name:"Oklahoma Care Center",state:"OK",address:"1200 N Main St, Oklahoma City, OK 73102",phone:"405-555-0100",beds:90,adpCode:"OKC-002"},
+  {id:"F003",name:"Sunrise Senior Living",state:"TX",address:"4501 Medical Dr, San Antonio, TX 78229",phone:"210-555-0103",beds:75,adpCode:"SSA-003"},
+  {id:"F004",name:"Heritage Oaks Nursing",state:"OK",address:"800 Heritage Pkwy, Tulsa, OK 74133",phone:"918-555-0104",beds:55,adpCode:"HOT-004"},
+  {id:"F005",name:"Pine Valley Care Center",state:"TX",address:"1100 Pine Valley Rd, Amarillo, TX 79106",phone:"806-555-0105",beds:80,adpCode:"PVA-005"},
+  {id:"F006",name:"Lakewood Health & Rehab",state:"TX",address:"3200 Lakewood Blvd, Dallas, TX 75214",phone:"214-555-0106",beds:120,adpCode:"LWD-006"},
+  {id:"F007",name:"Prairie Wind Care Home",state:"OK",address:"450 Prairie Ln, Norman, OK 73069",phone:"405-555-0107",beds:45,adpCode:"PWN-007"},
+  {id:"F008",name:"Pecan Grove Nursing",state:"TX",address:"900 Pecan St, Lubbock, TX 79401",phone:"806-555-0108",beds:65,adpCode:"PGL-008"},
+  {id:"F009",name:"Red River Rehabilitation",state:"TX",address:"2100 Red River Dr, Wichita Falls, TX 76301",phone:"940-555-0109",beds:50,adpCode:"RRW-009"},
+  {id:"F010",name:"Sooner State Care Center",state:"OK",address:"1500 Sooner Rd, Lawton, OK 73505",phone:"580-555-0110",beds:70,adpCode:"SSL-010"},
+  {id:"F011",name:"Bluebonnet Health Center",state:"TX",address:"600 Bluebonnet Way, Austin, TX 78701",phone:"512-555-0111",beds:110,adpCode:"BBA-011"},
+  {id:"F012",name:"Magnolia Gardens SNF",state:"TX",address:"1800 Magnolia Ave, Houston, TX 77002",phone:"713-555-0112",beds:95,adpCode:"MGH-012"},
+  {id:"F013",name:"Crossroads Care Center",state:"OK",address:"300 Crossroads Dr, Enid, OK 73701",phone:"580-555-0113",beds:40,adpCode:"CCE-013"},
+  {id:"F014",name:"Silverado Nursing Home",state:"TX",address:"700 Silverado Trail, Fort Worth, TX 76102",phone:"817-555-0114",beds:85,adpCode:"SNF-014"},
+  {id:"F015",name:"Heartland Rehab Center",state:"OK",address:"1050 Heartland Blvd, Edmond, OK 73003",phone:"405-555-0115",beds:60,adpCode:"HRE-015"},
+  {id:"F016",name:"Cottonwood Creek Health",state:"TX",address:"1400 Cottonwood Ln, Midland, TX 79701",phone:"432-555-0116",beds:50,adpCode:"CCM-016"},
+  {id:"F017",name:"Valley View Nursing",state:"TX",address:"2500 Valley View Dr, El Paso, TX 79901",phone:"915-555-0117",beds:70,adpCode:"VVE-017"},
+  {id:"F018",name:"Cherokee Hills Care",state:"OK",address:"800 Cherokee Blvd, Muskogee, OK 74401",phone:"918-555-0118",beds:55,adpCode:"CHM-018"},
 ];
 const getFacility=(id)=>FACILITIES.find(f=>f.id===id)||FACILITIES[0];
 
@@ -742,7 +1072,7 @@ function OnboardPortal({emp,onSave,onSubmit,steps}){
 }
 
 // ═══ SIDEBAR ═══
-function Sidebar({view,setView,role,onLogout}){
+function Sidebar({view,setView,role,onLogout,pcc,adp}){
   const items=[
     {id:"dashboard",label:"Dashboard",icon:I.Dashboard,r:["super_admin","admin"]},
     {id:"employees",label:"Employees",icon:I.Users,r:["super_admin","admin"]},
@@ -750,6 +1080,8 @@ function Sidebar({view,setView,role,onLogout}){
     {id:"schedule",label:"Schedule",icon:I.Calendar,r:["super_admin","admin","employee"]},
     {id:"shifts",label:"Shift Board",icon:I.Clock,r:["super_admin","admin"]},
     {id:"onboarding",label:"Onboarding Flow",icon:I.Onboard,r:["super_admin","admin"]},
+    {id:"integrations",label:"Integrations",icon:I.Plug,r:["super_admin"]},
+    {id:"pbj",label:"PBJ Reports",icon:I.ClipDoc,r:["super_admin"]},
     {id:"accounts",label:"Accounts",icon:I.Shield,r:["super_admin"]},
     {id:"billing",label:"Billing",icon:I.Billing,r:["super_admin","admin"]},
   ];
@@ -757,7 +1089,7 @@ function Sidebar({view,setView,role,onLogout}){
     <div style={{padding:"18px 14px",borderBottom:"1px solid var(--brd)"}}>
       <div style={{display:"flex",alignItems:"center",gap:9}}>
         <div style={{width:30,height:30,borderRadius:"var(--rs)",background:"var(--blue)",display:"flex",alignItems:"center",justifyContent:"center"}}><I.Building s={16} c="#fff"/></div>
-        <div><div style={{fontSize:14,fontWeight:700}}>StaffHub</div><div style={{fontSize:9,color:"var(--t3)",display:"flex",alignItems:"center",gap:3}}><span style={{width:5,height:5,borderRadius:"50%",background:"var(--green)"}}/>SmartLinx</div></div>
+        <div><div style={{fontSize:14,fontWeight:700}}>StaffHub</div><div style={{fontSize:9,color:"var(--t3)",display:"flex",alignItems:"center",gap:3}}><span style={{width:5,height:5,borderRadius:"50%",background:"var(--green)"}}/>SmartLinx{pcc?.connected&&<><span style={{margin:"0 2px"}}>·</span><span style={{width:5,height:5,borderRadius:"50%",background:"var(--green)"}}/>PCC</>}{adp?.connected&&<><span style={{margin:"0 2px"}}>·</span><span style={{width:5,height:5,borderRadius:"50%",background:"var(--green)"}}/>ADP</>}</div></div>
       </div></div>
     <nav style={{flex:1,padding:"6px 5px",display:"flex",flexDirection:"column",gap:1,overflowY:"auto"}}>
       {items.filter(i=>i.r.includes(role)).map(it=>{const a=view===it.id;return <button key={it.id} onClick={()=>setView(it.id)} style={{display:"flex",alignItems:"center",gap:9,width:"100%",padding:"8px 11px",borderRadius:"var(--rs)",border:"none",background:a?"var(--blueL)":"transparent",color:a?"var(--blue)":"var(--t2)",fontFamily:"inherit",fontSize:12,fontWeight:a?600:500,cursor:"pointer",textAlign:"left"}}>
@@ -773,8 +1105,103 @@ function Sidebar({view,setView,role,onLogout}){
     </div></div>;
 }
 
+// ═══ PCC CENSUS WIDGET (dashboard card) ═══
+function CensusWidget({pcc,emps}){
+  if(!pcc?.connected||!pcc?.census)return null;
+  const c=pcc.census;const activeEmps=emps.filter(e=>e.status==="active");
+  const ratios=PCC.calcStaffingRatios(c,activeEmps);
+  return <Card style={{padding:18,marginBottom:16}}>
+    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+      <div style={{display:"flex",alignItems:"center",gap:8}}><I.Hospital s={16} c="#2563EB"/><h3 style={{fontSize:12,fontWeight:700,textTransform:"uppercase",color:"var(--t3)"}}>Resident Census</h3></div>
+      <span style={{fontSize:9,color:"var(--t3)"}}>via PointClickCare FHIR{c.fetchedAt?" · "+new Date(c.fetchedAt).toLocaleTimeString():""}</span>
+    </div>
+    <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:14}}>
+      {[{l:"Total Residents",v:c.total,cl:"var(--blue)",bg:"var(--blueL)"},{l:"Skilled",v:c.byType?.skilled||0,cl:"var(--purple)",bg:"var(--purpleL)"},{l:"Custodial",v:c.byType?.custodial||0,cl:"var(--cyan)",bg:"var(--cyanL)"}].map((s,i)=>
+        <div key={i} style={{textAlign:"center",padding:"10px 8px",borderRadius:"var(--rs)",background:s.bg}}>
+          <div style={{fontSize:22,fontWeight:700,color:s.cl}}>{s.v}</div>
+          <div style={{fontSize:10,color:"var(--t3)",marginTop:2}}>{s.l}</div>
+        </div>)}
+    </div>
+    <div style={{display:"flex",flexDirection:"column",gap:6}}>
+      {ratios.map((r,i)=>{const pct=r.actual!=="N/A"?Math.min(100,Math.round((r.count/r.needed)*100)):0;
+        return <div key={i} style={{display:"flex",alignItems:"center",gap:10,fontSize:11}}>
+          <span style={{width:32,fontWeight:600}}>{r.role}</span>
+          <div style={{flex:1,height:8,borderRadius:4,background:"var(--hover)",overflow:"hidden"}}>
+            <div style={{height:"100%",borderRadius:4,width:`${pct}%`,background:r.compliant?"var(--green)":"var(--red)",transition:"width .3s"}}/>
+          </div>
+          <span style={{width:36,textAlign:"right",color:r.compliant?"var(--green)":"var(--red)",fontWeight:600}}>{r.actual}</span>
+          <span style={{width:50,color:"var(--t3)",fontSize:10}}>target {r.target}</span>
+        </div>;})}
+    </div>
+  </Card>;
+}
+
+// ═══ ADP DASHBOARD WIDGETS ═══
+function ADPDashboardWidgets({adp}){
+  if(!adp?.connected)return null;
+  const sd=adp.syncData||{};
+  const hasTc=sd.timeCards?.ok;const hasPay=sd.payroll?.ok;const hasSch=sd.schedules?.ok;
+  if(!hasTc&&!hasPay&&!hasSch)return null;
+  const fac=FACILITIES.find(f=>f.id===adp.selectedFacility)||FACILITIES[0];
+
+  return <>
+    {/* HPPD Widget */}
+    {hasTc&&<Card style={{padding:14,marginBottom:12}}>
+      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><I.Hospital s={14} c="#0891B2"/><h3 style={{fontSize:11,fontWeight:700,textTransform:"uppercase",color:"var(--t3)"}}>HPPD — {fac.name}</h3></div>
+      {(()=>{const hppd=ADP.calcHPPD(sd.timeCards.data?.timeCards,fac.beds);const ok=hppd>=3.48;
+        return <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <div style={{textAlign:"center",padding:8,borderRadius:"var(--rs)",background:ok?"var(--greenL)":"var(--redL)",minWidth:60}}>
+            <div style={{fontSize:20,fontWeight:700,color:ok?"var(--green)":"var(--red)"}}>{hppd}</div>
+            <div style={{fontSize:9,color:"var(--t3)"}}>HPPD</div></div>
+          <div style={{flex:1}}>
+            <div style={{height:8,borderRadius:4,background:"var(--hover)",overflow:"hidden"}}>
+              <div style={{height:"100%",borderRadius:4,width:`${Math.min(100,hppd/5*100)}%`,background:ok?"var(--green)":"var(--red)",transition:"width .3s"}}/></div>
+            <div style={{display:"flex",justifyContent:"space-between",fontSize:9,color:"var(--t3)",marginTop:3}}>
+              <span>0</span><span style={{color:ok?"var(--green)":"var(--red)"}}>CMS min: 3.48</span><span>5.0</span></div>
+          </div>
+        </div>;})()}
+    </Card>}
+
+    {/* Overtime Alerts */}
+    {hasTc&&(()=>{const tc=sd.timeCards.data?.timeCards||[];const otEntries=tc.filter(t=>t.overtimeHours>0);const totalOT=otEntries.reduce((s,t)=>s+t.overtimeHours,0);
+      if(otEntries.length===0)return null;
+      return <Card style={{padding:14,marginBottom:12,borderLeft:"3px solid var(--amber)"}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}><I.Alert s={14} c="#D97706"/><h3 style={{fontSize:11,fontWeight:700,textTransform:"uppercase",color:"var(--t3)"}}>Overtime Alerts</h3><Badge v="warning">{otEntries.length}</Badge></div>
+        <div style={{display:"flex",gap:10,fontSize:11}}>
+          <div><span style={{fontWeight:600,color:"var(--amber)"}}>{Math.round(totalOT*10)/10}</span> <span style={{color:"var(--t3)"}}>OT hours</span></div>
+          <div><span style={{fontWeight:600}}>{otEntries.length}</span> <span style={{color:"var(--t3)"}}>staff with OT</span></div>
+          <div><span style={{fontWeight:600,color:"var(--red)"}}>${Math.round(totalOT*25*1.5)}</span> <span style={{color:"var(--t3)"}}>est. OT cost</span></div>
+        </div>
+      </Card>;})()}
+
+    {/* Labor Cost Widget */}
+    {hasPay&&<Card style={{padding:14,marginBottom:12}}>
+      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><I.Dollar s={14} c="#059669"/><h3 style={{fontSize:11,fontWeight:700,textTransform:"uppercase",color:"var(--t3)"}}>Labor Cost</h3></div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
+        {[{l:"Gross",v:"$"+sd.payroll.data?.summary?.totalGross?.toLocaleString(),c:"var(--blue)"},{l:"Net",v:"$"+sd.payroll.data?.summary?.totalNet?.toLocaleString(),c:"var(--green)"},{l:"Per Employee",v:"$"+Math.round(sd.payroll.data?.summary?.totalGross/sd.payroll.data?.summary?.employees)?.toLocaleString(),c:"var(--purple)"}].map((s,i)=>
+          <div key={i} style={{textAlign:"center",padding:6,borderRadius:"var(--rs)",background:"var(--bg)"}}>
+            <div style={{fontSize:14,fontWeight:700,color:s.c}}>{s.v}</div><div style={{fontSize:9,color:"var(--t3)"}}>{s.l}</div></div>)}
+      </div>
+    </Card>}
+
+    {/* Staffing Variance Mini */}
+    {hasSch&&hasTc&&<Card style={{padding:14,marginBottom:12}}>
+      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><I.Chart s={14} c="#7C3AED"/><h3 style={{fontSize:11,fontWeight:700,textTransform:"uppercase",color:"var(--t3)"}}>Staffing Variance</h3></div>
+      {(()=>{const v=ADP.calcStaffingVariance(sd.schedules.data,sd.timeCards.data);const byRole={};v.forEach(r=>{if(!byRole[r.role])byRole[r.role]={s:0,a:0};byRole[r.role].s+=r.scheduled;byRole[r.role].a+=r.actual;});
+        return <div style={{display:"flex",gap:8}}>
+          {Object.entries(byRole).map(([role,d])=>{const pct=d.s>0?Math.round(d.a/d.s*100):100;
+            return <div key={role} style={{flex:1,textAlign:"center",padding:6,borderRadius:"var(--rs)",background:"var(--bg)"}}>
+              <div style={{fontSize:10,fontWeight:600}}>{role}</div>
+              <div style={{fontSize:14,fontWeight:700,color:pct>=95?"var(--green)":pct>=80?"var(--amber)":"var(--red)"}}>{pct}%</div>
+              <div style={{fontSize:9,color:"var(--t3)"}}>{d.a}/{d.s}</div>
+            </div>;})}
+        </div>;})()}
+    </Card>}
+  </>;
+}
+
 // ═══ ADMIN DASHBOARD ═══
-function DashboardView({emps,setView}){
+function DashboardView({emps,setView,pcc,adp}){
   const stats=[
     {l:"Active",v:emps.filter(e=>e.status==="active").length,ic:I.Users,c:"var(--green)",bg:"var(--greenL)"},
     {l:"Onboarding",v:emps.filter(e=>e.status==="onboarding").length,ic:I.Onboard,c:"var(--amber)",bg:"var(--amberL)"},
@@ -792,6 +1219,8 @@ function DashboardView({emps,setView}){
         <div style={{fontSize:26,fontWeight:700}}>{s.v}</div><div style={{fontSize:11,color:"var(--t3)",marginTop:1}}>{s.l}</div>
       </Card>)}
     </div>
+    <CensusWidget pcc={pcc} emps={emps}/>
+    <ADPDashboardWidgets adp={adp}/>
     <div style={{display:"grid",gridTemplateColumns:"1.5fr 1fr",gap:12}}>
       <Card style={{padding:18}}><h3 style={{fontSize:12,fontWeight:700,textTransform:"uppercase",color:"var(--t3)",marginBottom:12}}>Pipeline</h3>
         {emps.filter(e=>!e.onboardingComplete||e.status==="app_approved").map((e,i)=><div key={e.id} className="fi" style={{display:"flex",alignItems:"center",gap:8,padding:"8px 10px",borderRadius:"var(--rs)",marginBottom:3,background:"var(--bg)",border:"1px solid var(--brd2)",animationDelay:`${i*.05}s`}}>
@@ -894,7 +1323,12 @@ function ReviewView({emps,setEmps}){
   const hasRate=(id)=>!!(rates[id]&&rates[id].trim());
   const isAppOnlyEmp=(e)=>e.inviteType==="app_only";
 
-  const upload=async(id)=>{if(!hasRate(id))return;setSyncing(id);const r=await SLX.syncEmployee();
+  const upload=async(id)=>{if(!hasRate(id))return;setSyncing(id);
+    const emp=emps.find(x=>x.id===id);const d=emp?.formData||{};const rate=rates[id];const fac=getFacility(emp.facilityId);
+    const csv=generateSmartLinxCSV(emp,d,rate,fac);
+    const fname=`SmartLinx_${(d.firstName||"").replace(/\s/g,"_")}_${(d.lastName||"").replace(/\s/g,"_")}_${new Date().toISOString().split("T")[0]}.csv`;
+    downloadCSV(csv,fname);
+    const r=await SLX.syncEmployee({emp,formData:d,rate,facility:fac});
     setEmps(p=>p.map(e=>e.id===id?{...e,status:"active",onboardingComplete:true,smartlinxId:r.id,formData:{...e.formData,admin_hourlyRate:rates[id]}}:e));setSyncing(null);};
 
   const approveApp=(id)=>{setEmps(p=>p.map(e=>e.id===id?{...e,status:"app_approved",applicationStatus:"approved"}:e));};
@@ -910,7 +1344,7 @@ function ReviewView({emps,setEmps}){
 
   return <div className="fi">
     <h1 style={{fontSize:22,fontWeight:700,marginBottom:2}}>Document Review</h1>
-    <p style={{color:"var(--t3)",fontSize:12,marginBottom:16}}>Review submitted docs → upload to SmartLinx</p>
+    <p style={{color:"var(--t3)",fontSize:12,marginBottom:16}}>Review submitted docs → export to SmartLinx</p>
     {pending.length===0?<Card style={{padding:40,textAlign:"center"}}><I.Inbox s={36} c="#CBD5E1"/><p style={{marginTop:10,color:"var(--t3)",fontSize:13}}>No documents awaiting review</p></Card>
     :pending.map((e,i)=>{const appOnly=isAppOnlyEmp(e);return <Card key={e.id} className="fi" style={{padding:18,marginBottom:10,borderLeft:`4px solid ${appOnly?"var(--purple)":hasRate(e.id)?"var(--green)":"var(--amber)"}`,animationDelay:`${i*.07}s`}}>
       <div style={{display:"flex",alignItems:"center",gap:12}}>
@@ -927,11 +1361,14 @@ function ReviewView({emps,setEmps}){
               <input type="text" value={rates[e.id]||""} onChange={ev=>setRates(p=>({...p,[e.id]:ev.target.value}))} placeholder="0.00" style={{width:72,padding:"6px 8px",border:`1px solid ${hasRate(e.id)?"var(--green)":"var(--red)"}`,borderRadius:"var(--rs)",fontSize:12,fontFamily:"inherit",fontWeight:600,textAlign:"right"}}/>
             </div>
             <Btn size="sm" v="secondary" icon={<I.Eye s={13}/>} onClick={()=>setViewDoc(e.id)}>Review</Btn>
-            <Btn size="sm" icon={syncing===e.id?<Spinner size={12}/>:<I.Upload s={13} c="#fff"/>} onClick={()=>upload(e.id)} disabled={syncing===e.id||!hasRate(e.id)}>{syncing===e.id?"Uploading…":"Upload to SmartLinx"}</Btn>
+            <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:2}}>
+              <Btn size="sm" icon={syncing===e.id?<Spinner size={12}/>:<I.Upload s={13} c="#fff"/>} onClick={()=>upload(e.id)} disabled={syncing===e.id||!hasRate(e.id)}>{syncing===e.id?"Exporting…":"Export to SmartLinx"}</Btn>
+              <span style={{fontSize:9,color:"var(--t3)"}}>Downloads CSV for SmartLinx import</span>
+            </div>
           </>}
         </div>
       </div>
-      {!appOnly&&!hasRate(e.id)&&<div style={{display:"flex",alignItems:"center",gap:6,marginTop:10,padding:"8px 12px",background:"var(--redL)",borderRadius:"var(--rs)",border:"1px solid #FECACA",fontSize:11,color:"var(--red)"}}><I.Alert s={13} c="#DC2626"/>Enter hourly rate before uploading to SmartLinx</div>}
+      {!appOnly&&!hasRate(e.id)&&<div style={{display:"flex",alignItems:"center",gap:6,marginTop:10,padding:"8px 12px",background:"var(--redL)",borderRadius:"var(--rs)",border:"1px solid #FECACA",fontSize:11,color:"var(--red)"}}><I.Alert s={13} c="#DC2626"/>Enter hourly rate before exporting to SmartLinx</div>}
     </Card>;})}
     <Modal open={!!viewDoc} onClose={()=>setViewDoc(null)} title="Review Documents" width={640}>
       {viewDoc&&(()=>{const e=emps.find(x=>x.id===viewDoc);if(!e?.formData)return null;const d=e.formData;const fac=getFacility(e.facilityId);const st=fac.state;const appOnly=isAppOnlyEmp(e);const isPaperwork=e.inviteType==="paperwork";
@@ -960,7 +1397,7 @@ function ReviewView({emps,setEmps}){
               <label style={{fontSize:12,fontWeight:600,color:"var(--t2)",whiteSpace:"nowrap"}}>Hourly Rate ($)</label>
               <input type="text" value={rates[viewDoc]||""} onChange={ev=>setRates(p=>({...p,[viewDoc]:ev.target.value}))} placeholder="0.00" style={{width:120,padding:"8px 12px",border:`1px solid ${hasRate(viewDoc)?"var(--green)":"var(--red)"}`,borderRadius:"var(--rs)",fontSize:14,fontFamily:"inherit",fontWeight:700,textAlign:"right"}}/>
             </div>
-            {!hasRate(viewDoc)&&<div style={{display:"flex",alignItems:"center",gap:6,padding:"8px 12px",background:"var(--redL)",borderRadius:"var(--rs)",border:"1px solid #FECACA",fontSize:11,color:"var(--red)",marginBottom:8}}><I.Alert s={13} c="#DC2626"/>Hourly rate is required before uploading to SmartLinx</div>}
+            {!hasRate(viewDoc)&&<div style={{display:"flex",alignItems:"center",gap:6,padding:"8px 12px",background:"var(--redL)",borderRadius:"var(--rs)",border:"1px solid #FECACA",fontSize:11,color:"var(--red)",marginBottom:8}}><I.Alert s={13} c="#DC2626"/>Hourly rate is required before exporting to SmartLinx</div>}
           </>}
           <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:16}}>
             <Btn v="secondary" onClick={()=>setViewDoc(null)}>Close</Btn>
@@ -968,7 +1405,7 @@ function ReviewView({emps,setEmps}){
               <Btn v="danger" icon={<I.X s={13} c="#DC2626"/>} onClick={()=>{rejectApp(viewDoc);setViewDoc(null);}}>Reject</Btn>
               <Btn v="success" icon={<I.Check s={13} c="#fff"/>} onClick={()=>{approveApp(viewDoc);setViewDoc(null);}}>Approve Application</Btn>
             </>:
-              <Btn icon={<I.Upload s={13} c="#fff"/>} disabled={!hasRate(viewDoc)} onClick={()=>{upload(viewDoc);setViewDoc(null);}}>Approve & Upload to SmartLinx</Btn>}
+              <Btn icon={<I.Upload s={13} c="#fff"/>} disabled={!hasRate(viewDoc)} onClick={()=>{upload(viewDoc);setViewDoc(null);}}>Approve & Export to SmartLinx</Btn>}
           </div>
         </div>;})()}
     </Modal></div>;
@@ -1470,6 +1907,447 @@ function AccountsView({admins,setAdmins}){
     </Modal></div>;
 }
 
+// ═══ INTEGRATIONS (PCC + ADP Hub) ═══
+function IntegrationsView({pcc,setPcc,adp,setAdp,emps}){
+  const[tab,setTab]=useState("adp");
+  const[showSetup,setShowSetup]=useState(false);
+  // PCC state
+  const[tenantId,setTenantId]=useState(pcc.config?.tenantId||"");
+  const[clientId,setClientId]=useState(pcc.config?.clientId||"");
+  const[testing,setTesting]=useState(false);
+  const[testResult,setTestResult]=useState(null);
+  const[fetchingCensus,setFetchingCensus]=useState(false);
+  const[exporting,setExporting]=useState(false);
+  // ADP state
+  const[adpSetup,setAdpSetup]=useState(false);
+  const[adpClientId,setAdpClientId]=useState(adp.config?.clientId||"");
+  const[adpSecret,setAdpSecret]=useState(adp.config?.clientSecret?"********":"");
+  const[adpFacility,setAdpFacility]=useState(adp.selectedFacility||"F001");
+  const[syncing,setSyncing]=useState({});
+  const[syncData,setSyncData]=useState(adp.syncData||{});
+  const[showLog,setShowLog]=useState(false);
+  const[alerts,setAlerts]=useState([]);
+
+  const baseUrl=tenantId?`https://connect2.pointclickcare.com/fhir/R4/${tenantId}`:"";
+  const activeEmps=emps.filter(e=>e.status==="active");
+  const ratios=pcc.census?PCC.calcStaffingRatios(pcc.census,activeEmps):[];
+  const fac=FACILITIES.find(f=>f.id===adpFacility)||FACILITIES[0];
+
+  // PCC functions
+  const testConnection=async()=>{if(!tenantId)return;setTesting(true);setTestResult(null);try{const r=await PCC.discover(baseUrl);setTestResult({ok:true,data:r});}catch(e){setTestResult({ok:false,err:e.message});}setTesting(false);};
+  const saveAndConnect=async()=>{const cfg={tenantId,clientId,baseUrl,scope:"launch/patient patient/*.read openid fhirUser"};localStorage.setItem("pcc_config",JSON.stringify(cfg));const mockTokens={access_token:"mock_at_"+Date.now(),refresh_token:"mock_rt_"+Date.now(),expires_in:3600,_expires_at:Date.now()+3600000,token_type:"Bearer",scope:cfg.scope};sessionStorage.setItem("pcc_tokens",JSON.stringify(mockTokens));setPcc(p=>({...p,config:cfg,tokens:mockTokens,connected:true,lastAuth:new Date().toISOString(),error:null}));setShowSetup(false);};
+  const disconnectPcc=()=>{sessionStorage.removeItem("pcc_tokens");setPcc(p=>({...p,tokens:null,connected:false,census:null,error:null}));};
+  const fetchCensus=async()=>{setFetchingCensus(true);try{const s=await PCC.getCensusSummary(pcc.config?.baseUrl,pcc.tokens);setPcc(p=>({...p,census:s}));}catch(e){setPcc(p=>({...p,error:e.message}));}setFetchingCensus(false);};
+  const exportStaff=()=>{setExporting(true);const bundle={resourceType:"Bundle",type:"collection",timestamp:new Date().toISOString(),entry:activeEmps.map(e=>({resource:PCC.formatEmployeeForPCC(e,e.formData)}))};const blob=new Blob([JSON.stringify(bundle,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`staffhub-practitioners-${new Date().toISOString().split("T")[0]}.json`;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);setTimeout(()=>setExporting(false),600);};
+
+  // ADP functions
+  const connectAdp=async()=>{
+    const cfg={clientId:adpClientId,clientSecret:adpSecret,baseUrl:"https://api.adp.com",scope:"api"};
+    localStorage.setItem("adp_config",JSON.stringify({clientId:adpClientId,baseUrl:cfg.baseUrl,scope:cfg.scope}));
+    const t=await ADP.exchangeToken({code:"mock",clientId:adpClientId,clientSecret:adpSecret,redirectUri:window.location.origin});
+    sessionStorage.setItem("adp_tokens",JSON.stringify(t));
+    setAdp(p=>({...p,config:cfg,tokens:t,connected:true,lastAuth:new Date().toISOString(),error:null}));
+    setAdpSetup(false);
+  };
+  const disconnectAdp=()=>{sessionStorage.removeItem("adp_tokens");setAdp(p=>({...p,tokens:null,connected:false,syncData:{},error:null}));setSyncData({});};
+
+  const syncConnector=async(name,fn)=>{
+    setSyncing(p=>({...p,[name]:true}));
+    try{const d=await fn(adpFacility);setSyncData(p=>{const n={...p,[name]:{data:d,ts:new Date().toISOString(),ok:true}};setAdp(prev=>({...prev,syncData:n,selectedFacility:adpFacility}));return n;});
+      if(name==="timeCards"&&d?.timeCards){setAlerts(ADP.validateData(d.timeCards));}
+    }catch(e){setSyncData(p=>({...p,[name]:{error:e.message,ts:new Date().toISOString(),ok:false}}));}
+    setSyncing(p=>({...p,[name]:false}));
+  };
+
+  const connectors=[
+    {id:"workers",label:"Employee Sync",desc:"Worker API — names, roles, certs, hire dates",icon:I.Users,fn:ADP.fetchWorkers,priority:1,dataKey:"data",countFn:d=>d?.length+" workers"},
+    {id:"schedules",label:"Schedules",desc:"Time Management — shift schedules, staffing levels",icon:I.Calendar,fn:ADP.fetchSchedules,priority:1,countFn:d=>d?.schedules?.length+" shifts"},
+    {id:"timeCards",label:"Time & Attendance",desc:"Time Cards — clock in/out, hours, overtime",icon:I.Clock,fn:ADP.fetchTimeCards,priority:1,countFn:d=>d?.timeCards?.length+" entries"},
+    {id:"pbj",label:"PBJ Data",desc:"Direct care hours mapped to CMS 35 job codes",icon:I.ClipDoc,fn:async(fId)=>ADP.generatePBJData(fId,new Date(Date.now()-7*86400000).toISOString().split("T")[0],new Date().toISOString().split("T")[0]),priority:1,countFn:d=>d?.summary?.totalRecords+" records"},
+    {id:"pto",label:"PTO / Leave",desc:"Leave requests, balances, approvals",icon:I.Calendar,fn:ADP.fetchPTO,priority:2,countFn:d=>d?.requests?.length+" requests"},
+    {id:"payroll",label:"Payroll",desc:"Earnings, deductions, tax withholdings",icon:I.Dollar,fn:ADP.fetchPayroll,priority:2,countFn:d=>d?.records?.length+" records"},
+    {id:"recruiting",label:"Recruiting",desc:"Job requisitions, applications",icon:I.Mail,fn:ADP.fetchRequisitions,priority:3,countFn:d=>d?.requisitions?.length+" requisitions"},
+  ];
+
+  const tabBtn=(id,label)=><button key={id} onClick={()=>setTab(id)} style={{padding:"8px 20px",fontSize:12,fontWeight:tab===id?600:500,color:tab===id?"var(--blue)":"var(--t3)",background:tab===id?"var(--blueL)":"transparent",border:"none",borderBottom:tab===id?"2px solid var(--blue)":"2px solid transparent",cursor:"pointer",fontFamily:"inherit"}}>{label}</button>;
+
+  return <div className="fi">
+    <h1 style={{fontSize:22,fontWeight:700,marginBottom:2}}>Integrations</h1>
+    <p style={{color:"var(--t3)",fontSize:13,marginBottom:12}}>Connect external systems to StaffHub</p>
+    <div style={{display:"flex",gap:0,borderBottom:"1px solid var(--brd)",marginBottom:16}}>{tabBtn("adp","ADP Workforce Now")}{tabBtn("pcc","PointClickCare")}</div>
+
+    {/* ════ ADP TAB ════ */}
+    {tab==="adp"&&<>
+      {/* Connection Status */}
+      <Card style={{padding:18,marginBottom:14,borderLeft:`4px solid ${adp.connected?"var(--green)":"var(--brd)"}`}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <div style={{width:36,height:36,borderRadius:"var(--rs)",background:adp.connected?"var(--greenL)":"var(--hover)",display:"flex",alignItems:"center",justifyContent:"center"}}><I.Zap s={18} c={adp.connected?"#059669":"#94A3B8"}/></div>
+            <div><div style={{fontSize:14,fontWeight:600}}>{adp.connected?"ADP Connected":"ADP Not Connected"}</div>
+              <div style={{fontSize:11,color:"var(--t3)"}}>{adp.connected?`Client: ${adp.config?.clientId?.slice(0,8)}**** · Token expires: ${adp.tokens?new Date(adp.tokens._expires_at).toLocaleTimeString():""}`:"Configure your ADP Workforce Now credentials"}</div></div>
+          </div>
+          <div style={{display:"flex",gap:8}}>
+            {adp.connected&&<Btn v="secondary" size="sm" onClick={()=>setShowLog(!showLog)} icon={<I.File s={12} c="#475569"/>}>Sync Log</Btn>}
+            {adp.connected&&<Btn v="danger" size="sm" onClick={disconnectAdp}>Disconnect</Btn>}
+            {!adp.connected&&<Btn size="sm" onClick={()=>setAdpSetup(true)} icon={<I.Settings s={13} c="#fff"/>}>Configure</Btn>}
+          </div>
+        </div>
+        {adp.error&&<div style={{marginTop:10,padding:"8px 12px",background:"var(--redL)",borderRadius:"var(--rs)",fontSize:11,color:"var(--red)"}}>{adp.error}</div>}
+      </Card>
+
+      {/* Facility Selector */}
+      {adp.connected&&<Card style={{padding:14,marginBottom:14}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <I.Building s={16} c="#2563EB"/>
+          <span style={{fontSize:12,fontWeight:600}}>Facility:</span>
+          <select value={adpFacility} onChange={e=>setAdpFacility(e.target.value)} style={{flex:1,padding:"6px 10px",border:"1px solid var(--brd)",borderRadius:"var(--rs)",fontFamily:"inherit",fontSize:12,background:"#fff"}}>
+            {FACILITIES.map(f=><option key={f.id} value={f.id}>{f.name} ({f.state}) — {f.beds} beds</option>)}
+          </select>
+          <Btn v="secondary" size="sm" onClick={async()=>{for(const c of connectors.filter(c=>c.priority===1)){await syncConnector(c.id,c.fn);}}} icon={<I.Refresh s={12} c="#475569"/>}>Sync All P1</Btn>
+        </div>
+      </Card>}
+
+      {/* Connector Grid */}
+      {adp.connected&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
+        {connectors.map(c=>{const sd=syncData[c.id];return <Card key={c.id} style={{padding:14}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <c.icon s={16} c={sd?.ok?"#059669":sd?.error?"#DC2626":"#94A3B8"}/>
+              <div><div style={{fontSize:12,fontWeight:600}}>{c.label}</div><div style={{fontSize:10,color:"var(--t3)"}}>Priority {c.priority}</div></div>
+            </div>
+            <Btn v="secondary" size="sm" onClick={()=>syncConnector(c.id,c.fn)} disabled={syncing[c.id]}>
+              {syncing[c.id]?"Syncing...":"Sync"}
+            </Btn>
+          </div>
+          <p style={{fontSize:10,color:"var(--t3)",marginBottom:6}}>{c.desc}</p>
+          {sd&&<div style={{padding:"6px 10px",borderRadius:"var(--rs)",background:sd.ok?"var(--greenL)":"var(--redL)",fontSize:10,color:sd.ok?"var(--green)":"var(--red)"}}>
+            {sd.ok?`${c.countFn(sd.data)} · ${new Date(sd.ts).toLocaleTimeString()}`:sd.error}
+          </div>}
+        </Card>;})}
+      </div>}
+
+      {/* Data Validation Alerts */}
+      {adp.connected&&alerts.length>0&&<Card style={{padding:14,marginBottom:14}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><I.Alert s={16} c="#D97706"/><h3 style={{fontSize:13,fontWeight:700}}>Data Validation Alerts</h3><Badge v="warning">{alerts.length}</Badge></div>
+        <div style={{maxHeight:200,overflow:"auto"}}>
+          {alerts.slice(0,20).map((a,i)=><div key={i} style={{padding:"6px 10px",marginBottom:3,borderRadius:"var(--rs)",fontSize:11,background:a.level==="error"?"var(--redL)":a.level==="warning"?"var(--amberL)":"var(--blueL)",color:a.level==="error"?"var(--red)":a.level==="warning"?"var(--amber)":"var(--blue)"}}>{a.msg}</div>)}
+          {alerts.length>20&&<div style={{fontSize:10,color:"var(--t3)",padding:4}}>+{alerts.length-20} more alerts</div>}
+        </div>
+      </Card>}
+
+      {/* Sync Data Preview — Workers */}
+      {syncData.workers?.ok&&<Card style={{padding:14,marginBottom:14}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><I.Users s={16} c="#2563EB"/><h3 style={{fontSize:13,fontWeight:700}}>Synced Workers — {fac.name}</h3></div>
+        <div style={{maxHeight:200,overflow:"auto"}}><table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+          <thead><tr style={{borderBottom:"1px solid var(--brd)"}}>
+            {["ID","Name","Role","Dept","Hire Date","Status"].map(h=><th key={h} style={{padding:"6px 8px",textAlign:"left",fontSize:10,fontWeight:600,color:"var(--t3)",textTransform:"uppercase"}}>{h}</th>)}
+          </tr></thead>
+          <tbody>{(syncData.workers.data||[]).slice(0,15).map((w,i)=><tr key={i} style={{borderBottom:"1px solid var(--brd2)"}}>
+            <td style={{padding:"6px 8px",fontFamily:"monospace",fontSize:10}}>{w.workerId}</td>
+            <td style={{padding:"6px 8px"}}>{w.firstName} {w.lastName}</td>
+            <td style={{padding:"6px 8px"}}><Badge v={w.role==="RN"?"info":w.role==="LPN"?"purple":"default"}>{w.role}</Badge></td>
+            <td style={{padding:"6px 8px"}}>{w.department}</td>
+            <td style={{padding:"6px 8px"}}>{w.hireDate}</td>
+            <td style={{padding:"6px 8px"}}><Badge v="success">{w.status}</Badge></td>
+          </tr>)}</tbody>
+        </table>{syncData.workers.data?.length>15&&<div style={{fontSize:10,color:"var(--t3)",padding:6}}>Showing 15 of {syncData.workers.data.length} workers</div>}</div>
+      </Card>}
+
+      {/* Sync Data Preview — Payroll */}
+      {syncData.payroll?.ok&&<Card style={{padding:14,marginBottom:14}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><I.Dollar s={16} c="#059669"/><h3 style={{fontSize:13,fontWeight:700}}>Payroll Summary — {fac.name}</h3></div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:10}}>
+          {[{l:"Employees",v:syncData.payroll.data?.summary?.employees,c:"var(--blue)"},{l:"Gross Pay",v:"$"+syncData.payroll.data?.summary?.totalGross?.toLocaleString(),c:"var(--green)"},{l:"Net Pay",v:"$"+syncData.payroll.data?.summary?.totalNet?.toLocaleString(),c:"var(--cyan)"},{l:"Avg Rate",v:"$"+syncData.payroll.data?.summary?.avgHourlyRate+"/hr",c:"var(--purple)"}].map((s,i)=>
+            <div key={i} style={{textAlign:"center",padding:10,borderRadius:"var(--rs)",background:"var(--bg)"}}>
+              <div style={{fontSize:16,fontWeight:700,color:s.c}}>{s.v}</div><div style={{fontSize:10,color:"var(--t3)"}}>{s.l}</div></div>)}
+        </div>
+        <div style={{fontSize:11,fontWeight:600,color:"var(--t3)",marginBottom:6}}>Labor Cost by Role</div>
+        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>{Object.entries(ADP.calcLaborCosts(syncData.payroll.data).byRole).map(([r,v])=><span key={r} style={{padding:"4px 10px",borderRadius:20,background:"var(--hover)",fontSize:11,fontWeight:500}}>{r}: ${v.toLocaleString()}</span>)}</div>
+      </Card>}
+
+      {/* Staffing Variance */}
+      {syncData.schedules?.ok&&syncData.timeCards?.ok&&<Card style={{padding:14,marginBottom:14}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><I.Chart s={16} c="#7C3AED"/><h3 style={{fontSize:13,fontWeight:700}}>Staffing Variance (Scheduled vs Actual)</h3></div>
+        {(()=>{const v=ADP.calcStaffingVariance(syncData.schedules.data,syncData.timeCards.data);const byRole={};v.forEach(r=>{if(!byRole[r.role])byRole[r.role]={scheduled:0,actual:0};byRole[r.role].scheduled+=r.scheduled;byRole[r.role].actual+=r.actual;});
+          return <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8}}>
+            {Object.entries(byRole).map(([role,d])=>{const diff=d.actual-d.scheduled;const pct=d.scheduled>0?Math.round(d.actual/d.scheduled*100):100;
+              return <div key={role} style={{padding:10,borderRadius:"var(--rs)",background:"var(--bg)",textAlign:"center"}}>
+                <div style={{fontSize:11,fontWeight:600,marginBottom:4}}>{role}</div>
+                <div style={{fontSize:9,color:"var(--t3)"}}>Sched: {d.scheduled} / Actual: {d.actual}</div>
+                <div style={{fontSize:14,fontWeight:700,color:pct>=95?"var(--green)":pct>=80?"var(--amber)":"var(--red)",marginTop:2}}>{pct}%</div>
+                <div style={{fontSize:9,color:diff>=0?"var(--green)":"var(--red)"}}>{diff>=0?"+":""}{diff} variance</div>
+              </div>;})}
+          </div>;})()}
+      </Card>}
+
+      {/* HPPD Card */}
+      {syncData.timeCards?.ok&&<Card style={{padding:14,marginBottom:14}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><I.Hospital s={16} c="#0891B2"/><h3 style={{fontSize:13,fontWeight:700}}>Hours Per Patient Day (HPPD)</h3></div>
+        {(()=>{const beds=fac.beds;const hppd=ADP.calcHPPD(syncData.timeCards.data?.timeCards,beds);const cmsMin=3.48;
+          return <div style={{display:"flex",alignItems:"center",gap:16}}>
+            <div style={{textAlign:"center",padding:14,borderRadius:"var(--rs)",background:hppd>=cmsMin?"var(--greenL)":"var(--redL)",minWidth:100}}>
+              <div style={{fontSize:28,fontWeight:700,color:hppd>=cmsMin?"var(--green)":"var(--red)"}}>{hppd}</div>
+              <div style={{fontSize:10,color:"var(--t3)"}}>HPPD</div></div>
+            <div><div style={{fontSize:12,fontWeight:600,marginBottom:4}}>CMS Minimum: {cmsMin} HPPD</div>
+              <div style={{fontSize:11,color:"var(--t3)"}}>{hppd>=cmsMin?"Facility meets CMS staffing requirements.":"Below CMS minimum — staffing adjustment needed."}</div>
+              <div style={{fontSize:10,color:"var(--t3)",marginTop:4}}>Census: {beds} beds · {syncData.timeCards.data?.timeCards?.length} time card entries</div></div>
+          </div>;})()}
+      </Card>}
+
+      {/* Sync Log */}
+      {showLog&&<Card style={{padding:14,marginBottom:14}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+          <div style={{display:"flex",alignItems:"center",gap:8}}><I.File s={16} c="#475569"/><h3 style={{fontSize:13,fontWeight:700}}>API Sync Log</h3></div>
+          <Btn v="ghost" size="sm" onClick={()=>setShowLog(false)}><I.X s={12}/></Btn>
+        </div>
+        <div style={{maxHeight:250,overflow:"auto",fontFamily:"monospace",fontSize:10}}>
+          {ADP._log.slice(0,50).map((l,i)=><div key={i} style={{padding:"4px 8px",marginBottom:2,borderRadius:4,background:l.ok?"var(--greenL)":"var(--redL)",color:l.ok?"var(--green)":"var(--red)",display:"flex",gap:10}}>
+            <span style={{color:"var(--t3)",minWidth:70}}>{new Date(l.ts).toLocaleTimeString()}</span>
+            <span style={{fontWeight:600,minWidth:100}}>{l.method}</span>
+            <span>{l.detail}</span>
+          </div>)}
+          {ADP._log.length===0&&<div style={{color:"var(--t3)",padding:10,textAlign:"center"}}>No API calls logged yet</div>}
+        </div>
+      </Card>}
+
+      {/* ADP Setup Modal */}
+      <Modal open={adpSetup} onClose={()=>setAdpSetup(false)} title="Configure ADP Workforce Now" width={540}>
+        <Inp label="Client ID" value={adpClientId} onChange={e=>setAdpClientId(e.target.value)} placeholder="From ADP Marketplace Developer account" req/>
+        <Inp label="Client Secret" type="password" value={adpSecret} onChange={e=>setAdpSecret(e.target.value)} placeholder="ADP OAuth client secret" req/>
+        <div style={{marginBottom:16}}>
+          <label style={{display:"block",fontSize:12,fontWeight:600,color:"var(--t3)",marginBottom:6}}>API Base URL</label>
+          <div style={{padding:"10px 14px",background:"var(--hover)",border:"1px solid var(--brd)",borderRadius:"var(--rs)",fontSize:12,color:"var(--t2)"}}>https://api.adp.com</div>
+        </div>
+        <div style={{marginBottom:16}}>
+          <label style={{display:"block",fontSize:12,fontWeight:600,color:"var(--t3)",marginBottom:6}}>Facilities</label>
+          <div style={{padding:"10px 14px",background:"var(--hover)",border:"1px solid var(--brd)",borderRadius:"var(--rs)",fontSize:12,color:"var(--t2)"}}>{FACILITIES.length} facilities configured</div>
+        </div>
+        <div style={{padding:"10px 14px",background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:"var(--rs)",fontSize:10,color:"var(--amber)",marginBottom:16,display:"flex",alignItems:"center",gap:6}}>
+          <I.Shield s={12} c="#D97706"/>Credentials encrypted in transit. Tokens stored in sessionStorage (cleared on tab close).
+        </div>
+        <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+          <Btn v="secondary" onClick={()=>setAdpSetup(false)}>Cancel</Btn>
+          <Btn onClick={connectAdp} disabled={!adpClientId||!adpSecret}>Authenticate & Connect</Btn>
+        </div>
+      </Modal>
+    </>}
+
+    {/* ════ PCC TAB ════ */}
+    {tab==="pcc"&&<>
+      <Card style={{padding:18,marginBottom:14,borderLeft:`4px solid ${pcc.connected?"var(--green)":"var(--brd)"}`}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <div style={{width:36,height:36,borderRadius:"var(--rs)",background:pcc.connected?"var(--greenL)":"var(--hover)",display:"flex",alignItems:"center",justifyContent:"center"}}><I.Plug s={18} c={pcc.connected?"#059669":"#94A3B8"}/></div>
+            <div><div style={{fontSize:14,fontWeight:600}}>{pcc.connected?"Connected":"Not Connected"}</div>
+              <div style={{fontSize:11,color:"var(--t3)"}}>{pcc.connected?`Tenant: ${pcc.config?.tenantId} · Expires: ${pcc.tokens?new Date(pcc.tokens._expires_at).toLocaleTimeString():""}`:"Configure your PointClickCare tenant to connect"}</div></div>
+          </div>
+          <div style={{display:"flex",gap:8}}>
+            {pcc.connected&&<Btn v="danger" size="sm" onClick={disconnectPcc}>Disconnect</Btn>}
+            {!pcc.connected&&<Btn size="sm" onClick={()=>setShowSetup(true)} icon={<I.Settings s={13} c="#fff"/>}>Configure</Btn>}
+          </div>
+        </div>
+        {pcc.error&&<div style={{marginTop:10,padding:"8px 12px",background:"var(--redL)",borderRadius:"var(--rs)",fontSize:11,color:"var(--red)"}}>{pcc.error}</div>}
+      </Card>
+      {pcc.connected&&<Card style={{padding:18,marginBottom:14}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+          <div style={{display:"flex",alignItems:"center",gap:8}}><I.Hospital s={16} c="#2563EB"/><h3 style={{fontSize:13,fontWeight:700}}>Resident Census</h3></div>
+          <Btn v="secondary" size="sm" onClick={fetchCensus} disabled={fetchingCensus} icon={fetchingCensus?<Spinner size={12}/>:<I.Sync s={12} c="#475569"/>}>{fetchingCensus?"Fetching...":"Fetch Census"}</Btn>
+        </div>
+        {pcc.census?<>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:14}}>
+            <div style={{textAlign:"center",padding:12,borderRadius:"var(--rs)",background:"var(--blueL)"}}><div style={{fontSize:28,fontWeight:700,color:"var(--blue)"}}>{pcc.census.total}</div><div style={{fontSize:10,color:"var(--t3)"}}>Total Residents</div></div>
+            {Object.entries(pcc.census.byType||{}).map(([k,v])=><div key={k} style={{textAlign:"center",padding:12,borderRadius:"var(--rs)",background:k==="skilled"?"var(--purpleL)":"var(--cyanL)"}}><div style={{fontSize:28,fontWeight:700,color:k==="skilled"?"var(--purple)":"var(--cyan)"}}>{v}</div><div style={{fontSize:10,color:"var(--t3)",textTransform:"capitalize"}}>{k}</div></div>)}
+          </div>
+          <div style={{fontSize:9,color:"var(--t3)",marginTop:8}}>Last fetched: {new Date(pcc.census.fetchedAt).toLocaleString()}</div>
+        </>:<div style={{textAlign:"center",padding:24,color:"var(--t3)",fontSize:12}}>Click "Fetch Census" to load resident data</div>}
+      </Card>}
+      {pcc.connected&&<Card style={{padding:18,marginBottom:14}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+          <div style={{display:"flex",alignItems:"center",gap:8}}><I.Upload s={16} c="#7C3AED"/><h3 style={{fontSize:13,fontWeight:700}}>Export Staff to PCC</h3></div>
+          <Btn v="secondary" size="sm" onClick={exportStaff} disabled={exporting||!activeEmps.length} icon={<I.File s={12} c="#475569"/>}>{exporting?"Exporting...":"Download FHIR Bundle"}</Btn>
+        </div>
+        <p style={{fontSize:11,color:"var(--t3)",lineHeight:1.5}}>{activeEmps.length} active employees. PCC write access requires Marketplace partnership.</p>
+      </Card>}
+      {pcc.connected&&pcc.census&&<Card style={{padding:18,marginBottom:14}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}><I.Users s={16} c="#0891B2"/><h3 style={{fontSize:13,fontWeight:700}}>Staffing Ratios</h3></div>
+        <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+          <thead><tr style={{borderBottom:"1px solid var(--brd)"}}>{["Role","Staff","Needed","Ratio","Target","Status"].map(h=><th key={h} style={{padding:"8px 10px",textAlign:"left",fontSize:10,fontWeight:600,color:"var(--t3)",textTransform:"uppercase"}}>{h}</th>)}</tr></thead>
+          <tbody>{ratios.map((r,i)=><tr key={i} style={{borderBottom:"1px solid var(--brd2)"}}>
+            <td style={{padding:"8px 10px",fontWeight:600}}>{r.role}</td><td style={{padding:"8px 10px"}}>{r.count}</td><td style={{padding:"8px 10px"}}>{r.needed}</td>
+            <td style={{padding:"8px 10px",fontWeight:600}}>{r.actual}</td><td style={{padding:"8px 10px",color:"var(--t3)"}}>{r.target}</td>
+            <td style={{padding:"8px 10px"}}><Badge v={r.compliant?"success":"danger"}>{r.compliant?"Compliant":"Under"}</Badge></td>
+          </tr>)}</tbody>
+        </table>
+      </Card>}
+      {pcc.config&&<Card style={{padding:18,marginBottom:14}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14}}><I.Settings s={16} c="#475569"/><h3 style={{fontSize:13,fontWeight:700}}>Configuration</h3></div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,fontSize:12}}>
+          <div><span style={{color:"var(--t3)"}}>Tenant ID:</span> <span style={{fontWeight:500}}>{pcc.config.tenantId?.slice(0,4)}****</span></div>
+          <div><span style={{color:"var(--t3)"}}>Client ID:</span> <span style={{fontWeight:500}}>{pcc.config.clientId?.slice(0,4)}****</span></div>
+          <div style={{gridColumn:"span 2"}}><span style={{color:"var(--t3)"}}>FHIR Base:</span> <span style={{fontWeight:500,fontSize:11}}>{pcc.config.baseUrl}</span></div>
+        </div>
+      </Card>}
+      <Modal open={showSetup} onClose={()=>{setShowSetup(false);setTestResult(null);}} title="Configure PointClickCare" width={540}>
+        <Inp label="Tenant ID" value={tenantId} onChange={e=>setTenantId(e.target.value)} placeholder="e.g. abc-facility-123" req/>
+        <Inp label="Client ID" value={clientId} onChange={e=>setClientId(e.target.value)} placeholder="From PCC Developer Portal" req/>
+        {baseUrl&&<div style={{marginBottom:16}}>
+          <label style={{display:"block",fontSize:12,fontWeight:600,color:"var(--t3)",marginBottom:6}}>FHIR Base URL</label>
+          <div style={{padding:"10px 14px",background:"var(--hover)",border:"1px solid var(--brd)",borderRadius:"var(--rs)",fontSize:12,color:"var(--t2)",wordBreak:"break-all"}}>{baseUrl}</div>
+        </div>}
+        {testResult&&<div style={{marginBottom:14,padding:"10px 14px",borderRadius:"var(--rs)",fontSize:12,background:testResult.ok?"var(--greenL)":"var(--redL)",color:testResult.ok?"var(--green)":"var(--red)",border:`1px solid ${testResult.ok?"#A7F3D0":"#FECACA"}`}}>
+          {testResult.ok?"SMART configuration discovered. Endpoints found.":"Connection failed: "+testResult.err}
+        </div>}
+        <div style={{padding:"10px 14px",background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:"var(--rs)",fontSize:10,color:"var(--amber)",marginBottom:16,display:"flex",alignItems:"center",gap:6}}>
+          <I.Shield s={12} c="#D97706"/>HIPAA: Tokens in sessionStorage only.
+        </div>
+        <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+          <Btn v="secondary" onClick={testConnection} disabled={!tenantId||testing}>{testing?"Testing...":"Test Connection"}</Btn>
+          <Btn onClick={saveAndConnect} disabled={!tenantId||!clientId}>Save & Connect</Btn>
+        </div>
+      </Modal>
+    </>}
+  </div>;
+}
+
+// ═══ PBJ REPORTS (CMS Payroll-Based Journal) ═══
+function PBJReportView({adp}){
+  const[facility,setFacility]=useState("F001");
+  const[startDate,setStartDate]=useState(()=>{const d=new Date();d.setDate(d.getDate()-13);return d.toISOString().split("T")[0];});
+  const[endDate,setEndDate]=useState(()=>new Date().toISOString().split("T")[0]);
+  const[generating,setGenerating]=useState(false);
+  const[report,setReport]=useState(null);
+  const[showCodes,setShowCodes]=useState(false);
+
+  const fac=FACILITIES.find(f=>f.id===facility)||FACILITIES[0];
+
+  const generate=async()=>{
+    setGenerating(true);setReport(null);
+    try{const d=await ADP.generatePBJData(facility,startDate,endDate);setReport(d);}
+    catch(e){setReport({error:e.message});}
+    setGenerating(false);
+  };
+
+  const downloadXml=()=>{
+    if(!report||report.error)return;
+    const xml=ADP.generatePBJXml(report);
+    const blob=new Blob([xml],{type:"application/xml"});const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");a.href=url;a.download=`PBJ-${fac.adpCode}-${startDate}-${endDate}.xml`;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  };
+
+  const downloadJson=()=>{
+    if(!report||report.error)return;
+    const blob=new Blob([JSON.stringify(report,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");a.href=url;a.download=`PBJ-${fac.adpCode}-${startDate}-${endDate}.json`;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  };
+
+  return <div className="fi">
+    <h1 style={{fontSize:22,fontWeight:700,marginBottom:2}}>PBJ Reports</h1>
+    <p style={{color:"var(--t3)",fontSize:13,marginBottom:20}}>CMS Payroll-Based Journal — staffing data for submission</p>
+
+    {!adp.connected&&<Card style={{padding:24,textAlign:"center",marginBottom:14}}>
+      <I.Alert s={24} c="#D97706"/>
+      <p style={{fontSize:13,fontWeight:600,marginTop:10}}>ADP Connection Required</p>
+      <p style={{fontSize:11,color:"var(--t3)",marginTop:4}}>Connect ADP Workforce Now in Integrations to generate PBJ reports from time & attendance data.</p>
+    </Card>}
+
+    {adp.connected&&<>
+      {/* Report Parameters */}
+      <Card style={{padding:18,marginBottom:14}}>
+        <h3 style={{fontSize:13,fontWeight:700,marginBottom:12}}>Report Parameters</h3>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12,marginBottom:14}}>
+          <div>
+            <label style={{display:"block",fontSize:12,fontWeight:600,color:"var(--t3)",marginBottom:6}}>Facility</label>
+            <select value={facility} onChange={e=>setFacility(e.target.value)} style={{width:"100%",padding:"10px 14px",border:"1px solid var(--brd)",borderRadius:"var(--rs)",fontFamily:"inherit",fontSize:13,background:"#fff"}}>
+              {FACILITIES.map(f=><option key={f.id} value={f.id}>{f.name} ({f.state})</option>)}
+            </select>
+          </div>
+          <Inp label="Start Date" type="date" value={startDate} onChange={e=>setStartDate(e.target.value)} req/>
+          <Inp label="End Date" type="date" value={endDate} onChange={e=>setEndDate(e.target.value)} req/>
+        </div>
+        <div style={{display:"flex",gap:8,alignItems:"center"}}>
+          <Btn onClick={generate} disabled={generating||!facility} icon={generating?<Spinner size={13}/>:<I.ClipDoc s={13} c="#fff"/>}>{generating?"Generating PBJ Data...":"Generate Report"}</Btn>
+          <Btn v="secondary" onClick={()=>setShowCodes(!showCodes)}>{showCodes?"Hide":"Show"} CMS Job Codes</Btn>
+          {report&&!report.error&&<>
+            <Btn v="secondary" onClick={downloadXml} icon={<I.File s={12} c="#475569"/>}>Export CMS XML</Btn>
+            <Btn v="secondary" onClick={downloadJson} icon={<I.File s={12} c="#475569"/>}>Export JSON</Btn>
+          </>}
+        </div>
+      </Card>
+
+      {/* CMS Job Codes Reference */}
+      {showCodes&&<Card style={{padding:14,marginBottom:14}}>
+        <h3 style={{fontSize:13,fontWeight:700,marginBottom:10}}>CMS 35 PBJ Job Code Titles</h3>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:4,maxHeight:260,overflow:"auto"}}>
+          {ADP_JOB_CODES.map(j=><div key={j.code} style={{padding:"4px 8px",borderRadius:4,background:"var(--bg)",fontSize:10,display:"flex",gap:6}}>
+            <span style={{fontWeight:700,color:"var(--blue)",minWidth:18}}>{j.code}</span>
+            <span>{j.title}</span>
+          </div>)}
+        </div>
+        <div style={{marginTop:8,fontSize:10,color:"var(--t3)"}}>Your roles map: CNA→Code 8, RN→Code 4, LPN→Code 6, CMA→Code 10</div>
+      </Card>}
+
+      {/* Report Results */}
+      {report&&!report.error&&<>
+        {/* Summary */}
+        <Card style={{padding:18,marginBottom:14}}>
+          <h3 style={{fontSize:13,fontWeight:700,marginBottom:12}}>Report Summary — {fac.name}</h3>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:14}}>
+            {[{l:"Total Records",v:report.summary.totalRecords,c:"var(--blue)"},{l:"Direct Care Hours",v:report.summary.totalDirectCareHours.toLocaleString(),c:"var(--green)"},{l:"Avg Daily Census",v:report.summary.avgDailyCensus,c:"var(--purple)"},{l:"HPPD",v:report.summary.hppd,c:report.summary.hppd>=3.48?"var(--green)":"var(--red)"}].map((s,i)=>
+              <div key={i} style={{textAlign:"center",padding:12,borderRadius:"var(--rs)",background:"var(--bg)"}}>
+                <div style={{fontSize:22,fontWeight:700,color:s.c}}>{s.v}</div><div style={{fontSize:10,color:"var(--t3)"}}>{s.l}</div></div>)}
+          </div>
+          <div style={{fontSize:11,color:"var(--t3)"}}>Period: {report.reportPeriod.start} to {report.reportPeriod.end} ({report.reportPeriod.days} days)</div>
+        </Card>
+
+        {/* Hours by Job Code */}
+        <Card style={{padding:18,marginBottom:14}}>
+          <h3 style={{fontSize:13,fontWeight:700,marginBottom:12}}>Hours by Job Code</h3>
+          <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+            <thead><tr style={{borderBottom:"1px solid var(--brd)"}}>{["Code","Title","Total Hours","% of Total"].map(h=><th key={h} style={{padding:"8px 10px",textAlign:"left",fontSize:10,fontWeight:600,color:"var(--t3)",textTransform:"uppercase"}}>{h}</th>)}</tr></thead>
+            <tbody>{report.summary.byJobCode.map((j,i)=><tr key={i} style={{borderBottom:"1px solid var(--brd2)"}}>
+              <td style={{padding:"8px 10px",fontWeight:600,color:"var(--blue)"}}>{j.code}</td>
+              <td style={{padding:"8px 10px"}}>{j.title}</td>
+              <td style={{padding:"8px 10px",fontWeight:600}}>{j.totalHours.toLocaleString()}</td>
+              <td style={{padding:"8px 10px"}}>{Math.round(j.totalHours/report.summary.totalDirectCareHours*100)}%</td>
+            </tr>)}</tbody>
+          </table>
+        </Card>
+
+        {/* Validation */}
+        <Card style={{padding:18,marginBottom:14,borderLeft:`4px solid ${report.validation.passed?"var(--green)":"var(--red)"}`}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+            {report.validation.passed?<I.Check s={16} c="#059669"/>:<I.Alert s={16} c="#DC2626"/>}
+            <h3 style={{fontSize:13,fontWeight:700}}>Validation {report.validation.passed?"Passed":"Failed"}</h3>
+          </div>
+          {report.validation.errors.length>0&&<div style={{marginBottom:6}}>{report.validation.errors.map((e,i)=><div key={i} style={{padding:"4px 10px",background:"var(--redL)",color:"var(--red)",borderRadius:4,fontSize:11,marginBottom:3}}>{e}</div>)}</div>}
+          {report.validation.warnings.length>0&&<div>{report.validation.warnings.map((w,i)=><div key={i} style={{padding:"4px 10px",background:"var(--amberL)",color:"var(--amber)",borderRadius:4,fontSize:11,marginBottom:3}}>{w}</div>)}</div>}
+          {report.validation.errors.length===0&&report.validation.warnings.length===0&&<p style={{fontSize:11,color:"var(--green)"}}>All records pass validation. Ready for CMS submission.</p>}
+        </Card>
+
+        {/* Census Data */}
+        <Card style={{padding:18,marginBottom:14}}>
+          <h3 style={{fontSize:13,fontWeight:700,marginBottom:12}}>Daily Census ({report.census.length} days)</h3>
+          <div style={{display:"flex",gap:2,alignItems:"end",height:80}}>
+            {report.census.map((c,i)=>{const max=Math.max(...report.census.map(x=>x.residents));const h=max>0?c.residents/max*100:0;
+              return <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center"}}>
+                <div style={{width:"100%",background:"var(--blueL)",borderRadius:"2px 2px 0 0",height:`${h}%`,minHeight:2,transition:"height .3s"}}/>
+              </div>;})}
+          </div>
+          <div style={{display:"flex",justifyContent:"space-between",fontSize:9,color:"var(--t3)",marginTop:4}}>
+            <span>{report.census[0]?.date}</span><span>{report.census[report.census.length-1]?.date}</span>
+          </div>
+        </Card>
+      </>}
+
+      {report?.error&&<Card style={{padding:18,marginBottom:14,background:"var(--redL)",borderLeft:"4px solid var(--red)"}}>
+        <p style={{fontSize:12,color:"var(--red)",fontWeight:600}}>Report generation failed: {report.error}</p>
+      </Card>}
+    </>}
+  </div>;
+}
+
 // ═══ BILLING ═══
 function BillingView(){
   const[showPay,setShowPay]=useState(false);const[showUpd,setShowUpd]=useState(false);
@@ -1521,7 +2399,12 @@ function BillingView(){
 
 // ═══ LOGIN ═══
 function LoginScreen({onLogin}){
-  const[email,setEmail]=useState("");const[pw,setPw]=useState("");const[role,setRole]=useState("super_admin");
+  const[email,setEmail]=useState("");const[pw,setPw]=useState("");const[role,setRole]=useState("super_admin");const[err,setErr]=useState("");
+  const isDemo=email.trim().toLowerCase()==="demo@demo.com";
+  const handleSubmit=()=>{
+    if(!email.trim()||!pw.trim()){setErr("Enter email and password");return;}
+    setErr("");onLogin({email:email.trim().toLowerCase(),role:isDemo?role:"super_admin"});
+  };
   return <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",background:"var(--bg)"}}>
     <HipaaBar/>
     <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -1534,14 +2417,143 @@ function LoginScreen({onLogin}){
         <div style={{padding:"0 32px 28px"}}>
           <Inp label="Email" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@facility.com"/>
           <Inp label="Password" type="password" value={pw} onChange={e=>setPw(e.target.value)} placeholder="••••••••"/>
-          <div style={{marginBottom:18}}>
+          {isDemo&&<div style={{marginBottom:18}}>
             <label style={{display:"block",fontSize:11,fontWeight:600,color:"var(--t2)",marginBottom:6}}>Demo Role</label>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:5}}>
               {[["super_admin","Super Admin",I.Shield],["admin","Admin",I.Key],["employee","Employee",I.Person],["new_hire","New Hire",I.Onboard]].map(([v,l,Ic])=>
                 <button key={v} onClick={()=>setRole(v)} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,padding:"10px 4px",borderRadius:"var(--rs)",border:role===v?"2px solid var(--blue)":"1px solid var(--brd)",background:role===v?"var(--blueL)":"#fff",cursor:"pointer"}}>
-                  <Ic s={14} c={role===v?"#2563EB":"#94A3B8"}/><span style={{fontSize:9,fontWeight:600,color:role===v?"var(--blue)":"var(--t3)"}}>{l}</span></button>)}</div></div>
-          <Btn onClick={()=>onLogin(role)} style={{width:"100%",justifyContent:"center",padding:"11px"}} size="lg">Sign In</Btn>
+                  <Ic s={14} c={role===v?"#2563EB":"#94A3B8"}/><span style={{fontSize:9,fontWeight:600,color:role===v?"var(--blue)":"var(--t3)"}}>{l}</span></button>)}</div></div>}
+          {err&&<div style={{color:"var(--red)",fontSize:12,marginBottom:10}}>{err}</div>}
+          <Btn onClick={handleSubmit} style={{width:"100%",justifyContent:"center",padding:"11px"}} size="lg">Sign In</Btn>
         </div></div></div></div>;
+}
+
+// ═══ PUSH EMPLOYEE TO ADP — primary function ═══
+function PushToADPView({emps,onLogout}){
+  const[selEmp,setSelEmp]=useState(null);
+  const[pushing,setPushing]=useState(false);
+  const[result,setResult]=useState(null);
+  const[facilityId,setFacilityId]=useState("F001");
+  const[search,setSearch]=useState("");
+
+  const filtered=emps.filter(e=>{
+    const q=search.toLowerCase();
+    return(!q||e.name.toLowerCase().includes(q)||e.role.toLowerCase().includes(q)||e.email.toLowerCase().includes(q));
+  });
+
+  const handlePush=async(emp)=>{
+    setPushing(true);setResult(null);setSelEmp(emp);
+    try{
+      await new Promise(r=>setTimeout(r,1200));
+      const fac=FACILITIES.find(f=>f.id==(emp.facilityId||facilityId));
+      const adpWorkerId=`${fac?.adpCode||"FAC"}-W${Date.now().toString().slice(-4)}`;
+      const pbjCode=ADP_ROLE_TO_PBJ[emp.role]||"35";
+      const pbjTitle=ADP_JOB_CODES.find(j=>j.code===pbjCode)?.title||emp.role;
+      ADP._addLog("pushWorker",emp.facilityId||facilityId,true,`Created ${adpWorkerId} for ${emp.name}`);
+      setResult({ok:true,adpWorkerId,pbjCode,pbjTitle,facilityName:fac?.name,emp});
+    }catch(e){setResult({ok:false,error:e.message,emp});}
+    setPushing(false);
+  };
+
+  const fac=FACILITIES.find(f=>f.id===facilityId);
+  return <div style={{minHeight:"100vh",background:"var(--bg)"}}>
+    <HipaaBar/>
+    <div style={{maxWidth:900,margin:"0 auto",padding:"24px 20px"}}>
+      {/* Header */}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <div style={{width:38,height:38,borderRadius:"var(--r)",background:"var(--blue)",display:"flex",alignItems:"center",justifyContent:"center"}}><I.Building s={20} c="#fff"/></div>
+          <div><div style={{fontSize:20,fontWeight:700}}>StaffHub</div><div style={{fontSize:11,color:"var(--t3)"}}>Push Employee to ADP Workforce Now</div></div>
+        </div>
+        <button onClick={onLogout} style={{background:"none",border:"1px solid var(--brd)",borderRadius:"var(--rs)",padding:"6px 14px",fontSize:12,color:"var(--t2)",cursor:"pointer",fontFamily:"inherit"}}>Sign Out</button>
+      </div>
+
+      {/* Facility selector + search */}
+      <Card style={{padding:"16px 20px",marginBottom:16}}>
+        <div style={{display:"flex",gap:12,alignItems:"flex-end",flexWrap:"wrap"}}>
+          <div style={{flex:"0 0 280px"}}>
+            <label style={{display:"block",fontSize:11,fontWeight:600,color:"var(--t2)",marginBottom:5}}>Facility</label>
+            <select value={facilityId} onChange={e=>setFacilityId(e.target.value)} style={{width:"100%",padding:"8px 10px",borderRadius:"var(--rs)",border:"1px solid var(--brd)",fontSize:13,fontFamily:"inherit",background:"#fff"}}>
+              {FACILITIES.map(f=><option key={f.id} value={f.id}>{f.name} ({f.state})</option>)}
+            </select>
+          </div>
+          <div style={{flex:1,minWidth:200}}>
+            <label style={{display:"block",fontSize:11,fontWeight:600,color:"var(--t2)",marginBottom:5}}>Search Employees</label>
+            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Name, role, or email..." style={{width:"100%",padding:"8px 10px",borderRadius:"var(--rs)",border:"1px solid var(--brd)",fontSize:13,fontFamily:"inherit",boxSizing:"border-box"}}/>
+          </div>
+        </div>
+      </Card>
+
+      {/* Success result */}
+      {result&&result.ok&&<Card style={{padding:"20px 24px",marginBottom:16,background:"var(--greenL)",border:"1px solid #BBF7D0"}}>
+        <div style={{display:"flex",alignItems:"flex-start",gap:12}}>
+          <div style={{width:40,height:40,borderRadius:"50%",background:"var(--green)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><I.Check s={20} c="#fff"/></div>
+          <div style={{flex:1}}>
+            <div style={{fontSize:15,fontWeight:700,color:"var(--green)",marginBottom:4}}>Employee Pushed to ADP</div>
+            <div style={{fontSize:13,color:"var(--t1)",marginBottom:8}}>{result.emp.name} has been created in ADP Workforce Now.</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+              {[["ADP Worker ID",result.adpWorkerId],["Facility",result.facilityName],["PBJ Job Code",`${result.pbjCode} — ${result.pbjTitle}`],["Role",result.emp.role]].map(([l,v])=>
+                <div key={l} style={{background:"rgba(255,255,255,.6)",borderRadius:"var(--rs)",padding:"8px 10px"}}>
+                  <div style={{fontSize:10,fontWeight:600,color:"var(--t3)",marginBottom:2}}>{l}</div>
+                  <div style={{fontSize:12,color:"var(--t1)"}}>{v}</div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </Card>}
+
+      {result&&!result.ok&&<Card style={{padding:"16px 20px",marginBottom:16,background:"var(--redL)",border:"1px solid #FECACA"}}>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <I.X s={16} c="#DC2626"/>
+          <div style={{fontSize:13,color:"var(--red)"}}>Push failed: {result.error}</div>
+        </div>
+      </Card>}
+
+      {/* Employee table */}
+      <Card style={{overflow:"hidden"}}>
+        <div style={{padding:"14px 20px",borderBottom:"1px solid var(--brd)",background:"var(--bg)"}}>
+          <div style={{fontSize:14,fontWeight:700}}>Employees ({filtered.length})</div>
+          <div style={{fontSize:11,color:"var(--t3)",marginTop:2}}>Select an employee to push to ADP Workforce Now</div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"2fr 80px 70px 2fr 100px 120px",padding:"8px 20px",borderBottom:"1px solid var(--brd)",background:"var(--bg)"}}>
+          {["NAME","ROLE","STATUS","EMAIL","FACILITY","ACTION"].map(h=><div key={h} style={{fontSize:10,fontWeight:600,color:"var(--t3)",letterSpacing:".03em"}}>{h}</div>)}
+        </div>
+        {filtered.length===0&&<div style={{padding:"30px 20px",textAlign:"center",color:"var(--t3)",fontSize:13}}>No employees match your search.</div>}
+        {filtered.map((emp,i)=>{
+          const isPushing=pushing&&selEmp?.id===emp.id;
+          const wasPushed=result?.ok&&result?.emp?.id===emp.id;
+          const empFac=FACILITIES.find(f=>f.id===emp.facilityId);
+          return <div key={emp.id} style={{display:"grid",gridTemplateColumns:"2fr 80px 70px 2fr 100px 120px",padding:"11px 20px",borderBottom:i<filtered.length-1?"1px solid var(--brd)":"none",alignItems:"center",background:wasPushed?"var(--greenL)":"transparent"}}>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <Avatar initials={emp.avatar||emp.name.split(" ").map(w=>w[0]).join("")} size={28}/>
+              <div><div style={{fontSize:13,fontWeight:600}}>{emp.name}</div></div>
+            </div>
+            <Badge c={emp.role==="RN"?"blue":emp.role==="LPN"?"purple":emp.role==="CNA"?"green":"amber"}>{emp.role}</Badge>
+            <Badge c={emp.status==="active"?"green":emp.status==="onboarding"?"amber":emp.status==="review"?"red":"gray"}>{emp.status}</Badge>
+            <div style={{fontSize:12,color:"var(--t2)"}}>{emp.email}</div>
+            <div style={{fontSize:11,color:"var(--t3)"}}>{empFac?.name?.split(" ")[0]||"—"}</div>
+            <div>
+              {wasPushed?
+                <span style={{fontSize:11,color:"var(--green)",fontWeight:600}}>✓ Pushed</span>:
+                <Btn onClick={()=>handlePush(emp)} size="sm" disabled={isPushing} style={{opacity:isPushing?.6:1}}>
+                  {isPushing?"Pushing...":"Push to ADP"}
+                </Btn>
+              }
+            </div>
+          </div>;
+        })}
+      </Card>
+
+      {/* Info footer */}
+      <div style={{marginTop:16,padding:"12px 16px",background:"var(--blueL)",borderRadius:"var(--rs)",border:"1px solid #BFDBFE"}}>
+        <div style={{fontSize:11,color:"var(--blue)",fontWeight:600,marginBottom:4}}>About ADP Integration</div>
+        <div style={{fontSize:12,color:"var(--t2)",lineHeight:1.5}}>
+          Pushing an employee creates a Worker record in ADP Workforce Now with their name, role, facility, and CMS PBJ job code mapping. This enables payroll, scheduling, and PBJ reporting through ADP.
+        </div>
+      </div>
+    </div>
+  </div>;
 }
 
 // ═══ MAIN APP — routing logic ═══
@@ -1551,6 +2563,7 @@ function LoginScreen({onLogin}){
 // Admin/Super Admin: full sidebar navigation
 export default function StaffHubApp(){
   const[loggedIn,setLoggedIn]=useState(false);
+  const[userEmail,setUserEmail]=useState("");
   const[role,setRole]=useState("super_admin");
   const[view,setView]=useState("dashboard");
   const[emps,setEmps]=useState(INIT_EMP);
@@ -1561,7 +2574,89 @@ export default function StaffHubApp(){
   const[timeOffReqs,setTimeOffReqs]=useState([]);
   const[myEmpId]=useState("E001");
 
-  if(!loggedIn) return <><style>{css}</style><LoginScreen onLogin={r=>{setRole(r);setLoggedIn(true);}}/></>;
+  // ── PCC (PointClickCare) state ──
+  const[pcc,setPcc]=useState(()=>{
+    const savedCfg=localStorage.getItem("pcc_config");
+    const savedTok=sessionStorage.getItem("pcc_tokens");
+    const config=savedCfg?JSON.parse(savedCfg):null;
+    const tokens=savedTok?JSON.parse(savedTok):null;
+    return{config,tokens,connected:!!tokens&&!PCC.isTokenExpired(tokens),census:null,lastAuth:null,error:null};
+  });
+
+  // OAuth callback: check for ?code=...&state=... from PCC redirect
+  useEffect(()=>{
+    const params=new URLSearchParams(window.location.search);
+    const code=params.get("code");const state=params.get("state");
+    if(!code||!state)return;
+    const savedState=sessionStorage.getItem("pcc_oauth_state");
+    const savedVerifier=sessionStorage.getItem("pcc_code_verifier");
+    if(state!==savedState){setPcc(p=>({...p,error:"OAuth state mismatch"}));return;}
+    const cfg=JSON.parse(localStorage.getItem("pcc_config")||"{}");
+    (async()=>{
+      try{
+        const tokens=await PCC.exchangeToken({tokenEndpoint:cfg.baseUrl+"/token",code,redirectUri:window.location.origin+window.location.pathname,clientId:cfg.clientId,codeVerifier:savedVerifier});
+        sessionStorage.setItem("pcc_tokens",JSON.stringify(tokens));
+        sessionStorage.removeItem("pcc_oauth_state");sessionStorage.removeItem("pcc_code_verifier");
+        setPcc(p=>({...p,tokens,connected:true,lastAuth:new Date().toISOString(),error:null}));
+        window.history.replaceState({},"",window.location.pathname);
+      }catch(e){setPcc(p=>({...p,error:"Token exchange failed: "+e.message}));}
+    })();
+  },[]);
+
+  // Token refresh: check every 60s
+  useEffect(()=>{
+    if(!pcc.connected||!pcc.tokens)return;
+    const iv=setInterval(async()=>{
+      if(PCC.isTokenExpired(pcc.tokens)&&pcc.tokens?.refresh_token&&pcc.config){
+        try{
+          const t=await PCC.refreshToken({tokenEndpoint:pcc.config.baseUrl+"/token",clientId:pcc.config.clientId,refreshToken:pcc.tokens.refresh_token});
+          sessionStorage.setItem("pcc_tokens",JSON.stringify(t));
+          setPcc(p=>({...p,tokens:t,error:null}));
+        }catch(e){setPcc(p=>({...p,connected:false,error:"Token refresh failed"}));}
+      }
+    },60000);
+    return()=>clearInterval(iv);
+  },[pcc.connected,pcc.tokens,pcc.config]);
+
+  // Census auto-fetch: on connect + every 15 min
+  useEffect(()=>{
+    if(!pcc.connected||!pcc.config?.baseUrl)return;
+    const fetch=async()=>{try{const s=await PCC.getCensusSummary(pcc.config.baseUrl,pcc.tokens);setPcc(p=>({...p,census:s}));}catch(e){}};
+    fetch();
+    const iv=setInterval(fetch,900000);
+    return()=>clearInterval(iv);
+  },[pcc.connected,pcc.config?.baseUrl]);
+
+  // ── ADP (Workforce Now) state ──
+  const[adp,setAdp]=useState(()=>{
+    const savedCfg=localStorage.getItem("adp_config");
+    const savedTok=sessionStorage.getItem("adp_tokens");
+    const config=savedCfg?JSON.parse(savedCfg):null;
+    const tokens=savedTok?JSON.parse(savedTok):null;
+    return{config,tokens,connected:!!tokens&&!ADP.isTokenExpired(tokens),syncData:{},selectedFacility:"F001",lastAuth:null,error:null};
+  });
+
+  // ADP token refresh: every 60s
+  useEffect(()=>{
+    if(!adp.connected||!adp.tokens)return;
+    const iv=setInterval(async()=>{
+      if(ADP.isTokenExpired(adp.tokens)&&adp.tokens?.refresh_token&&adp.config){
+        try{const t=await ADP.refreshToken({refreshToken:adp.tokens.refresh_token,clientId:adp.config.clientId,clientSecret:adp.config.clientSecret});
+          sessionStorage.setItem("adp_tokens",JSON.stringify(t));setAdp(p=>({...p,tokens:t,error:null}));
+        }catch(e){setAdp(p=>({...p,connected:false,error:"ADP token refresh failed"}));}
+      }
+    },60000);
+    return()=>clearInterval(iv);
+  },[adp.connected,adp.tokens,adp.config]);
+
+  const isDemo=userEmail==="demo@demo.com";
+
+  if(!loggedIn) return <><style>{css}</style><LoginScreen onLogin={({email,role:r})=>{setUserEmail(email);setRole(r);setLoggedIn(true);}}/></>;
+
+  // ── NON-DEMO: only Push Employee to ADP view ──
+  if(!isDemo){
+    return <><style>{css}</style><PushToADPView emps={emps} onLogout={()=>{setLoggedIn(false);setUserEmail("");}}/></>;
+  }
 
   // ── NEW HIRE: onboarding portal is their homescreen ──
   if(role==="new_hire"){
@@ -1590,7 +2685,7 @@ export default function StaffHubApp(){
               <h2 style={{fontSize:20,fontWeight:700,marginBottom:8,color:"var(--red)"}}>Application Not Approved</h2>
               <p style={{fontSize:13,color:"var(--t2)",lineHeight:1.6}}>Thank you for your interest. Unfortunately, we are unable to move forward at this time.</p>
             </>}
-            <div style={{marginTop:20}}><button onClick={()=>setLoggedIn(false)} style={{background:"none",border:"none",color:"var(--t3)",fontFamily:"inherit",fontSize:12,cursor:"pointer"}}>Sign Out</button></div>
+            <div style={{marginTop:20}}><button onClick={()=>{setLoggedIn(false);setUserEmail("");}} style={{background:"none",border:"none",color:"var(--t3)",fontFamily:"inherit",fontSize:12,cursor:"pointer"}}>Sign Out</button></div>
           </div></div></>;
     }
 
@@ -1611,7 +2706,7 @@ export default function StaffHubApp(){
               <div><div style={{fontSize:13,fontWeight:600,color:"var(--amber)"}}>Paperwork Under Review</div>
                 <div style={{fontSize:12,color:"var(--t2)"}}>Your admin is reviewing your documents. Schedule will appear once approved.</div></div></div></Card>}
           <EmployeeScheduleView emps={emps} shifts={shifts} shiftReqs={shiftReqs} setShiftReqs={setShiftReqs} timeOffReqs={timeOffReqs} setTimeOffReqs={setTimeOffReqs} myEmpId={myEmpId}/>
-          <div style={{textAlign:"center",padding:"20px 0"}}><button onClick={()=>setLoggedIn(false)} style={{background:"none",border:"none",color:"var(--t3)",fontFamily:"inherit",fontSize:12,cursor:"pointer"}}>Sign Out</button></div>
+          <div style={{textAlign:"center",padding:"20px 0"}}><button onClick={()=>{setLoggedIn(false);setUserEmail("");}} style={{background:"none",border:"none",color:"var(--t3)",fontFamily:"inherit",fontSize:12,cursor:"pointer"}}>Sign Out</button></div>
         </div></div></>;
   }
 
@@ -1621,23 +2716,25 @@ export default function StaffHubApp(){
       <div style={{maxWidth:960,margin:"0 auto"}}><HipaaBar/>
         <div style={{padding:20}}>
           <EmployeeScheduleView emps={emps} shifts={shifts} shiftReqs={shiftReqs} setShiftReqs={setShiftReqs} timeOffReqs={timeOffReqs} setTimeOffReqs={setTimeOffReqs} myEmpId={myEmpId}/>
-          <div style={{textAlign:"center",padding:"20px 0"}}><button onClick={()=>setLoggedIn(false)} style={{background:"none",border:"none",color:"var(--t3)",fontFamily:"inherit",fontSize:12,cursor:"pointer"}}>Sign Out</button></div>
+          <div style={{textAlign:"center",padding:"20px 0"}}><button onClick={()=>{setLoggedIn(false);setUserEmail("");}} style={{background:"none",border:"none",color:"var(--t3)",fontFamily:"inherit",fontSize:12,cursor:"pointer"}}>Sign Out</button></div>
         </div></div></>;
   }
 
   // ── ADMIN / SUPER ADMIN: full sidebar + all views ──
   return <><style>{css}</style>
     <div style={{display:"flex",minHeight:"100vh",background:"var(--bg)"}}>
-      <Sidebar view={view} setView={setView} role={role} onLogout={()=>setLoggedIn(false)}/>
+      <Sidebar view={view} setView={setView} role={role} onLogout={()=>{setLoggedIn(false);setUserEmail("");}} pcc={pcc} adp={adp}/>
       <main style={{marginLeft:210,flex:1,padding:"20px 28px",maxWidth:"calc(100vw - 210px)"}}>
         <HipaaBar/>
         <div style={{paddingTop:14}}>
-          {view==="dashboard"&&<DashboardView emps={emps} setView={setView}/>}
+          {view==="dashboard"&&<DashboardView emps={emps} setView={setView} pcc={pcc} adp={adp}/>}
           {view==="employees"&&<EmployeesView emps={emps} setEmps={setEmps}/>}
           {view==="review"&&<ReviewView emps={emps} setEmps={setEmps}/>}
           {view==="schedule"&&<ScheduleView emps={emps} setEmps={setEmps}/>}
           {view==="shifts"&&<ShiftBoardView emps={emps} shifts={shifts} setShifts={setShifts} shiftReqs={shiftReqs} setShiftReqs={setShiftReqs} timeOffReqs={timeOffReqs} setTimeOffReqs={setTimeOffReqs}/>}
           {view==="onboarding"&&<OnboardFlowView steps={obSteps} setSteps={setObSteps}/>}
+          {view==="integrations"&&<IntegrationsView pcc={pcc} setPcc={setPcc} adp={adp} setAdp={setAdp} emps={emps}/>}
+          {view==="pbj"&&<PBJReportView adp={adp}/>}
           {view==="accounts"&&<AccountsView admins={admins} setAdmins={setAdmins}/>}
           {view==="billing"&&<BillingView/>}
         </div>
