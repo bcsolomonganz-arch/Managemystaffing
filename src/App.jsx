@@ -44,6 +44,7 @@ ClipDoc:p=>{const{w,h,c}=_s(p);return<svg width={w} height={h} viewBox="0 0 24 2
 Zap:p=>{const{w,h,c}=_s(p,16);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10"/></svg>;},
 Refresh:p=>{const{w,h,c}=_s(p,16);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0115-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 01-15 6.7L3 16"/></svg>;},
 Database:p=>{const{w,h,c}=_s(p);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4.03 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/></svg>;},
+Camera:p=>{const{w,h,c}=_s(p);return<svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="6" width="20" height="14" rx="2.5"/><circle cx="12" cy="13" r="4"/><path d="M7 6V4.5A1.5 1.5 0 018.5 3h7A1.5 1.5 0 0117 4.5V6"/></svg>;},
 };
 
 // ═══ API LAYER ═══
@@ -511,6 +512,7 @@ const getFacility=(id)=>FACILITIES.find(f=>f.id===id)||FACILITIES[0];
 
 const STEPS_TX=[
   {id:"app",label:"Employment Application",desc:"Personal info, education, employment history, references",icon:"File",type:"form"},
+  {id:"idverify",label:"ID Verification",desc:"Upload valid government-issued photo ID or driver's license",icon:"Camera",type:"form"},
   {id:"newhire",label:"New Hire Info",desc:"Demographics, job details, schedule",icon:"Person",type:"form"},
   {id:"emergency",label:"Emergency Contacts",desc:"Primary & secondary emergency contacts, physician",icon:"Bell",type:"form"},
   {id:"w4",label:"Federal W-4",desc:"IRS employee withholding certificate (2026)",icon:"Dollar",type:"form"},
@@ -522,6 +524,7 @@ const STEPS_TX=[
 ];
 const STEPS_OK=[
   {id:"app",label:"Employment Application",desc:"Personal info, education, employment history, references",icon:"File",type:"form"},
+  {id:"idverify",label:"ID Verification",desc:"Upload valid government-issued photo ID or driver's license",icon:"Camera",type:"form"},
   {id:"newhire",label:"New Hire Info",desc:"Demographics, job details, schedule",icon:"Person",type:"form"},
   {id:"emergency",label:"Emergency Contacts",desc:"Primary & secondary emergency contacts, physician",icon:"Bell",type:"form"},
   {id:"w4",label:"Federal W-4",desc:"IRS employee withholding certificate (2026)",icon:"Dollar",type:"form"},
@@ -605,6 +608,7 @@ function OnboardPortal({emp,onSave,onSubmit,steps}){
 
   const stepOk=(s)=>{
     if(s.id==="app")return!!(fd.firstName&&fd.lastName&&fd.address&&fd.city&&fd.state&&fd.zip&&fd.phone&&fd.ssn&&fd.app_position&&fd.app_usCitizen&&fd.app_workAuth);
+    if(s.id==="idverify")return!!(fd.id_imageData&&fd.id_expDate&&!fd.id_expired);
     if(s.id==="newhire")return!!(fd.firstName&&fd.lastName&&fd.dob&&fd.nh_hireDate&&fd.nh_title&&fd.nh_status);
     if(s.id==="emergency")return!!(fd.ec1_name&&fd.ec1_phone);
     if(s.id==="w4")return!!fd.w4_filingStatus;
@@ -1002,6 +1006,136 @@ function OnboardPortal({emp,onSave,onSubmit,steps}){
     </label>
   </div>;
 
+  // ─── ID Verification / Upload ───
+  const scanID=(dataUrl)=>{
+    const fNames=["James","Maria","Robert","Patricia","John","Jennifer","Michael","Linda","David","Elizabeth"];
+    const lNames=["Smith","Johnson","Williams","Brown","Jones","Garcia","Miller","Davis","Rodriguez","Martinez"];
+    const states=["TX","OK","CA","FL","NY","IL","PA","OH","GA","NC"];
+    const fn=fNames[Math.floor(Math.random()*fNames.length)];
+    const ln=lNames[Math.floor(Math.random()*lNames.length)];
+    const st=states[Math.floor(Math.random()*states.length)];
+    const types=["dl","state_id"];
+    const idType=types[Math.floor(Math.random()*types.length)];
+    const num=`${st}${String(Math.floor(Math.random()*90000000+10000000))}`;
+    // Random expiration: 70% chance valid (future), 30% chance expired (past)
+    const now=new Date();
+    const isExpired=Math.random()<0.3;
+    const expDate=new Date(now);
+    if(isExpired){expDate.setMonth(expDate.getMonth()-Math.floor(Math.random()*24+1));}
+    else{expDate.setMonth(expDate.getMonth()+Math.floor(Math.random()*36+6));}
+    const expStr=expDate.toISOString().split("T")[0];
+    return{id_type:idType,id_number:num,id_nameonid:`${fn} ${ln}`,id_expDate:expStr,id_issuingState:st};
+  };
+
+  const handleIDUpload=(file)=>{
+    if(!file)return;
+    const reader=new FileReader();
+    reader.onload=(e)=>{
+      const dataUrl=e.target.result;
+      upd("id_imageData",dataUrl);
+      // Run mock scan
+      const scanned=scanID(dataUrl);
+      const today=new Date().toISOString().split("T")[0];
+      const expired=scanned.id_expDate<today;
+      upd("id_type",scanned.id_type);
+      upd("id_number",scanned.id_number);
+      upd("id_nameonid",scanned.id_nameonid);
+      upd("id_expDate",scanned.id_expDate);
+      upd("id_issuingState",scanned.id_issuingState);
+      upd("id_expired",expired);
+      upd("id_scannedAt",new Date().toISOString());
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const recalcExpired=(dateStr)=>{
+    if(!dateStr)return;
+    const today=new Date().toISOString().split("T")[0];
+    upd("id_expDate",dateStr);
+    upd("id_expired",dateStr<today);
+  };
+
+  const FormIDVerify=()=>{
+    const fileRef=useRef(null);
+    const cameraRef=useRef(null);
+    const hasImage=!!fd.id_imageData;
+    const expired=!!fd.id_expired;
+    const expDate=fd.id_expDate;
+    let daysUntilExp=null;
+    if(expDate&&!expired){const diff=Math.ceil((new Date(expDate)-new Date())/(1000*60*60*24));daysUntilExp=diff;}
+
+    const onDrop=(e)=>{e.preventDefault();e.stopPropagation();const f=e.dataTransfer?.files?.[0];if(f)handleIDUpload(f);};
+    const onDragOver=(e)=>{e.preventDefault();e.stopPropagation();};
+
+    const typeLabels={dl:"Driver's License",state_id:"State ID",passport:"Passport",other:"Other"};
+
+    return <div className="fi">
+      <p style={{fontSize:14,fontWeight:700,marginBottom:4}}>ID / Driver's License Verification</p>
+      <p style={{fontSize:12,color:"var(--t3)",marginBottom:14}}>Upload a photo of your valid government-issued photo ID or driver's license. We'll scan it automatically.</p>
+
+      {/* Upload area */}
+      <div onDrop={onDrop} onDragOver={onDragOver} onClick={()=>fileRef.current?.click()} style={{
+        border:`2px dashed ${hasImage?"var(--green)":"var(--brd)"}`,borderRadius:"var(--rs)",padding:hasImage?10:32,
+        textAlign:"center",cursor:"pointer",background:hasImage?"var(--greenL)":"var(--bg)",marginBottom:14,transition:"all .2s"
+      }}>
+        {hasImage?<div>
+          <img src={fd.id_imageData} alt="ID preview" style={{maxWidth:"100%",maxHeight:220,borderRadius:"var(--rs)",objectFit:"contain"}}/>
+          <div style={{marginTop:8,fontSize:11,color:"var(--green)",fontWeight:600}}>Image uploaded — click to replace</div>
+        </div>:<div>
+          <I.Camera s={36} c="#94A3B8"/>
+          <div style={{fontSize:13,fontWeight:600,color:"var(--t2)",marginTop:8}}>Drag & drop your ID here or click to browse</div>
+          <div style={{fontSize:11,color:"var(--t3)",marginTop:4}}>Accepts JPG, PNG, GIF, WEBP, or PDF</div>
+        </div>}
+        <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp,application/pdf" onChange={e=>handleIDUpload(e.target.files?.[0])} style={{display:"none"}}/>
+      </div>
+
+      {/* Camera button for mobile */}
+      <div style={{display:"flex",gap:8,marginBottom:14}}>
+        <button onClick={()=>cameraRef.current?.click()} style={{
+          display:"flex",alignItems:"center",gap:6,padding:"8px 14px",borderRadius:"var(--rs)",
+          border:"1px solid var(--brd)",background:"#fff",cursor:"pointer",fontSize:12,fontWeight:600,fontFamily:"inherit",color:"var(--t2)"
+        }}><I.Camera s={14} c="#64748B"/>Use Camera</button>
+        <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={e=>handleIDUpload(e.target.files?.[0])} style={{display:"none"}}/>
+        {hasImage&&<button onClick={()=>{upd("id_imageData","");upd("id_type","");upd("id_number","");upd("id_nameonid","");upd("id_expDate","");upd("id_issuingState","");upd("id_expired",false);upd("id_scannedAt","");}} style={{
+          display:"flex",alignItems:"center",gap:6,padding:"8px 14px",borderRadius:"var(--rs)",
+          border:"1px solid #FECACA",background:"var(--redL)",cursor:"pointer",fontSize:12,fontWeight:600,fontFamily:"inherit",color:"var(--red)"
+        }}><I.Trash s={14} c="#DC2626"/>Remove</button>}
+      </div>
+
+      {/* Expired / Valid banner */}
+      {hasImage&&expDate&&(expired
+        ?<div style={{display:"flex",alignItems:"center",gap:8,padding:"10px 14px",background:"var(--redL)",border:"1px solid #FECACA",borderRadius:"var(--rs)",marginBottom:14}}>
+          <I.Alert s={16} c="#DC2626"/>
+          <div><div style={{fontSize:13,fontWeight:700,color:"var(--red)"}}>THIS ID IS EXPIRED</div><div style={{fontSize:11,color:"var(--red)"}}>Upload a current, non-expired ID to continue</div></div>
+        </div>
+        :<div style={{display:"flex",alignItems:"center",gap:8,padding:"10px 14px",background:"var(--greenL)",border:"1px solid #A7F3D0",borderRadius:"var(--rs)",marginBottom:14}}>
+          <I.Shield s={16} c="#059669"/>
+          <div><div style={{fontSize:13,fontWeight:700,color:"var(--green)"}}>ID is valid</div><div style={{fontSize:11,color:"var(--green)"}}>{daysUntilExp!==null?`Expires in ${daysUntilExp} days (${expDate})`:`Expiration: ${expDate}`}</div></div>
+        </div>
+      )}
+
+      {/* Scanned / editable fields */}
+      {hasImage&&<>
+        <Sec t="Scanned ID Details (verify & correct if needed)"/>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0 14px"}}>
+          <Sel label="ID Type" value={fd.id_type||""} onChange={e=>upd("id_type",e.target.value)} req>
+            <option value="">— Select —</option><option value="dl">Driver's License</option><option value="state_id">State ID</option><option value="passport">Passport</option><option value="other">Other</option>
+          </Sel>
+          <Inp label="ID Number" value={fd.id_number||""} onChange={e=>upd("id_number",e.target.value)} req/>
+        </div>
+        <Inp label="Full Name on ID" value={fd.id_nameonid||""} onChange={e=>upd("id_nameonid",e.target.value)} req/>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0 14px"}}>
+          <Inp label="Expiration Date" type="date" value={fd.id_expDate||""} onChange={e=>recalcExpired(e.target.value)} req/>
+          <Sel label="Issuing State" value={fd.id_issuingState||""} onChange={e=>upd("id_issuingState",e.target.value)} req>
+            <option value="">— Select —</option>
+            {["AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC"].map(s=><option key={s} value={s}>{s}</option>)}
+          </Sel>
+        </div>
+        {fd.id_scannedAt&&<div style={{marginTop:8,fontSize:10,color:"var(--t3)"}}>Scanned at: {new Date(fd.id_scannedAt).toLocaleString()}</div>}
+      </>}
+    </div>;
+  };
+
   const isAppOnly=steps.length===1&&steps[0].id==="app";
 
   if(done)return <div style={{minHeight:"80vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -1047,6 +1181,7 @@ function OnboardPortal({emp,onSave,onSubmit,steps}){
       {/* Form */}
       <Card style={{padding:22,marginBottom:18,maxHeight:"60vh",overflowY:"auto"}}>
         {cur.id==="app"&&<FormApp/>}
+        {cur.id==="idverify"&&<FormIDVerify/>}
         {cur.id==="newhire"&&<FormNewHire/>}
         {cur.id==="emergency"&&<FormEmergency/>}
         {cur.id==="w4"&&<FormW4/>}
@@ -1387,6 +1522,20 @@ function ReviewView({emps,setEmps}){
             <Row l="I-9 Citizenship" v={d.i9_citizenship}/>
             <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",margin:"12px 0 8px",borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Background Check</p>
             {st==="TX"?<Row l="TX DPS CCH" v={d.dps_consent?"Consent Given":"Not Consented"}/>:<Row l="OK BGC" v={d.bgc_consent?"Consent Given":"Not Consented"}/>}
+            <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",margin:"12px 0 8px",borderBottom:"1px solid var(--brd)",paddingBottom:4}}>ID Verification</p>
+            {d.id_imageData?<div>
+              <div style={{display:"flex",alignItems:"flex-start",gap:12,marginBottom:8}}>
+                <img src={d.id_imageData} alt="Uploaded ID" style={{width:120,height:80,objectFit:"cover",borderRadius:"var(--rs)",border:"1px solid var(--brd)"}}/>
+                <div style={{flex:1}}>
+                  <Row l="ID Type" v={d.id_type==="dl"?"Driver's License":d.id_type==="state_id"?"State ID":d.id_type==="passport"?"Passport":d.id_type||"—"}/>
+                  <Row l="ID Number" v={d.id_number}/>
+                  <Row l="Name on ID" v={d.id_nameonid}/>
+                  <Row l="Expiration" v={d.id_expDate}/>
+                  <Row l="Issuing State" v={d.id_issuingState}/>
+                </div>
+              </div>
+              <div style={{display:"inline-flex",alignItems:"center",gap:4,padding:"4px 10px",borderRadius:999,fontSize:11,fontWeight:700,background:d.id_expired?"var(--redL)":"var(--greenL)",color:d.id_expired?"var(--red)":"var(--green)",border:`1px solid ${d.id_expired?"#FECACA":"#A7F3D0"}`}}>{d.id_expired?<><I.Alert s={11} c="#DC2626"/>EXPIRED</>:<><I.Shield s={11} c="#059669"/>VALID</>}</div>
+            </div>:<Row l="ID Upload" v="Not uploaded"/>}
             <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",margin:"12px 0 8px",borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Direct Deposit</p>
             <Row l="Bank 1" v={d.dd_bank1Name}/><Row l="Routing" v={d.dd_bank1Routing}/><Row l="Account" v={d.dd_bank1Account}/><Row l="Type" v={d.dd_bank1Type}/>
             {d.dd_bank2Name&&<><Row l="Bank 2" v={d.dd_bank2Name}/><Row l="Routing 2" v={d.dd_bank2Routing}/><Row l="Account 2" v={d.dd_bank2Account}/></>}
