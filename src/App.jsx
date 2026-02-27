@@ -2549,10 +2549,10 @@ function BillingView(){
 // ═══ LOGIN ═══
 function LoginScreen({onLogin}){
   const[email,setEmail]=useState("");const[pw,setPw]=useState("");const[role,setRole]=useState("super_admin");const[err,setErr]=useState("");
-  const isDemo=email.trim().toLowerCase()==="demo@demo.com";
   const handleSubmit=()=>{
     if(!email.trim()||!pw.trim()){setErr("Enter email and password");return;}
-    setErr("");onLogin({email:email.trim().toLowerCase(),role:isDemo?role:"super_admin"});
+    if(email.trim().toLowerCase()!=="demo@demo.com"){setErr("Invalid credentials");return;}
+    setErr("");onLogin({email:email.trim().toLowerCase(),role});
   };
   return <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",background:"var(--bg)"}}>
     <HipaaBar/>
@@ -2566,12 +2566,12 @@ function LoginScreen({onLogin}){
         <div style={{padding:"0 32px 28px"}}>
           <Inp label="Email" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@facility.com"/>
           <Inp label="Password" type="password" value={pw} onChange={e=>setPw(e.target.value)} placeholder="••••••••"/>
-          {isDemo&&<div style={{marginBottom:18}}>
+          <div style={{marginBottom:18}}>
             <label style={{display:"block",fontSize:11,fontWeight:600,color:"var(--t2)",marginBottom:6}}>Demo Role</label>
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:5}}>
               {[["super_admin","Super Admin",I.Shield],["admin","Admin",I.Key],["employee","Employee",I.Person],["new_hire","New Hire",I.Onboard]].map(([v,l,Ic])=>
                 <button key={v} onClick={()=>setRole(v)} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,padding:"10px 4px",borderRadius:"var(--rs)",border:role===v?"2px solid var(--blue)":"1px solid var(--brd)",background:role===v?"var(--blueL)":"#fff",cursor:"pointer"}}>
-                  <Ic s={14} c={role===v?"#2563EB":"#94A3B8"}/><span style={{fontSize:9,fontWeight:600,color:role===v?"var(--blue)":"var(--t3)"}}>{l}</span></button>)}</div></div>}
+                  <Ic s={14} c={role===v?"#2563EB":"#94A3B8"}/><span style={{fontSize:9,fontWeight:600,color:role===v?"var(--blue)":"var(--t3)"}}>{l}</span></button>)}</div></div>
           {err&&<div style={{color:"var(--red)",fontSize:12,marginBottom:10}}>{err}</div>}
           <Btn onClick={handleSubmit} style={{width:"100%",justifyContent:"center",padding:"11px"}} size="lg">Sign In</Btn>
         </div></div></div></div>;
