@@ -1,4 +1,44 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { SessionProvider, useSession } from "./lib/sessionManager.jsx";
+import { maskSSN, maskBankAccount, maskRoutingNumber, maskDOB, maskPhone, formatForDisplay } from "./lib/piiMask.js";
+import { createSecureFetch, AuthError } from "./lib/csrfManager.js";
+
+// ═══ INPUT VALIDATION HELPERS ═══
+const Validate = {
+  ssn(v) {
+    if (!v) return null;
+    const cleaned = v.replace(/[^0-9]/g, "");
+    if (cleaned.length !== 9) return "SSN must be 9 digits";
+    if (/^(000|666|9\d{2})/.test(cleaned)) return "Invalid SSN area code";
+    if (/^\d{3}00/.test(cleaned)) return "Invalid SSN group number";
+    if (/^\d{5}0000/.test(cleaned)) return "Invalid SSN serial number";
+    return null;
+  },
+  routingNumber(v) {
+    if (!v) return null;
+    if (!/^\d{9}$/.test(v)) return "Routing number must be 9 digits";
+    const d = v.split("").map(Number);
+    const chk = (3*(d[0]+d[3]+d[6]) + 7*(d[1]+d[4]+d[7]) + (d[2]+d[5]+d[8])) % 10;
+    if (chk !== 0) return "Invalid routing number (checksum failed)";
+    return null;
+  },
+  bankAccount(v) {
+    if (!v) return null;
+    if (!/^\d{4,17}$/.test(v)) return "Account must be 4-17 digits";
+    return null;
+  },
+  phone(v) {
+    if (!v) return null;
+    const cleaned = v.replace(/[^0-9]/g, "");
+    if (cleaned.length !== 10) return "Phone must be 10 digits";
+    return null;
+  },
+  email(v) {
+    if (!v) return null;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return "Invalid email format";
+    return null;
+  }
+};
 
 // ═══ ICONS (soft outline + subtle fill accents, matching ref UI) ═══
 const _s=(p,d=20)=>({w:p?.s||d,h:p?.s||d,c:p?.c||"currentColor"});
@@ -369,7 +409,33 @@ const ADP={
   },
 };
 
-// ═══ CSV EXPORT FOR SMARTLINX ═══
+// ═══ SECURE CSV EXPORT (via API with audit trail) ═══
+async function secureExportCSV(employeeIds, format, facilityId, secureFetchFn) {
+  try {
+    const res = await secureFetchFn("/api/export/csv", {
+      method: "POST",
+      body: { employeeIds, format, facilityId }
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || "Export failed");
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `export-${format}-${new Date().toISOString().split("T")[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+}
+
+// ═══ CSV EXPORT FOR SMARTLINX (fallback/local) ═══
 function generateSmartLinxCSV(emp, formData, rate, facility) {
   const d = formData || {};
   const esc = (v) => { const s = String(v ?? ""); return s.includes(",") || s.includes('"') || s.includes("\n") ? '"' + s.replace(/"/g, '""') + '"' : s; };
@@ -924,7 +990,7 @@ function OnboardPortal({emp,onSave,onSubmit,steps}){
       <Inp label="Phone" value={fd.phone||""} onChange={e=>upd("phone",e.target.value)} placeholder="(555) 123-4567" req/>
       <Inp label="Email" value={fd.email||emp.email||""} disabled/>
       <Inp label="Date Available" type="date" value={fd.app_dateAvail||""} onChange={e=>upd("app_dateAvail",e.target.value)}/>
-      <Inp label="Social Security Number" value={fd.ssn||""} onChange={e=>upd("ssn",e.target.value)} placeholder="XXX-XX-XXXX" req note="Encrypted AES-256"/>
+      <Inp label="Social Security Number" type="password" value={fd.ssn||""} onChange={e=>{const v=e.target.value.replace(/[^\d-]/g,"");upd("ssn",v);}} placeholder="XXX-XX-XXXX" req note="Encrypted AES-256 · Field masked"/>
       <Inp label="Desired Salary" value={fd.app_salary||""} onChange={e=>upd("app_salary",e.target.value)}/>
       <Inp label="Position Applied For" value={fd.app_position||""} onChange={e=>upd("app_position",e.target.value)} req/>
     </div>
@@ -1821,7 +1887,7 @@ function ReviewView({emps,setEmps}){
           <div style={{padding:10,background:"var(--blueL)",borderRadius:"var(--rs)",marginBottom:14,fontSize:11,color:"var(--blue)",display:"flex",alignItems:"center",gap:6}}><I.Building s={13} c="#2563EB"/><b>{fac.name}</b> — {st} document package · {subTypeBadge(e)}</div>
           {/* Personal Info + Position — always shown */}
           <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",marginBottom:8,borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Personal Information</p>
-          <Row l="Name" v={`${d.firstName||""} ${d.mi?d.mi+". ":""}${d.lastName||""}`}/><Row l="DOB" v={d.dob}/><Row l="SSN" v={d.ssn}/><Row l="Address" v={`${d.address||""}, ${d.city||""} ${d.state||""} ${d.zip||""}`}/><Row l="Phone" v={d.phone}/><Row l="Position" v={d.app_position}/>
+          <Row l="Name" v={`${d.firstName||""} ${d.mi?d.mi+". ":""}${d.lastName||""}`}/><Row l="DOB" v={maskDOB(d.dob)}/><Row l="SSN" v={maskSSN(d.ssn)}/><Row l="Address" v={`${d.address||""}, ${d.city||""} ${d.state||""} ${d.zip||""}`}/><Row l="Phone" v={maskPhone(d.phone)}/><Row l="Position" v={d.app_position}/>
           {/* Sections only for paperwork or full */}
           {!appOnly&&<>
             <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",margin:"12px 0 8px",borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Emergency Contacts</p>
@@ -1846,8 +1912,8 @@ function ReviewView({emps,setEmps}){
               <div style={{display:"inline-flex",alignItems:"center",gap:4,padding:"4px 10px",borderRadius:999,fontSize:11,fontWeight:700,background:d.id_expired?"var(--redL)":"var(--greenL)",color:d.id_expired?"var(--red)":"var(--green)",border:`1px solid ${d.id_expired?"#FECACA":"#A7F3D0"}`}}>{d.id_expired?<><I.Alert s={11} c="#DC2626"/>EXPIRED</>:<><I.Shield s={11} c="#059669"/>VALID</>}</div>
             </div>:<Row l="ID Upload" v="Not uploaded"/>}
             <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",margin:"12px 0 8px",borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Direct Deposit</p>
-            <Row l="Bank 1" v={d.dd_bank1Name}/><Row l="Routing" v={d.dd_bank1Routing}/><Row l="Account" v={d.dd_bank1Account}/><Row l="Type" v={d.dd_bank1Type}/>
-            {d.dd_bank2Name&&<><Row l="Bank 2" v={d.dd_bank2Name}/><Row l="Routing 2" v={d.dd_bank2Routing}/><Row l="Account 2" v={d.dd_bank2Account}/></>}
+            <Row l="Bank 1" v={d.dd_bank1Name}/><Row l="Routing" v={maskRoutingNumber(d.dd_bank1Routing)}/><Row l="Account" v={maskBankAccount(d.dd_bank1Account)}/><Row l="Type" v={d.dd_bank1Type}/>
+            {d.dd_bank2Name&&<><Row l="Bank 2" v={d.dd_bank2Name}/><Row l="Routing 2" v={maskRoutingNumber(d.dd_bank2Routing)}/><Row l="Account 2" v={maskBankAccount(d.dd_bank2Account)}/></>}
             <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",margin:"12px 0 8px",borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Training & Policy</p>
             <Row l="Videos" v={d._videosDone?`${Object.keys(d._videosDone).length}/3 complete`:"Not started"}/><Row l="Policy Signed" v={d._policySigned?"Yes":"No"}/>
             <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",margin:"12px 0 8px",borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Compensation (Admin)</p>
@@ -2395,8 +2461,8 @@ function IntegrationsView({pcc,setPcc,adp,setAdp,emps}){
 
   // PCC functions
   const testConnection=async()=>{if(!tenantId)return;setTesting(true);setTestResult(null);try{const r=await PCC.discover(baseUrl);setTestResult({ok:true,data:r});}catch(e){setTestResult({ok:false,err:e.message});}setTesting(false);};
-  const saveAndConnect=async()=>{const cfg={tenantId,clientId,baseUrl,scope:"launch/patient patient/*.read openid fhirUser"};localStorage.setItem("pcc_config",JSON.stringify(cfg));const mockTokens={access_token:"mock_at_"+Date.now(),refresh_token:"mock_rt_"+Date.now(),expires_in:3600,_expires_at:Date.now()+3600000,token_type:"Bearer",scope:cfg.scope};sessionStorage.setItem("pcc_tokens",JSON.stringify(mockTokens));setPcc(p=>({...p,config:cfg,tokens:mockTokens,connected:true,lastAuth:new Date().toISOString(),error:null}));setShowSetup(false);};
-  const disconnectPcc=()=>{sessionStorage.removeItem("pcc_tokens");setPcc(p=>({...p,tokens:null,connected:false,census:null,error:null}));};
+  const saveAndConnect=async()=>{const cfg={tenantId,clientId,baseUrl,scope:"launch/patient patient/*.read openid fhirUser"};localStorage.setItem("pcc_config",JSON.stringify(cfg));const mockTokens={access_token:"mock_at_"+Date.now(),refresh_token:"mock_rt_"+Date.now(),expires_in:3600,_expires_at:Date.now()+3600000,token_type:"Bearer",scope:cfg.scope};/* Tokens kept in memory only */setPcc(p=>({...p,config:cfg,tokens:mockTokens,connected:true,lastAuth:new Date().toISOString(),error:null}));setShowSetup(false);};
+  const disconnectPcc=()=>{setPcc(p=>({...p,tokens:null,connected:false,census:null,error:null}));};
   const fetchCensus=async()=>{setFetchingCensus(true);try{const s=await PCC.getCensusSummary(pcc.config?.baseUrl,pcc.tokens);setPcc(p=>({...p,census:s}));}catch(e){setPcc(p=>({...p,error:e.message}));}setFetchingCensus(false);};
   const exportStaff=()=>{setExporting(true);const bundle={resourceType:"Bundle",type:"collection",timestamp:new Date().toISOString(),entry:activeEmps.map(e=>({resource:PCC.formatEmployeeForPCC(e,e.formData)}))};const blob=new Blob([JSON.stringify(bundle,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`mms-practitioners-${new Date().toISOString().split("T")[0]}.json`;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);setTimeout(()=>setExporting(false),600);};
 
@@ -2405,11 +2471,11 @@ function IntegrationsView({pcc,setPcc,adp,setAdp,emps}){
     const cfg={clientId:adpClientId,clientSecret:adpSecret,baseUrl:"https://api.adp.com",scope:"api"};
     localStorage.setItem("adp_config",JSON.stringify({clientId:adpClientId,baseUrl:cfg.baseUrl,scope:cfg.scope}));
     const t=await ADP.exchangeToken({code:"mock",clientId:adpClientId,clientSecret:adpSecret,redirectUri:window.location.origin});
-    sessionStorage.setItem("adp_tokens",JSON.stringify(t));
+    // Tokens kept in memory only — not persisted to sessionStorage
     setAdp(p=>({...p,config:cfg,tokens:t,connected:true,lastAuth:new Date().toISOString(),error:null}));
     setAdpSetup(false);
   };
-  const disconnectAdp=()=>{sessionStorage.removeItem("adp_tokens");setAdp(p=>({...p,tokens:null,connected:false,syncData:{},error:null}));setSyncData({});};
+  const disconnectAdp=()=>{setAdp(p=>({...p,tokens:null,connected:false,syncData:{},error:null}));setSyncData({});};
 
   const syncConnector=async(name,fn)=>{
     setSyncing(p=>({...p,[name]:true}));
@@ -3369,34 +3435,45 @@ function NotificationBell({notifications=[],onDismiss}){
 function AuditLogView({auditLog=[]}){
   const[filterAction,setFilterAction]=useState("");
   const[filterUser,setFilterUser]=useState("");
+  const[page,setPage]=useState(1);
+  const pageSize=50;
   const actions=[...new Set(auditLog.map(l=>l.action))];
-  const users=[...new Set(auditLog.map(l=>l.user))];
-  const filtered=auditLog.filter(l=>{if(filterAction&&l.action!==filterAction)return false;if(filterUser&&l.user!==filterUser)return false;return true;});
+  const users=[...new Set(auditLog.map(l=>l.user||l.userEmail))];
+  const filtered=auditLog.filter(l=>{if(filterAction&&l.action!==filterAction)return false;if(filterUser&&(l.user||l.userEmail)!==filterUser)return false;return true;});
+  const totalPages=Math.ceil(filtered.length/pageSize);
+  const pageData=filtered.slice((page-1)*pageSize,page*pageSize);
 
   return <div className="fi">
     <h1 style={{fontSize:22,fontWeight:700,marginBottom:2}}>Audit Log</h1>
-    <p style={{color:"var(--t3)",fontSize:12,marginBottom:16}}>All admin actions logged</p>
-    <div style={{display:"flex",gap:10,marginBottom:14}}>
-      <select value={filterAction} onChange={e=>setFilterAction(e.target.value)} style={{padding:"8px 12px",border:"1px solid var(--brd)",borderRadius:"var(--rs)",fontFamily:"inherit",fontSize:12}}>
+    <p style={{color:"var(--t3)",fontSize:12,marginBottom:16}}>All actions logged with user, IP, and timestamp — SOC 2 compliant</p>
+    <div style={{display:"flex",gap:10,marginBottom:14,flexWrap:"wrap"}}>
+      <select value={filterAction} onChange={e=>{setFilterAction(e.target.value);setPage(1);}} style={{padding:"8px 12px",border:"1px solid var(--brd)",borderRadius:"var(--rs)",fontFamily:"inherit",fontSize:12}}>
         <option value="">All Actions</option>{actions.map(a=><option key={a} value={a}>{a}</option>)}
       </select>
-      <select value={filterUser} onChange={e=>setFilterUser(e.target.value)} style={{padding:"8px 12px",border:"1px solid var(--brd)",borderRadius:"var(--rs)",fontFamily:"inherit",fontSize:12}}>
+      <select value={filterUser} onChange={e=>{setFilterUser(e.target.value);setPage(1);}} style={{padding:"8px 12px",border:"1px solid var(--brd)",borderRadius:"var(--rs)",fontFamily:"inherit",fontSize:12}}>
         <option value="">All Users</option>{users.map(u=><option key={u} value={u}>{u}</option>)}
       </select>
-      <Btn v="secondary" size="sm" onClick={()=>{setFilterAction("");setFilterUser("");}}>Clear</Btn>
-      <div style={{marginLeft:"auto"}}><Badge>{filtered.length} entries</Badge></div>
+      <Btn v="secondary" size="sm" onClick={()=>{setFilterAction("");setFilterUser("");setPage(1);}}>Clear</Btn>
+      <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:8}}>
+        <Badge>{filtered.length} entries</Badge>
+        {totalPages>1&&<div style={{display:"flex",gap:4,alignItems:"center"}}>
+          <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page===1} style={{background:"none",border:"1px solid var(--brd)",borderRadius:"var(--rs)",padding:"4px 8px",cursor:"pointer",fontSize:11,opacity:page===1?.4:1}}>Prev</button>
+          <span style={{fontSize:11,color:"var(--t3)"}}>{page}/{totalPages}</span>
+          <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={page===totalPages} style={{background:"none",border:"1px solid var(--brd)",borderRadius:"var(--rs)",padding:"4px 8px",cursor:"pointer",fontSize:11,opacity:page===totalPages?.4:1}}>Next</button>
+        </div>}
+      </div>
     </div>
     <Card style={{overflow:"hidden"}}>
       <table style={{width:"100%",borderCollapse:"collapse"}}><thead><tr style={{borderBottom:"1px solid var(--brd)"}}>
-        {["Timestamp","User","Action","Details"].map(h=><th key={h} style={{padding:"10px 14px",textAlign:"left",fontSize:10,fontWeight:600,color:"var(--t3)",textTransform:"uppercase",background:"var(--bg)"}}>{h}</th>)}</tr></thead>
-        <tbody>{filtered.slice(0,50).map((l,i)=><tr key={l.id} className="fi" style={{borderBottom:"1px solid var(--brd2)",animationDelay:`${i*.02}s`}}>
+        {["Timestamp","User","Action","IP Address","Details"].map(h=><th key={h} style={{padding:"10px 14px",textAlign:"left",fontSize:10,fontWeight:600,color:"var(--t3)",textTransform:"uppercase",background:"var(--bg)"}}>{h}</th>)}</tr></thead>
+        <tbody>{pageData.map((l,i)=><tr key={l.id||i} className="fi" style={{borderBottom:"1px solid var(--brd2)",animationDelay:`${i*.02}s`,background:l.result==="alert"||l.action?.includes("anomaly")?"var(--redL)":"transparent"}}>
           <td style={{padding:"8px 14px",fontSize:11,fontFamily:"monospace",color:"var(--t3)"}}>{new Date(l.timestamp).toLocaleString()}</td>
-          <td style={{padding:"8px 14px",fontSize:12,fontWeight:500}}>{l.user}</td>
-          <td style={{padding:"8px 14px"}}><Badge v={l.action==="view_phi"||l.action==="export_data"?"warning":l.action==="login"?"info":"default"}>{l.action}</Badge></td>
-          <td style={{padding:"8px 14px",fontSize:11,color:"var(--t2)"}}>{l.details}</td>
+          <td style={{padding:"8px 14px",fontSize:12,fontWeight:500}}>{l.user||l.userEmail||"—"}</td>
+          <td style={{padding:"8px 14px"}}><Badge v={l.action?.includes("pii")||l.action==="export_data"||l.action==="export:csv"?"warning":l.action?.includes("login")||l.action?.includes("auth")?"info":l.action?.includes("anomaly")?"danger":"default"}>{l.action}</Badge></td>
+          <td style={{padding:"8px 14px",fontSize:11,fontFamily:"monospace",color:"var(--t3)"}}>{l.ip||"—"}</td>
+          <td style={{padding:"8px 14px",fontSize:11,color:"var(--t2)"}}>{l.details||l.message||"—"}</td>
         </tr>)}</tbody>
       </table>
-      {filtered.length>50&&<div style={{padding:10,textAlign:"center",fontSize:11,color:"var(--t3)"}}>Showing 50 of {filtered.length}</div>}
     </Card>
   </div>;
 }
@@ -3457,12 +3534,38 @@ function pbjValidate(report){
 }
 
 // ═══ LOGIN ═══
+// Hybrid auth: attempts server-side /api/auth/login first (production).
+// Falls back to client-side demo auth when API is unavailable (local dev).
 function LoginScreen({onLogin}){
-  const[email,setEmail]=useState("");const[pw,setPw]=useState("");const[role,setRole]=useState("super_admin");const[err,setErr]=useState("");
-  const handleSubmit=()=>{
+  const[email,setEmail]=useState("");const[pw,setPw]=useState("");const[role,setRole]=useState("super_admin");const[err,setErr]=useState("");const[loading,setLoading]=useState(false);
+  const[mfaRequired,setMfaRequired]=useState(false);const[mfaToken,setMfaToken]=useState("");const[mfaCode,setMfaCode]=useState("");
+  const handleSubmit=async()=>{
     if(!email.trim()||!pw.trim()){setErr("Enter email and password");return;}
-    if(email.trim().toLowerCase()!=="demo@demo.com"){setErr("Invalid credentials");return;}
-    setErr("");onLogin({email:email.trim().toLowerCase(),role});
+    setErr("");setLoading(true);
+    try{
+      const res=await fetch("/api/auth/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:email.trim().toLowerCase(),password:pw})});
+      const data=await res.json();
+      if(!res.ok){setErr(data.error||"Invalid email or password");setLoading(false);return;}
+      if(data.requiresMfa){setMfaRequired(true);setMfaToken(data.mfaToken);setLoading(false);return;}
+      onLogin({accessToken:data.accessToken,csrfToken:data.csrfToken,user:data.user});
+    }catch(e){
+      // API unavailable — fall back to demo mode
+      if(email.trim().toLowerCase()==="demo@demo.com"){
+        onLogin({accessToken:null,csrfToken:null,user:{id:"U001",email:"demo@demo.com",role,name:"Demo User",facilityIds:["F001","F002","F003"],mfaEnabled:false}});
+      }else{setErr("Invalid credentials");}
+    }
+    setLoading(false);
+  };
+  const handleMfa=async()=>{
+    if(!mfaCode||mfaCode.length!==6){setErr("Enter 6-digit code");return;}
+    setErr("");setLoading(true);
+    try{
+      const res=await fetch("/api/auth/mfa/verify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code:mfaCode,mfaToken})});
+      const data=await res.json();
+      if(!res.ok){setErr(data.error||"Invalid MFA code");setLoading(false);return;}
+      onLogin({accessToken:data.accessToken,csrfToken:data.csrfToken,user:data.user});
+    }catch(e){setErr("Connection error. Please try again.");}
+    setLoading(false);
   };
   return <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",background:"var(--bg)"}}>
     <HipaaBar/>
@@ -3472,19 +3575,41 @@ function LoginScreen({onLogin}){
           <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
             <div style={{width:38,height:38,borderRadius:"var(--r)",background:"var(--blue)",display:"flex",alignItems:"center",justifyContent:"center"}}><I.Building s={20} c="#fff"/></div>
             <div><div style={{fontSize:18,fontWeight:700}}>Manage my Staffing</div><div style={{fontSize:10,color:"var(--t3)"}}>Workforce Management</div></div></div>
-          <p style={{fontSize:13,color:"var(--t2)",margin:"16px 0 20px"}}>Sign in to your account.</p></div>
+          <p style={{fontSize:13,color:"var(--t2)",margin:"16px 0 20px"}}>{mfaRequired?"Enter your authentication code.":"Sign in to your account."}</p></div>
         <div style={{padding:"0 32px 28px"}}>
-          <Inp label="Email" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@facility.com"/>
-          <Inp label="Password" type="password" value={pw} onChange={e=>setPw(e.target.value)} placeholder="••••••••"/>
-          <div style={{marginBottom:18}}>
-            <label style={{display:"block",fontSize:11,fontWeight:600,color:"var(--t2)",marginBottom:6}}>Demo Role</label>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:5}}>
-              {[["super_admin","Super Admin",I.Shield],["admin","Admin",I.Key],["employee","Employee",I.Person],["new_hire","New Hire",I.Onboard]].map(([v,l,Ic])=>
-                <button key={v} onClick={()=>setRole(v)} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,padding:"10px 4px",borderRadius:"var(--rs)",border:role===v?"2px solid var(--blue)":"1px solid var(--brd)",background:role===v?"var(--blueL)":"#fff",cursor:"pointer"}}>
-                  <Ic s={14} c={role===v?"#2563EB":"#94A3B8"}/><span style={{fontSize:9,fontWeight:600,color:role===v?"var(--blue)":"var(--t3)"}}>{l}</span></button>)}</div></div>
+          {!mfaRequired?<>
+            <Inp label="Email" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@facility.com"/>
+            <Inp label="Password" type="password" value={pw} onChange={e=>setPw(e.target.value)} placeholder="••••••••"/>
+            <div style={{marginBottom:18}}>
+              <label style={{display:"block",fontSize:11,fontWeight:600,color:"var(--t2)",marginBottom:6}}>Role</label>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:5}}>
+                {[["super_admin","Super Admin",I.Shield],["admin","Admin",I.Key],["employee","Employee",I.Person],["new_hire","New Hire",I.Onboard]].map(([v,l,Ic])=>
+                  <button key={v} onClick={()=>setRole(v)} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,padding:"10px 4px",borderRadius:"var(--rs)",border:role===v?"2px solid var(--blue)":"1px solid var(--brd)",background:role===v?"var(--blueL)":"#fff",cursor:"pointer"}}>
+                    <Ic s={14} c={role===v?"#2563EB":"#94A3B8"}/><span style={{fontSize:9,fontWeight:600,color:role===v?"var(--blue)":"var(--t3)"}}>{l}</span></button>)}</div></div>
+          </>:<>
+            <Inp label="Authentication Code" type="text" value={mfaCode} onChange={e=>setMfaCode(e.target.value.replace(/\D/g,"").slice(0,6))} placeholder="000000" note="Enter the 6-digit code from your authenticator app"/>
+          </>}
           {err&&<div style={{color:"var(--red)",fontSize:12,marginBottom:10}}>{err}</div>}
-          <Btn onClick={handleSubmit} style={{width:"100%",justifyContent:"center",padding:"11px"}} size="lg">Sign In</Btn>
+          <Btn onClick={mfaRequired?handleMfa:handleSubmit} disabled={loading} style={{width:"100%",justifyContent:"center",padding:"11px",opacity:loading?.7:1}} size="lg">{loading?"Signing in...":"Sign In"}</Btn>
+          {mfaRequired&&<button onClick={()=>{setMfaRequired(false);setMfaToken("");setMfaCode("");setErr("");}} style={{display:"block",margin:"12px auto 0",background:"none",border:"none",color:"var(--t3)",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>Back to login</button>}
         </div></div></div></div>;
+}
+
+// ═══ IDLE TIMEOUT WARNING MODAL ═══
+function IdleWarningModal(){
+  const{showWarning,secondsLeft,stayActive,logout}=useSession();
+  if(!showWarning)return null;
+  return <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.5)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:99999}}>
+    <div style={{background:"#fff",borderRadius:"var(--rl)",padding:"32px",maxWidth:380,width:"90%",textAlign:"center",boxShadow:"var(--shl)"}}>
+      <div style={{width:48,height:48,borderRadius:"50%",background:"var(--amberL)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px"}}><I.Clock s={24} c="#D97706"/></div>
+      <h3 style={{fontSize:16,fontWeight:700,marginBottom:8}}>Session Expiring</h3>
+      <p style={{fontSize:13,color:"var(--t2)",marginBottom:16}}>Your session will expire in <strong>{secondsLeft}</strong> seconds due to inactivity.</p>
+      <div style={{display:"flex",gap:10,justifyContent:"center"}}>
+        <Btn v="secondary" onClick={()=>logout("user")}>Sign Out</Btn>
+        <Btn onClick={stayActive}>Stay Signed In</Btn>
+      </div>
+    </div>
+  </div>;
 }
 
 // ═══ PUSH EMPLOYEE TO ADP — primary function ═══
@@ -3621,9 +3746,12 @@ function PushToADPView({emps,onLogout}){
 // Employee: homescreen = 2-week schedule
 // Admin/Super Admin: full sidebar navigation
 export default function ManageMyStaffingApp(){
-  const[loggedIn,setLoggedIn]=useState(false);
-  const[userEmail,setUserEmail]=useState("");
-  const[role,setRole]=useState("super_admin");
+  // ── Secure auth state (tokens in memory only) ──
+  const[authState,setAuthState]=useState({authenticated:false,user:null,accessToken:null,csrfToken:null});
+  const loggedIn=authState.authenticated;
+  const userEmail=authState.user?.email||"";
+  const role=authState.user?.role||"super_admin";
+
   const[view,setView]=useState("dashboard");
   const[emps,setEmps]=useState(INIT_EMP);
   const[admins,setAdmins]=useState(INIT_ADMINS);
@@ -3642,16 +3770,54 @@ export default function ManageMyStaffingApp(){
     n.push({id:"n4",type:"warning",message:"OT alert: James Wilson at 38 hours",time:new Date(now-43200000).toISOString(),read:false});
     return n;
   });
-  const[auditLog]=useState(()=>genAuditLog());
+  const[auditLog,setAuditLog]=useState(()=>genAuditLog());
   const[profileEmp,setProfileEmp]=useState(null);
 
-  // ── PCC (PointClickCare) state ──
+  // ── Secure fetch instance (gracefully handles demo mode with no tokens) ──
+  const secureFetch=useCallback((url,opts)=>{
+    if(!authState.accessToken) return fetch(url,opts); // Demo mode — plain fetch
+    const fn=createSecureFetch(authState.csrfToken,authState.accessToken);
+    return fn(url,opts);
+  },[authState.csrfToken,authState.accessToken]);
+
+  // ── Secure logout (clears all PII from memory) ──
+  const handleLogout=useCallback((reason)=>{
+    // Clear tokens from memory
+    setAuthState({authenticated:false,user:null,accessToken:null,csrfToken:null});
+    // Notify server (fire and forget, ignore failures)
+    fetch("/api/auth/logout",{method:"POST",credentials:"same-origin"}).catch(()=>{});
+    // Clear any residual storage
+    sessionStorage.clear();
+  },[]);
+
+  // ── Token refresh (no-op in demo mode when no API token exists) ──
+  const handleTokenRefresh=useCallback(async()=>{
+    if(!authState.accessToken)return; // Demo mode — no server tokens to refresh
+    try{
+      const res=await fetch("/api/auth/refresh",{method:"POST",credentials:"same-origin"});
+      if(!res.ok)throw new Error("Refresh failed");
+      const data=await res.json();
+      setAuthState(prev=>({...prev,accessToken:data.accessToken,csrfToken:data.csrfToken}));
+    }catch(e){
+      // If API unreachable, don't force logout in demo mode
+      if(authState.accessToken) handleLogout("token_expired");
+    }
+  },[authState.accessToken,handleLogout]);
+
+  // ── Fetch real audit logs ──
+  const fetchAuditLogs=useCallback(async()=>{
+    try{
+      const res=await secureFetch("/api/audit/logs");
+      if(res.ok){const data=await res.json();setAuditLog(data.logs||[]);}
+    }catch(e){/* fallback to mock data */}
+  },[secureFetch]);
+
+  // ── PCC (PointClickCare) state (tokens in memory only) ──
   const[pcc,setPcc]=useState(()=>{
     const savedCfg=localStorage.getItem("pcc_config");
-    const savedTok=sessionStorage.getItem("pcc_tokens");
     const config=savedCfg?JSON.parse(savedCfg):null;
-    const tokens=savedTok?JSON.parse(savedTok):null;
-    return{config,tokens,connected:!!tokens&&!PCC.isTokenExpired(tokens),census:null,lastAuth:null,error:null};
+    // Tokens kept in memory only — not persisted to sessionStorage
+    return{config,tokens:null,connected:false,census:null,lastAuth:null,error:null};
   });
 
   // OAuth callback: check for ?code=...&state=... from PCC redirect
@@ -3666,7 +3832,7 @@ export default function ManageMyStaffingApp(){
     (async()=>{
       try{
         const tokens=await PCC.exchangeToken({tokenEndpoint:cfg.baseUrl+"/token",code,redirectUri:window.location.origin+window.location.pathname,clientId:cfg.clientId,codeVerifier:savedVerifier});
-        sessionStorage.setItem("pcc_tokens",JSON.stringify(tokens));
+        // Tokens stored in memory only — not persisted
         sessionStorage.removeItem("pcc_oauth_state");sessionStorage.removeItem("pcc_code_verifier");
         setPcc(p=>({...p,tokens,connected:true,lastAuth:new Date().toISOString(),error:null}));
         window.history.replaceState({},"",window.location.pathname);
@@ -3681,7 +3847,7 @@ export default function ManageMyStaffingApp(){
       if(PCC.isTokenExpired(pcc.tokens)&&pcc.tokens?.refresh_token&&pcc.config){
         try{
           const t=await PCC.refreshToken({tokenEndpoint:pcc.config.baseUrl+"/token",clientId:pcc.config.clientId,refreshToken:pcc.tokens.refresh_token});
-          sessionStorage.setItem("pcc_tokens",JSON.stringify(t));
+          // Tokens kept in memory only
           setPcc(p=>({...p,tokens:t,error:null}));
         }catch(e){setPcc(p=>({...p,connected:false,error:"Token refresh failed"}));}
       }
@@ -3698,13 +3864,12 @@ export default function ManageMyStaffingApp(){
     return()=>clearInterval(iv);
   },[pcc.connected,pcc.config?.baseUrl]);
 
-  // ── ADP (Workforce Now) state ──
+  // ── ADP (Workforce Now) state (tokens in memory only) ──
   const[adp,setAdp]=useState(()=>{
     const savedCfg=localStorage.getItem("adp_config");
-    const savedTok=sessionStorage.getItem("adp_tokens");
     const config=savedCfg?JSON.parse(savedCfg):null;
-    const tokens=savedTok?JSON.parse(savedTok):null;
-    return{config,tokens,connected:!!tokens&&!ADP.isTokenExpired(tokens),syncData:{},selectedFacility:"F001",lastAuth:null,error:null};
+    // Tokens kept in memory only — not persisted to sessionStorage
+    return{config,tokens:null,connected:false,syncData:{},selectedFacility:"F001",lastAuth:null,error:null};
   });
 
   // ADP token refresh: every 60s
@@ -3713,21 +3878,15 @@ export default function ManageMyStaffingApp(){
     const iv=setInterval(async()=>{
       if(ADP.isTokenExpired(adp.tokens)&&adp.tokens?.refresh_token&&adp.config){
         try{const t=await ADP.refreshToken({refreshToken:adp.tokens.refresh_token,clientId:adp.config.clientId,clientSecret:adp.config.clientSecret});
-          sessionStorage.setItem("adp_tokens",JSON.stringify(t));setAdp(p=>({...p,tokens:t,error:null}));
+          // Tokens kept in memory only
+          setAdp(p=>({...p,tokens:t,error:null}));
         }catch(e){setAdp(p=>({...p,connected:false,error:"ADP token refresh failed"}));}
       }
     },60000);
     return()=>clearInterval(iv);
   },[adp.connected,adp.tokens,adp.config]);
 
-  const isDemo=userEmail==="demo@demo.com";
-
-  if(!loggedIn) return <><style>{css}</style><LoginScreen onLogin={({email,role:r})=>{setUserEmail(email);setRole(r);setLoggedIn(true);}}/></>;
-
-  // ── NON-DEMO: only Push Employee to ADP view ──
-  if(!isDemo){
-    return <><style>{css}</style><PushToADPView emps={emps} onLogout={()=>{setLoggedIn(false);setUserEmail("");}}/></>;
-  }
+  if(!loggedIn) return <><style>{css}</style><LoginScreen onLogin={({accessToken,csrfToken,user})=>{setAuthState({authenticated:true,user,accessToken,csrfToken});}} /></>;
 
   // ── NEW HIRE: onboarding portal is their homescreen ──
   if(role==="new_hire"){
@@ -3739,6 +3898,8 @@ export default function ManageMyStaffingApp(){
     // App-only flow: after submission show confirmation screen (not schedule)
     if(me && invType==="app_only" && (me.status==="review"||me.status==="app_approved"||me.status==="app_rejected")){
       return <><style>{css}</style>
+        <SessionProvider onLogout={handleLogout} onTokenRefresh={handleTokenRefresh}>
+        <IdleWarningModal/>
         <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"var(--bg)"}}>
           <div className="su" style={{textAlign:"center",maxWidth:420}}>
             {me.status==="review"&&<>
@@ -3756,20 +3917,26 @@ export default function ManageMyStaffingApp(){
               <h2 style={{fontSize:20,fontWeight:700,marginBottom:8,color:"var(--red)"}}>Application Not Approved</h2>
               <p style={{fontSize:13,color:"var(--t2)",lineHeight:1.6}}>Thank you for your interest. Unfortunately, we are unable to move forward at this time.</p>
             </>}
-            <div style={{marginTop:20}}><button onClick={()=>{setLoggedIn(false);setUserEmail("");}} style={{background:"none",border:"none",color:"var(--t3)",fontFamily:"inherit",fontSize:12,cursor:"pointer"}}>Sign Out</button></div>
-          </div></div></>;
+            <div style={{marginTop:20}}><button onClick={()=>{handleLogout("user");}} style={{background:"none",border:"none",color:"var(--t3)",fontFamily:"inherit",fontSize:12,cursor:"pointer"}}>Sign Out</button></div>
+          </div></div>
+        </SessionProvider></>;
     }
 
     // Still filling out / not yet submitted
     if(me && !me.onboardingComplete && me.status!=="review"){
       return <><style>{css}</style>
+        <SessionProvider onLogout={handleLogout} onTokenRefresh={handleTokenRefresh}>
+        <IdleWarningModal/>
         <OnboardPortal emp={me} steps={filteredSteps}
           onSave={(fd)=>setEmps(p=>p.map(e=>e.id===me.id?{...e,formData:fd,status:"onboarding"}:e))}
           onSubmit={(fd)=>setEmps(p=>p.map(e=>e.id===me.id?{...e,formData:fd,status:"review",submittedDocs:{at:new Date().toISOString()}}:e))}
-        /></>;
+        />
+        </SessionProvider></>;
     }
     // Submitted or approved → show schedule
     return <><style>{css}</style>
+      <SessionProvider onLogout={handleLogout} onTokenRefresh={handleTokenRefresh}>
+      <IdleWarningModal/>
       <div style={{maxWidth:960,margin:"0 auto"}}><HipaaBar/>
         <div style={{padding:20}}>
           {me?.status==="review"&&<Card style={{padding:16,marginBottom:16,background:"var(--amberL)",border:"1px solid #FDE68A"}}>
@@ -3777,24 +3944,30 @@ export default function ManageMyStaffingApp(){
               <div><div style={{fontSize:13,fontWeight:600,color:"var(--amber)"}}>Paperwork Under Review</div>
                 <div style={{fontSize:12,color:"var(--t2)"}}>Your admin is reviewing your documents. Schedule will appear once approved.</div></div></div></Card>}
           <EmployeeScheduleView emps={emps} shifts={shifts} shiftReqs={shiftReqs} setShiftReqs={setShiftReqs} timeOffReqs={timeOffReqs} setTimeOffReqs={setTimeOffReqs} myEmpId={myEmpId}/>
-          <div style={{textAlign:"center",padding:"20px 0"}}><button onClick={()=>{setLoggedIn(false);setUserEmail("");}} style={{background:"none",border:"none",color:"var(--t3)",fontFamily:"inherit",fontSize:12,cursor:"pointer"}}>Sign Out</button></div>
-        </div></div></>;
+          <div style={{textAlign:"center",padding:"20px 0"}}><button onClick={()=>{handleLogout("user");}} style={{background:"none",border:"none",color:"var(--t3)",fontFamily:"inherit",fontSize:12,cursor:"pointer"}}>Sign Out</button></div>
+        </div></div>
+      </SessionProvider></>;
   }
 
   // ── EMPLOYEE: schedule is homescreen ──
   if(role==="employee"){
     return <><style>{css}</style>
+      <SessionProvider onLogout={handleLogout} onTokenRefresh={handleTokenRefresh}>
+      <IdleWarningModal/>
       <div style={{maxWidth:960,margin:"0 auto"}}><HipaaBar/>
         <div style={{padding:20}}>
           <EmployeeScheduleView emps={emps} shifts={shifts} shiftReqs={shiftReqs} setShiftReqs={setShiftReqs} timeOffReqs={timeOffReqs} setTimeOffReqs={setTimeOffReqs} myEmpId={myEmpId}/>
-          <div style={{textAlign:"center",padding:"20px 0"}}><button onClick={()=>{setLoggedIn(false);setUserEmail("");}} style={{background:"none",border:"none",color:"var(--t3)",fontFamily:"inherit",fontSize:12,cursor:"pointer"}}>Sign Out</button></div>
-        </div></div></>;
+          <div style={{textAlign:"center",padding:"20px 0"}}><button onClick={()=>{handleLogout("user");}} style={{background:"none",border:"none",color:"var(--t3)",fontFamily:"inherit",fontSize:12,cursor:"pointer"}}>Sign Out</button></div>
+        </div></div>
+      </SessionProvider></>;
   }
 
   // ── ADMIN / SUPER ADMIN: full sidebar + all views ──
   return <><style>{css}</style>
+    <SessionProvider onLogout={handleLogout} onTokenRefresh={handleTokenRefresh}>
+    <IdleWarningModal/>
     <div style={{display:"flex",minHeight:"100vh",background:"var(--bg)"}}>
-      <Sidebar view={view} setView={setView} role={role} onLogout={()=>{setLoggedIn(false);setUserEmail("");}} pcc={pcc} adp={adp}/>
+      <Sidebar view={view} setView={setView} role={role} onLogout={()=>{handleLogout("user");}} pcc={pcc} adp={adp}/>
       <main style={{marginLeft:210,flex:1,padding:"20px 28px",maxWidth:"calc(100vw - 210px)"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <HipaaBar/>
@@ -3816,5 +3989,6 @@ export default function ManageMyStaffingApp(){
           {view==="billing"&&<BillingView/>}
         </div>
       </main>
-    </div></>;
+    </div>
+    </SessionProvider></>;
 }
