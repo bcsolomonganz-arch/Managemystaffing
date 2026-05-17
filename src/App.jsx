@@ -398,6 +398,70 @@ function downloadCSV(csvString, filename) {
   URL.revokeObjectURL(url);
 }
 
+// ═══ CSV EXPORT FOR ADP WORKFORCENOW ═══
+function generateADPCSV(emp, formData, rate, facility) {
+  const d = formData || {};
+  const esc = (v) => { const s = String(v ?? ""); return s.includes(",") || s.includes('"') || s.includes("\n") ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  const headers = ["Company Code","File Number","First Name","Middle Name","Last Name","SSN","DOB","Gender","Marital Status","Address Line 1","Address Line 2","City","State","ZIP","Phone","Email","Hire Date","Job Title","Department","Pay Rate","Pay Frequency","W4 Filing Status","W4 Extra Withholding","Federal Exemptions","Bank Name","Routing Number","Account Number","Account Type","Deposit Amount","Emergency Contact Name","Emergency Contact Phone","Emergency Contact Relationship"];
+  const row = [
+    facility?.code || "", emp.id, d.firstName || "", d.mi || "", d.lastName || "",
+    d.ssn || "", d.dob || "", d.nh_gender || "", d.nh_marital || "",
+    d.address || "", d.apt || "", d.city || "", d.state || "", d.zip || "",
+    d.phone || "", emp.email || "",
+    d.nh_hireDate || new Date().toISOString().split("T")[0],
+    d.nh_title || d.app_position || emp.role || "", d.nh_dept || emp.role || "",
+    rate, "Hourly",
+    d.w4_filingStatus || "", d.w4_extraWithholding || "", d.w4_multipleJobs || "",
+    d.dd_bank1Name || "", d.dd_bank1Routing || "", d.dd_bank1Account || "", d.dd_bank1Type || "", d.dd_bank1Amount || "",
+    d.ec1_name || "", d.ec1_phone || "", d.ec1_relation || ""
+  ];
+  return headers.map(esc).join(",") + "\n" + row.map(esc).join(",") + "\n";
+}
+
+// ═══ BULK CSV EXPORT FUNCTIONS ═══
+function generateBulkSmartLinxCSV(employees, rates, getFacilityFn) {
+  const esc = (v) => { const s = String(v ?? ""); return s.includes(",") || s.includes('"') || s.includes("\n") ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  const headers = ["Employee ID","First Name","MI","Last Name","SSN","DOB","Address","City","State","ZIP","Phone","Email","Position/Title","Department","Hire Date","Employment Status","Hourly Rate","Filing Status","Emergency Contact 1 Name","Emergency Contact 1 Phone","Bank Name","Routing Number","Account Number","Account Type","Facility Name","Facility State"];
+  const rows = employees.map(emp => {
+    const d = emp.formData || {};
+    const rate = rates[emp.id];
+    const fac = getFacilityFn(emp.facilityId);
+    return [
+      emp.id, d.firstName, d.mi || "", d.lastName, d.ssn, d.dob,
+      d.address, d.city, d.state, d.zip, d.phone || "", emp.email,
+      d.app_position || emp.role, emp.role, new Date().toISOString().split("T")[0],
+      "Active", rate, d.w4_filingStatus || "",
+      d.ec1_name || "", d.ec1_phone || "",
+      d.dd_bank1Name || "", d.dd_bank1Routing || "", d.dd_bank1Account || "", d.dd_bank1Type || "",
+      fac.name, fac.state
+    ].map(esc).join(",");
+  });
+  return headers.map(esc).join(",") + "\n" + rows.join("\n") + "\n";
+}
+
+function generateBulkADPCSV(employees, rates, getFacilityFn) {
+  const esc = (v) => { const s = String(v ?? ""); return s.includes(",") || s.includes('"') || s.includes("\n") ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  const headers = ["Company Code","File Number","First Name","Middle Name","Last Name","SSN","DOB","Gender","Marital Status","Address Line 1","Address Line 2","City","State","ZIP","Phone","Email","Hire Date","Job Title","Department","Pay Rate","Pay Frequency","W4 Filing Status","W4 Extra Withholding","Federal Exemptions","Bank Name","Routing Number","Account Number","Account Type","Deposit Amount","Emergency Contact Name","Emergency Contact Phone","Emergency Contact Relationship"];
+  const rows = employees.map(emp => {
+    const d = emp.formData || {};
+    const rate = rates[emp.id];
+    const fac = getFacilityFn(emp.facilityId);
+    return [
+      fac?.code || "", emp.id, d.firstName || "", d.mi || "", d.lastName || "",
+      d.ssn || "", d.dob || "", d.nh_gender || "", d.nh_marital || "",
+      d.address || "", d.apt || "", d.city || "", d.state || "", d.zip || "",
+      d.phone || "", emp.email || "",
+      d.nh_hireDate || new Date().toISOString().split("T")[0],
+      d.nh_title || d.app_position || emp.role || "", d.nh_dept || emp.role || "",
+      rate, "Hourly",
+      d.w4_filingStatus || "", d.w4_extraWithholding || "", d.w4_multipleJobs || "",
+      d.dd_bank1Name || "", d.dd_bank1Routing || "", d.dd_bank1Account || "", d.dd_bank1Type || "", d.dd_bank1Amount || "",
+      d.ec1_name || "", d.ec1_phone || "", d.ec1_relation || ""
+    ].map(esc).join(",");
+  });
+  return headers.map(esc).join(",") + "\n" + rows.join("\n") + "\n";
+}
+
 function genSched(numDays=14){
   const shifts=[];const types=[
     {n:"Day",s:"7:00a",e:"3:00p",c:"#2563EB"},{n:"Eve",s:"3:00p",e:"11:00p",c:"#7C3AED"},
@@ -597,13 +661,7 @@ function Sel({label,value,onChange,children,required:req}){
 }
 function Spinner({size:sz=20}){return <div style={{width:sz,height:sz,border:"2px solid var(--brd)",
   borderTopColor:"var(--blue)",borderRadius:"50%",animation:"spin .7s linear infinite"}}/>;}
-function HipaaBar(){
-  return <div style={{background:"#FFFBEB",borderBottom:"1px solid #FDE68A",padding:"5px 20px",
-    display:"flex",alignItems:"center",gap:8,fontSize:11,color:"var(--amber)"}}>
-    <I.Shield s={12} c="#D97706"/><span style={{fontWeight:600}}>HIPAA Protected</span>
-    <span style={{color:"var(--t3)"}}>— Encrypted in transit & at rest · Auto-lock 15 min</span>
-  </div>;
-}
+function HipaaBar(){return null;}
 
 // ═══ SVG CHART COMPONENTS ═══
 function MiniLine({data=[],w=300,h=120,color="var(--blue)",area=false,dots=true,threshold=null,xLabels=[],yLabel=""}){
@@ -810,7 +868,7 @@ function OnboardPortal({emp,onSave,onSubmit,steps}){
 
   const upd=(k,v)=>setFd(p=>({...p,[k]:v}));
   const Sec=({t})=><p style={{fontSize:13,fontWeight:700,margin:"8px 0 10px",color:"var(--t2)",borderBottom:"1px solid var(--brd2)",paddingBottom:4}}>{t}</p>;
-  const PII=()=><div style={{fontSize:10,color:"var(--amber)",display:"flex",alignItems:"center",gap:4,padding:"5px 8px",background:"#FFFBEB",borderRadius:4,border:"1px solid #FDE68A",marginBottom:14}}><I.Lock s={10} c="#D97706"/>PHI/PII — encrypted per HIPAA §164.312</div>;
+  const PII=()=>null;
 
   const doSave=useCallback(()=>{
     const full={...fd,_videosDone:vids,_policySigned:signed};
@@ -1677,13 +1735,12 @@ function ReviewView({emps,setEmps}){
   const hasRate=(id)=>!!(rates[id]&&rates[id].trim());
   const isAppOnlyEmp=(e)=>e.inviteType==="app_only";
 
-  const upload=async(id)=>{if(!hasRate(id))return;setSyncing(id);
+  const upload=(id)=>{if(!hasRate(id))return;setSyncing(id);
     const emp=emps.find(x=>x.id===id);const d=emp?.formData||{};const rate=rates[id];const fac=getFacility(emp.facilityId);
     const csv=generateSmartLinxCSV(emp,d,rate,fac);
     const fname=`SmartLinx_${(d.firstName||"").replace(/\s/g,"_")}_${(d.lastName||"").replace(/\s/g,"_")}_${new Date().toISOString().split("T")[0]}.csv`;
     downloadCSV(csv,fname);
-    const r=await SLX.syncEmployee({emp,formData:d,rate,facility:fac});
-    setEmps(p=>p.map(e=>e.id===id?{...e,status:"active",onboardingComplete:true,smartlinxId:r.id,formData:{...e.formData,admin_hourlyRate:rates[id]}}:e));setSyncing(null);};
+    setEmps(p=>p.map(e=>e.id===id?{...e,status:"active",onboardingComplete:true,formData:{...e.formData,admin_hourlyRate:rates[id]}}:e));setSyncing(null);};
 
   const approveApp=(id)=>{setEmps(p=>p.map(e=>e.id===id?{...e,status:"app_approved",applicationStatus:"approved"}:e));};
   const rejectApp=(id)=>{setEmps(p=>p.map(e=>e.id===id?{...e,status:"app_rejected",applicationStatus:"rejected"}:e));};
@@ -1696,9 +1753,40 @@ function ReviewView({emps,setEmps}){
     return <Badge v="info">Full Bundle</Badge>;
   };
 
+  const exportableEmps = pending.filter(e => !isAppOnlyEmp(e) && hasRate(e.id));
+  const exportableCount = exportableEmps.length;
+
+  const bulkExportSmartLinx = () => {
+    if (exportableCount === 0) return;
+    const csv = generateBulkSmartLinxCSV(exportableEmps, rates, getFacility);
+    downloadCSV(csv, `SmartLinx_BulkExport_${new Date().toISOString().split("T")[0]}.csv`);
+  };
+  const bulkExportADP = () => {
+    if (exportableCount === 0) return;
+    const csv = generateBulkADPCSV(exportableEmps, rates, getFacility);
+    downloadCSV(csv, `ADP_BulkExport_${new Date().toISOString().split("T")[0]}.csv`);
+  };
+
+  const exportADP = (id) => {
+    if (!hasRate(id)) return;
+    const emp = emps.find(x => x.id === id);
+    const d = emp?.formData || {};
+    const rate = rates[id];
+    const fac = getFacility(emp.facilityId);
+    const csv = generateADPCSV(emp, d, rate, fac);
+    const fname = `ADP_${(d.firstName || "").replace(/\s/g, "_")}_${(d.lastName || "").replace(/\s/g, "_")}_${new Date().toISOString().split("T")[0]}.csv`;
+    downloadCSV(csv, fname);
+  };
+
   return <div className="fi">
     <h1 style={{fontSize:22,fontWeight:700,marginBottom:2}}>Document Review</h1>
-    <p style={{color:"var(--t3)",fontSize:12,marginBottom:16}}>Review submitted docs → export to SmartLinx</p>
+    <p style={{color:"var(--t3)",fontSize:12,marginBottom:16}}>Review submitted docs → export for ADP or SmartLinx</p>
+    {pending.length>0&&<div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,padding:"10px 14px",background:"var(--bg2)",borderRadius:"var(--rs)",border:"1px solid var(--brd)"}}>
+      <span style={{fontSize:11,fontWeight:600,color:"var(--t2)"}}>Bulk Export ({exportableCount} ready):</span>
+      <Btn size="sm" v="secondary" icon={<I.Export s={13}/>} onClick={bulkExportADP} disabled={exportableCount===0}>Export All for ADP</Btn>
+      <Btn size="sm" v="secondary" icon={<I.Export s={13}/>} onClick={bulkExportSmartLinx} disabled={exportableCount===0}>Export All for SmartLinx</Btn>
+      {exportableCount===0&&<span style={{fontSize:10,color:"var(--t3)",fontStyle:"italic"}}>Set rates on employees to enable bulk export</span>}
+    </div>}
     {pending.length===0?<Card style={{padding:40,textAlign:"center"}}><I.Inbox s={36} c="#CBD5E1"/><p style={{marginTop:10,color:"var(--t3)",fontSize:13}}>No documents awaiting review</p></Card>
     :pending.map((e,i)=>{const appOnly=isAppOnlyEmp(e);return <Card key={e.id} className="fi" style={{padding:18,marginBottom:10,borderLeft:`4px solid ${appOnly?"var(--purple)":hasRate(e.id)?"var(--green)":"var(--amber)"}`,animationDelay:`${i*.07}s`}}>
       <div style={{display:"flex",alignItems:"center",gap:12}}>
@@ -1715,19 +1803,21 @@ function ReviewView({emps,setEmps}){
               <input type="text" value={rates[e.id]||""} onChange={ev=>setRates(p=>({...p,[e.id]:ev.target.value}))} placeholder="0.00" style={{width:72,padding:"6px 8px",border:`1px solid ${hasRate(e.id)?"var(--green)":"var(--red)"}`,borderRadius:"var(--rs)",fontSize:12,fontFamily:"inherit",fontWeight:600,textAlign:"right"}}/>
             </div>
             <Btn size="sm" v="secondary" icon={<I.Eye s={13}/>} onClick={()=>setViewDoc(e.id)}>Review</Btn>
-            <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:2}}>
-              <Btn size="sm" icon={syncing===e.id?<Spinner size={12}/>:<I.Upload s={13} c="#fff"/>} onClick={()=>upload(e.id)} disabled={syncing===e.id||!hasRate(e.id)}>{syncing===e.id?"Exporting…":"Export to SmartLinx"}</Btn>
-              <span style={{fontSize:9,color:"var(--t3)"}}>Downloads CSV for SmartLinx import</span>
+            <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:4}}>
+              <div style={{display:"flex",gap:4}}>
+                <Btn size="sm" v="secondary" icon={<I.Export s={13}/>} onClick={()=>exportADP(e.id)} disabled={!hasRate(e.id)}>Export for ADP</Btn>
+                <Btn size="sm" icon={syncing===e.id?<Spinner size={12}/>:<I.Upload s={13} c="#fff"/>} onClick={()=>upload(e.id)} disabled={syncing===e.id||!hasRate(e.id)}>{syncing===e.id?"Exporting…":"Export to SmartLinx"}</Btn>
+              </div>
+              <span style={{fontSize:9,color:"var(--t3)"}}>Downloads CSV for payroll import</span>
             </div>
           </>}
         </div>
       </div>
-      {!appOnly&&!hasRate(e.id)&&<div style={{display:"flex",alignItems:"center",gap:6,marginTop:10,padding:"8px 12px",background:"var(--redL)",borderRadius:"var(--rs)",border:"1px solid #FECACA",fontSize:11,color:"var(--red)"}}><I.Alert s={13} c="#DC2626"/>Enter hourly rate before exporting to SmartLinx</div>}
+      {!appOnly&&!hasRate(e.id)&&<div style={{display:"flex",alignItems:"center",gap:6,marginTop:10,padding:"8px 12px",background:"var(--redL)",borderRadius:"var(--rs)",border:"1px solid #FECACA",fontSize:11,color:"var(--red)"}}><I.Alert s={13} c="#DC2626"/>Enter hourly rate before exporting</div>}
     </Card>;})}
     <Modal open={!!viewDoc} onClose={()=>setViewDoc(null)} title="Review Documents" width={640}>
       {viewDoc&&(()=>{const e=emps.find(x=>x.id===viewDoc);if(!e?.formData)return null;const d=e.formData;const fac=getFacility(e.facilityId);const st=fac.state;const appOnly=isAppOnlyEmp(e);const isPaperwork=e.inviteType==="paperwork";
         return <div>
-          <div style={{fontSize:10,color:"var(--amber)",display:"flex",alignItems:"center",gap:4,padding:"5px 8px",background:"#FFFBEB",borderRadius:4,border:"1px solid #FDE68A",marginBottom:14}}><I.Lock s={10} c="#D97706"/>PHI/PII — Authorized access logged per HIPAA §164.312(b)</div>
           <div style={{padding:10,background:"var(--blueL)",borderRadius:"var(--rs)",marginBottom:14,fontSize:11,color:"var(--blue)",display:"flex",alignItems:"center",gap:6}}><I.Building s={13} c="#2563EB"/><b>{fac.name}</b> — {st} document package · {subTypeBadge(e)}</div>
           {/* Personal Info + Position — always shown */}
           <p style={{fontSize:12,fontWeight:700,color:"var(--t2)",textTransform:"uppercase",marginBottom:8,borderBottom:"1px solid var(--brd)",paddingBottom:4}}>Personal Information</p>
@@ -1765,15 +1855,17 @@ function ReviewView({emps,setEmps}){
               <label style={{fontSize:12,fontWeight:600,color:"var(--t2)",whiteSpace:"nowrap"}}>Hourly Rate ($)</label>
               <input type="text" value={rates[viewDoc]||""} onChange={ev=>setRates(p=>({...p,[viewDoc]:ev.target.value}))} placeholder="0.00" style={{width:120,padding:"8px 12px",border:`1px solid ${hasRate(viewDoc)?"var(--green)":"var(--red)"}`,borderRadius:"var(--rs)",fontSize:14,fontFamily:"inherit",fontWeight:700,textAlign:"right"}}/>
             </div>
-            {!hasRate(viewDoc)&&<div style={{display:"flex",alignItems:"center",gap:6,padding:"8px 12px",background:"var(--redL)",borderRadius:"var(--rs)",border:"1px solid #FECACA",fontSize:11,color:"var(--red)",marginBottom:8}}><I.Alert s={13} c="#DC2626"/>Hourly rate is required before exporting to SmartLinx</div>}
+            {!hasRate(viewDoc)&&<div style={{display:"flex",alignItems:"center",gap:6,padding:"8px 12px",background:"var(--redL)",borderRadius:"var(--rs)",border:"1px solid #FECACA",fontSize:11,color:"var(--red)",marginBottom:8}}><I.Alert s={13} c="#DC2626"/>Hourly rate is required before exporting</div>}
           </>}
           <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:16}}>
             <Btn v="secondary" onClick={()=>setViewDoc(null)}>Close</Btn>
             {appOnly?<>
               <Btn v="danger" icon={<I.X s={13} c="#DC2626"/>} onClick={()=>{rejectApp(viewDoc);setViewDoc(null);}}>Reject</Btn>
               <Btn v="success" icon={<I.Check s={13} c="#fff"/>} onClick={()=>{approveApp(viewDoc);setViewDoc(null);}}>Approve Application</Btn>
-            </>:
-              <Btn icon={<I.Upload s={13} c="#fff"/>} disabled={!hasRate(viewDoc)} onClick={()=>{upload(viewDoc);setViewDoc(null);}}>Approve & Export to SmartLinx</Btn>}
+            </>:<>
+              <Btn v="secondary" icon={<I.Export s={13}/>} disabled={!hasRate(viewDoc)} onClick={()=>{exportADP(viewDoc);}}>Export for ADP</Btn>
+              <Btn icon={<I.Upload s={13} c="#fff"/>} disabled={!hasRate(viewDoc)} onClick={()=>{upload(viewDoc);setViewDoc(null);}}>Approve & Export to SmartLinx</Btn>
+            </>}
           </div>
         </div>;})()}
     </Modal></div>;
@@ -2565,9 +2657,6 @@ function IntegrationsView({pcc,setPcc,adp,setAdp,emps}){
         {testResult&&<div style={{marginBottom:14,padding:"10px 14px",borderRadius:"var(--rs)",fontSize:12,background:testResult.ok?"var(--greenL)":"var(--redL)",color:testResult.ok?"var(--green)":"var(--red)",border:`1px solid ${testResult.ok?"#A7F3D0":"#FECACA"}`}}>
           {testResult.ok?"SMART configuration discovered. Endpoints found.":"Connection failed: "+testResult.err}
         </div>}
-        <div style={{padding:"10px 14px",background:"#FFFBEB",border:"1px solid #FDE68A",borderRadius:"var(--rs)",fontSize:10,color:"var(--amber)",marginBottom:16,display:"flex",alignItems:"center",gap:6}}>
-          <I.Shield s={12} c="#D97706"/>HIPAA: Tokens in sessionStorage only.
-        </div>
         <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
           <Btn v="secondary" onClick={testConnection} disabled={!tenantId||testing}>{testing?"Testing...":"Test Connection"}</Btn>
           <Btn onClick={saveAndConnect} disabled={!tenantId||!clientId}>Save & Connect</Btn>
@@ -2815,7 +2904,7 @@ function BillingView(){
       <Card style={{padding:20}}>
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}><div style={{width:38,height:38,borderRadius:"var(--rs)",background:"var(--blueL)",display:"flex",alignItems:"center",justifyContent:"center"}}><I.Building s={20} c="#2563EB"/></div><div><div style={{fontSize:16,fontWeight:700}}>Manage my Staffing Pro</div><div style={{fontSize:12,color:"var(--t3)"}}>Up to 100 employees</div></div></div>
         <div style={{marginBottom:16}}><span style={{fontSize:32,fontWeight:700}}>$299</span><span style={{color:"var(--t3)"}}>/mo</span></div>
-        {["SmartLinx Integration","Unlimited Onboarding","Shift Management","HIPAA Compliant"].map(f=><div key={f} style={{display:"flex",alignItems:"center",gap:6,fontSize:12,color:"var(--t2)",marginBottom:4}}><I.Check s={12} c="#059669"/>{f}</div>)}
+        {["SmartLinx Integration","Unlimited Onboarding","Shift Management"].map(f=><div key={f} style={{display:"flex",alignItems:"center",gap:6,fontSize:12,color:"var(--t2)",marginBottom:4}}><I.Check s={12} c="#059669"/>{f}</div>)}
       </Card>
       <Card style={{padding:20}}>
         <h3 style={{fontSize:13,fontWeight:700,marginBottom:14}}>Payment</h3>
@@ -3286,7 +3375,7 @@ function AuditLogView({auditLog=[]}){
 
   return <div className="fi">
     <h1 style={{fontSize:22,fontWeight:700,marginBottom:2}}>Audit Log</h1>
-    <p style={{color:"var(--t3)",fontSize:12,marginBottom:16}}>HIPAA compliance audit trail — all admin actions logged</p>
+    <p style={{color:"var(--t3)",fontSize:12,marginBottom:16}}>All admin actions logged</p>
     <div style={{display:"flex",gap:10,marginBottom:14}}>
       <select value={filterAction} onChange={e=>setFilterAction(e.target.value)} style={{padding:"8px 12px",border:"1px solid var(--brd)",borderRadius:"var(--rs)",fontFamily:"inherit",fontSize:12}}>
         <option value="">All Actions</option>{actions.map(a=><option key={a} value={a}>{a}</option>)}
@@ -3382,7 +3471,7 @@ function LoginScreen({onLogin}){
         <div style={{padding:"32px 32px 0"}}>
           <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
             <div style={{width:38,height:38,borderRadius:"var(--r)",background:"var(--blue)",display:"flex",alignItems:"center",justifyContent:"center"}}><I.Building s={20} c="#fff"/></div>
-            <div><div style={{fontSize:18,fontWeight:700}}>Manage my Staffing</div><div style={{fontSize:10,color:"var(--t3)"}}>HIPAA-Compliant Workforce Mgmt</div></div></div>
+            <div><div style={{fontSize:18,fontWeight:700}}>Manage my Staffing</div><div style={{fontSize:10,color:"var(--t3)"}}>Workforce Management</div></div></div>
           <p style={{fontSize:13,color:"var(--t2)",margin:"16px 0 20px"}}>Sign in to your account.</p></div>
         <div style={{padding:"0 32px 28px"}}>
           <Inp label="Email" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@facility.com"/>
